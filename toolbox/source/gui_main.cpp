@@ -14,9 +14,9 @@ GuiMain::GuiMain() : Gui() {
   getCurrOverrideKeyCombo(&m_overrideKeyCombo);
   getOverrideByDefault(&m_overrideByDefault);
 
-  m_editingKey = false;
   new Button(150, 240, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
+    gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "HBMenu key combo", ALIGNED_CENTER);
   }, [&](u32 kdown, bool *isActivated){
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL)) {
@@ -26,7 +26,18 @@ GuiMain::GuiMain() : Gui() {
         *isActivated = false;
       }
     }
-   });
+  }, { -1, -1, -1, 1 }, true);
+
+   new Button(370, 240, 600, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Open \uE134 by default", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 520, y + 50, !m_overrideByDefault ? currTheme.selectedColor : currTheme.textColor, !m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+   }, [&](u32 kdown, bool *isActivated){
+     if (kdown & KEY_A) {
+        setOverrideByDefault(!m_overrideByDefault, &m_overrideByDefault);
+        m_ini["config"]["override_key"] = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        m_loaderIni->write(m_ini, true);
+      }
+   }, { -1, -1, 0, -1 }, false);
 }
 
 GuiMain::~GuiMain() {
@@ -94,8 +105,14 @@ void GuiMain::draw() {
   Gui::beginDraw();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
+  Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 87, 1220, 1, currTheme.textColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
+
+  Gui::drawTextAligned(fontIcons, 70, 65, currTheme.textColor, "\uE130", ALIGNED_LEFT);
+  Gui::drawTextAligned(font24, 70, 55, currTheme.textColor, "        CFW settings", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 130, currTheme.textColor, "Press \uE0F4 to save and return back to the home menu", ALIGNED_CENTER);
+
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
@@ -104,19 +121,10 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
-  if (m_editingKey) {
-    if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
-      setCurrOverrideKeyCombo(kdown, &m_overrideKeyCombo);
-      m_editingKey = false;
-    }
-  } else {
-    if(kdown & KEY_A) {
-      m_editingKey = true;
-    }
+  for(Button *btn : Button::g_buttons) {
+    btn->onInput(kdown);
   }
 
-  for(Button *btn : Button::g_buttons)
-    btn->onInput(kdown);
 }
 
 void GuiMain::onTouch(touchPosition &touch) {
