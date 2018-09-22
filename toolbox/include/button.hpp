@@ -15,6 +15,7 @@ public:
 
   void draw(Gui *gui);
   void onInput(u32 kdown);
+  void onTouch(touchPosition &touch);
 
   inline bool isActivated() {
     return m_isActivated;

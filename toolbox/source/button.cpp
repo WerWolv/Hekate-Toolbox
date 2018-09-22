@@ -48,3 +48,20 @@ void Button::onInput(u32 kdown) {
   if (kdown & KEY_B)
     m_isActivated = false;
 }
+
+void Button::onTouch(touchPosition &touch) {
+  if (touch.px >= m_x && touch.px <= (m_x + m_w) && touch.py >= m_y && touch.py <= (m_y + m_h)) {
+    if (m_isSelected) {
+      if (m_activatable) m_isActivated = true;
+      else m_inputAction(KEY_A, &m_isActivated);
+      return;
+    }
+
+    for(Button *btn : Button::g_buttons) {
+      btn->m_isSelected = false;
+      btn->m_isActivated = false;
+    }
+
+    m_isSelected = true;
+  }
+}
