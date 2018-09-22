@@ -5,12 +5,10 @@ extern "C" {
   #include "ldr_cfg.h"
 }
 
-enum {
-  OVERRIDE_KEY_COMBO,
-  OVERRIDE_BY_DEFAULT
-} selectedButton;
-
 GuiMain::GuiMain() : Gui() {
+  m_loaderIni = new mINI::INIFile("sdmc:/atmosphere/loader.ini");
+  m_loaderIni->read(m_ini);
+
   ldrCfgInitialize();
 
   getCurrOverrideKeyCombo(&m_overrideKeyCombo);
@@ -23,6 +21,8 @@ GuiMain::GuiMain() : Gui() {
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL)) {
         setCurrOverrideKeyCombo(kdown, &m_overrideKeyCombo);
+        m_ini["config"]["override_key"] = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        m_loaderIni->write(m_ini, true);
         *isActivated = false;
       }
     }
@@ -31,6 +31,8 @@ GuiMain::GuiMain() : Gui() {
 
 GuiMain::~GuiMain() {
   ldrCfgExit();
+
+  delete m_loaderIni;
 }
 
 const char* GuiMain::keyToUnicode(u64 key) {
@@ -58,6 +60,32 @@ const char* GuiMain::keyToUnicode(u64 key) {
   }
 }
 
+std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
+  std::string ret = !overrideByDefault ? "!" : "";
+  switch(key) {
+    case KEY_A:       ret += "A";        break;
+    case KEY_B:       ret += "B";        break;
+    case KEY_X:       ret += "X";        break;
+    case KEY_Y:       ret += "Y";        break;
+    case KEY_LSTICK:  ret += "LS";       break;
+    case KEY_RSTICK:  ret += "RS";       break;
+    case KEY_L:       ret += "L";        break;
+    case KEY_R:       ret += "R";        break;
+    case KEY_ZL:      ret += "ZL";       break;
+    case KEY_ZR:      ret += "ZR";       break;
+    case KEY_PLUS:    ret += "PLUS";     break;
+    case KEY_MINUS:   ret += "MINUS";    break;
+    case KEY_DLEFT:   ret += "DLEFT";    break;
+    case KEY_DUP:     ret += "DUP";      break;
+    case KEY_DRIGHT:  ret += "DRIGHT";   break;
+    case KEY_DDOWN:   ret += "DDOWN";    break;
+    case KEY_SL:      ret += "SL";       break;
+    case KEY_SR:      ret += "SR";       break;
+  }
+
+  return ret;
+}
+
 void GuiMain::update() {
   Gui::update();
 }
@@ -66,10 +94,7 @@ void GuiMain::draw() {
   Gui::beginDraw();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
-
-
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
-
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
 
   for(Button *btn : Button::g_buttons)
@@ -80,7 +105,7 @@ void GuiMain::draw() {
 
 void GuiMain::onInput(u32 kdown) {
   if (m_editingKey) {
-    if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL)) {
+    if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
       setCurrOverrideKeyCombo(kdown, &m_overrideKeyCombo);
       m_editingKey = false;
     }
