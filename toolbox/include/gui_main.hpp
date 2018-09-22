@@ -22,7 +22,6 @@ public:
 private:
   u64 m_overrideKeyCombo;
   bool m_overrideByDefault;
-  bool m_editingKey;
   mINI::INIFile *m_loaderIni;
   mINI::INIStructure m_ini;
 

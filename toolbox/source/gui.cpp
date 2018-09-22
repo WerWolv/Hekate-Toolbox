@@ -107,6 +107,7 @@ bool Gui::setFontType(u32 font) {
     case font20: scale = 6; break;
     case font24: scale = 7; break;
     case fontHuge: scale = 30; break;
+    case fontIcons: scale = 15; break;
     default: return false;
   }
 
