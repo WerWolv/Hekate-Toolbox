@@ -70,12 +70,6 @@ void GuiMain::draw() {
 
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
-  /*Gui::drawRectangle(145, 235, 210, 210, m_editingKey ? currTheme.selectedColor : currTheme.highlightColor);
-  Gui::drawRectangle(150, 240, 200, 200, currTheme.selectedButtonColor);
-
-  Gui::drawTextAligned(fontHuge, 187, 385, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
-  Gui::drawShadow(145, 235, 210, 210);*/
-
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
 
   for(Button *btn : Button::g_buttons)
@@ -85,7 +79,6 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
-  printf("%x\n", kdown);
   if (m_editingKey) {
     if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL)) {
       setCurrOverrideKeyCombo(kdown, &m_overrideKeyCombo);

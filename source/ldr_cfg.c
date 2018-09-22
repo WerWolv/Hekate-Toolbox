@@ -33,11 +33,11 @@ Result getCurrOverrideKeyCombo(u64 *comboOut) {
         struct {
             u64 magic;
             u64 result;
-			u64 combo;
+			      u64 combo;
         } *resp = r.Raw;
 
         rc = resp->result;
-		*comboOut = resp->combo;
+		    *comboOut = resp->combo;
     }
 
     return rc;
@@ -50,14 +50,14 @@ Result setCurrOverrideKeyCombo(u64 combo, u64 *comboOut) {
     struct {
         u64 magic;
         u64 cmd_id;
-		u64 combo;
+		    u64 combo;
     } *raw;
 
     raw = ipcPrepareHeader(&c, sizeof(*raw));
 
     raw->magic = SFCI_MAGIC;
     raw->cmd_id = 1;
-	raw->combo = combo;
+	  raw->combo = combo;
 
     Result rc = serviceIpcDispatch(&g_ldrCfgService);
 
@@ -68,11 +68,11 @@ Result setCurrOverrideKeyCombo(u64 combo, u64 *comboOut) {
         struct {
             u64 magic;
             u64 result;
-			u64 combo;
+			      u64 combo;
         } *resp = r.Raw;
 
         rc = resp->result;
-		*comboOut = resp->combo;
+		    *comboOut = resp->combo;
     }
 
     return rc;
@@ -105,7 +105,7 @@ Result getOverrideByDefault(bool *enabledOut) {
         } *resp = r.Raw;
 
         rc = resp->result;
-		*enabledOut = resp->enabled;
+		    *enabledOut = resp->enabled;
     }
 
     return rc;
@@ -118,14 +118,14 @@ Result setOverrideByDefault(bool enabled, bool *enabledOut) {
     struct {
         u64 magic;
         u64 cmd_id;
-		u64 enabled;
+		    u64 enabled;
     } *raw;
 
     raw = ipcPrepareHeader(&c, sizeof(*raw));
 
     raw->magic = SFCI_MAGIC;
     raw->cmd_id = 3;
-	raw->enabled = enabled;
+	  raw->enabled = enabled;
 
     Result rc = serviceIpcDispatch(&g_ldrCfgService);
 
@@ -140,7 +140,7 @@ Result setOverrideByDefault(bool enabled, bool *enabledOut) {
         } *resp = r.Raw;
 
         rc = resp->result;
-		*enabledOut = resp->enabled;
+		    *enabledOut = resp->enabled;
     }
 
     return rc;
