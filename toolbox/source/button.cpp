@@ -29,7 +29,10 @@ void Button::onInput(u32 kdown) {
       m_isActivated = true;
       return;
     }
-  } else if (kdown & KEY_B) m_isActivated = false;
+  };
 
   m_inputAction(kdown, &m_isActivated);
+
+  if (kdown & KEY_B)
+    m_isActivated = false;
 }
