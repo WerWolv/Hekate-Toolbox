@@ -29,6 +29,9 @@ void update(void *args) {
 
 int main(int argc, char **argv){
     u64 kdown = 0;
+    touchPosition touch;
+    u8 touchCntOld = 0, touchCnt = 0;
+
     gfxInitDefault();
 
     socketInitializeDefault();
@@ -46,6 +49,8 @@ int main(int argc, char **argv){
 
     updateThreadRunning = true;
     Threads::create(&update);
+
+    touchCntOld = hidTouchCount();
 
     while(appletMainLoop()) {
       hidScanInput();
@@ -67,8 +72,18 @@ int main(int argc, char **argv){
 
         if (kdown != 0)
           currGui->onInput(kdown);
+
+        touchCnt = hidTouchCount();
+
+        if (touchCnt > touchCntOld) {
+          hidTouchRead(&touch, 0);
+          currGui->onTouch(touch);
+        }
+
+        touchCntOld = touchCnt;
       }
     }
+
 
     updateThreadRunning = false;
     Threads::joinAll();
