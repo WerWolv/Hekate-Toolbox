@@ -71,7 +71,7 @@ const char* GuiMain::keyToUnicode(u64 key) {
 }
 
 std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
-  std::string ret = !overrideByDefault ? "!" : "";
+  std::string ret = overrideByDefault ? "!" : "";
   switch(key) {
     case KEY_A:       ret += "A";        break;
     case KEY_B:       ret += "B";        break;
