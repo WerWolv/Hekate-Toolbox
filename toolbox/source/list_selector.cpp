@@ -6,10 +6,9 @@
 
 float deltaOffset = 0;
 
-ListSelector::ListSelector(std::string title, std::string options, std::vector<std::string> &listItems) : m_title(title), m_options(options), m_listItems(listItems) {
+ListSelector::ListSelector(std::string title, std::string options, std::vector<std::string> &listItems, u16 selectedItem) : m_title(title), m_options(options), m_listItems(listItems), m_selectedItem(selectedItem) {
   m_optionsWidth = 0;
   m_optionsHeight = 0;
-  selectedItem = 0;
 
   yOffsetNext = 0;
   yOffset = 0;
@@ -17,7 +16,7 @@ ListSelector::ListSelector(std::string title, std::string options, std::vector<s
   startYOffset = 500;
   startYOffsetNext = 0;
 
-  //m_inputActions = [](u32 kdown, u16 selectedItem){};
+  m_inputActions = [](u32 kdown, u16 selectedItem){};
 }
 
 ListSelector::~ListSelector() {
@@ -30,7 +29,7 @@ void ListSelector::update() {
   float deltaOffsetStart = startYOffsetNext - startYOffset;
   float scrollSpeedStart = deltaOffsetStart / 64.0F;
 
-  yOffsetNext = 60 * selectedItem;
+  yOffsetNext = 60 * m_selectedItem;
 
   if (yOffset != yOffsetNext) {
     if (yOffsetNext > yOffset)
@@ -55,15 +54,18 @@ void ListSelector::draw(Gui *gui) {
   gui->drawRectangle(0, 220 + startYOffset, Gui::g_framebuffer_width, Gui::g_framebuffer_height - 120, currTheme.backgroundColor);
 
   if (m_listItems.size() != 0) {
-    for (s8 currItem = -1; currItem < (s8) m_listItems.size(); currItem++)
+    for (s8 currItem = -1; currItem < (s8) m_listItems.size(); currItem++) {
+      if(fmax(440 + 60 * currItem - yOffset, 220) <= 230 || fmax(440 + 60 * currItem - yOffset, 220) > 720) continue;
         gui->drawRectangle(250, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 45, Gui::g_framebuffer_width - 500, 1, currTheme.separatorColor);
-
+    }
     gui->drawRectangled(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, Gui::g_framebuffer_width - 440, 71, currTheme.highlightColor);
     gui->drawRectangle(226, 305 + 60 * 2 + deltaOffset + startYOffset, Gui::g_framebuffer_width - 455, 61, currTheme.selectedButtonColor);
     gui->drawShadow(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, Gui::g_framebuffer_width - 440, 71);
 
-    for (u8 currItem = 0; currItem < m_listItems.size(); currItem++)
-      gui->drawText(font20, 270, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 26, currTheme.textColor, m_listItems[currItem].c_str());
+    for (u8 currItem = 0; currItem < m_listItems.size(); currItem++) {
+      if(fmax(440 + 60 * currItem - yOffset, 220) <= 230 || fmax(440 + 60 * currItem - yOffset, 220) > 720) continue;
+      gui->drawTextAligned(font20, 270, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 26, currTheme.textColor, m_listItems[currItem].c_str(), ALIGNED_LEFT);
+    }
 
   } else gui->drawText(font20, 300, 340 + 60 * 2 + startYOffset + 26, currTheme.textColor, "No items present!");
 
@@ -87,14 +89,14 @@ void ListSelector::onInput(u32 kdown) {
    startYOffsetNext = 500;
 
  if (kdown & KEY_UP)
-   if (selectedItem > 0)
-     selectedItem--;
+   if (m_selectedItem > 0)
+     m_selectedItem--;
 
  if (kdown & KEY_DOWN)
-   if (selectedItem < (static_cast<s16>(m_listItems.size() - 1)))
-     selectedItem++;
+   if (m_selectedItem < (static_cast<s16>(m_listItems.size() - 1)))
+     m_selectedItem++;
 
-  m_inputActions(kdown, selectedItem);
+  m_inputActions(kdown, m_selectedItem);
 
 }
 
@@ -103,8 +105,8 @@ void ListSelector::onTouch(touchPosition &touch) {
     if(touch.py > 325 && touch.py < (325 + 60 * 5)) {
       s8 touchPos = ((touch.py - 325) / 60.0F); //325 + 60 * (currItem + 2)
 
-      if((selectedItem + touchPos - 2) >= 0 && (selectedItem + touchPos - 2) <= (static_cast<s16>(m_listItems.size() - 1)))
-        selectedItem += (touchPos - 2);
+      if((m_selectedItem + touchPos - 2) >= 0 && (m_selectedItem + touchPos - 2) <= (static_cast<s16>(m_listItems.size() - 1)))
+        m_selectedItem += (touchPos - 2);
     }
   }
 }

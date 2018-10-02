@@ -10,7 +10,7 @@ class Gui;
 
 class ListSelector {
 public:
-  ListSelector(std::string title, std::string options, std::vector<std::string> &listItems);
+  ListSelector(std::string title, std::string options, std::vector<std::string> &listItems, u16 selectedItem);
   ~ListSelector();
 
   ListSelector* setInputAction(std::function<void(u32, u16)> inputActions);
@@ -23,8 +23,6 @@ public:
   void show();
   void hide();
 
-  u16 selectedItem;
-
 private:
   std::string m_title, m_options;
   std::vector<std::string> &m_listItems;
@@ -34,4 +32,5 @@ private:
   bool m_isShown;
   s16 yOffset, yOffsetNext;
   s16 startYOffset, startYOffsetNext;
+  u16 m_selectedItem;
 };
