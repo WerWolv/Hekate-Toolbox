@@ -21,6 +21,7 @@ void update(void *args) {
     mutexLock(&mutexCurrGui);
     if (currGui != nullptr)
       currGui->update();
+
     mutexUnlock(&mutexCurrGui);
 
     svcSleepThread(1.0E6 - std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - begin).count());
@@ -70,14 +71,19 @@ int main(int argc, char **argv){
       if(currGui != nullptr) {
         currGui->draw();
 
-        if (kdown != 0)
-          currGui->onInput(kdown);
+        if (kdown) {
+          if(Gui::g_currListSelector != nullptr)
+            Gui::g_currListSelector->onInput(kdown);
+          else currGui->onInput(kdown);
+        }
 
         touchCnt = hidTouchCount();
 
         if (touchCnt > touchCntOld) {
           hidTouchRead(&touch, 0);
-          currGui->onTouch(touch);
+          if(Gui::g_currListSelector != nullptr)
+            Gui::g_currListSelector->onTouch(touch);
+          else currGui->onTouch(touch);
         }
 
         touchCntOld = touchCnt;

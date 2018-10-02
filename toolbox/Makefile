@@ -30,6 +30,14 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
+VERSION_MAJOR := 1
+VERSION_MINOR := 0
+VERSION_MICRO := 0
+
+APP_TITLE	:=	CFW Settings
+APP_AUTHOR	:=	WerWolv
+APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+
 TARGET		:=	$(notdir $(CURDIR))
 OUTDIR    := out
 BUILD		:=	build

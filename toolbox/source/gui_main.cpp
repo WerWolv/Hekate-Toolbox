@@ -1,9 +1,16 @@
 #include "gui_main.hpp"
 #include "button.hpp"
 
+#include <stdio.h>
+#include <dirent.h>
+
+#include "list_selector.hpp"
+
 extern "C" {
   #include "ldr_cfg.h"
 }
+
+static std::vector<std::string> autobootNames;
 
 GuiMain::GuiMain() : Gui() {
   m_loaderIni = new mINI::INIFile("sdmc:/atmosphere/loader.ini");
@@ -13,6 +20,7 @@ GuiMain::GuiMain() : Gui() {
 
   getCurrOverrideKeyCombo(&m_overrideKeyCombo);
   getOverrideByDefault(&m_overrideByDefault);
+  m_currAutoBootConfig = getAutoBootConfigs(m_autoBootConfigs);
 
   new Button(150, 240, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
@@ -37,7 +45,32 @@ GuiMain::GuiMain() : Gui() {
         m_ini["config"]["override_key"] = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
         m_loaderIni->write(m_ini, true);
       }
-   }, { -1, -1, 0, -1 }, false);
+   }, { -1, 2, 0, -1 }, false);
+
+   new Button(370, 340, 600, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate autoboot", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 560, y + 50, currTheme.selectedColor, m_currAutoBootConfig.name.c_str(), ALIGNED_RIGHT);
+   }, [&](u32 kdown, bool *isActivated){
+     if (kdown & KEY_A) {
+       for(auto const& autoBootEntry : m_autoBootConfigs)
+         autobootNames.push_back(autoBootEntry.name);
+
+       (new ListSelector("Hekate autoboot", "\uE0E1 Back     \uE0E0 Ok", autobootNames))->setInputAction([&](u32 k, u16 selectedItem){
+         if(k & KEY_A) {
+           mINI::INIFile hekateIni("sdmc:/bootloader/hekate_ipl.ini");
+           mINI::INIStructure ini;
+
+           hekateIni.read(ini);
+
+            m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
+            ini["config"]["autoboot"] = std::to_string(m_currAutoBootConfig.id);
+            ini["config"]["autoboot_list"] = std::to_string(m_currAutoBootConfig.autoBootList);
+            hekateIni.write(ini, true);
+            Gui::g_currListSelector->hide();
+         }
+       })->show();
+     }
+   }, { 1, -1, 0, -1 }, false);
 }
 
 GuiMain::~GuiMain() {
@@ -96,6 +129,61 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
   return ret;
 }
 
+AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries) {
+  mINI::INIFile *hekateIni = new mINI::INIFile("sdmc:/bootloader/hekate_ipl.ini");
+  mINI::INIStructure ini;
+  u16 id = 0;
+  AutoBootEntry currEntry;
+
+  hekateIni->read(ini);
+
+
+
+  u16 currAutoboot = std::stoi(ini["config"]["autoboot"], nullptr);
+  bool currAutoboot_list = std::stoi(ini["config"]["autoboot_list"], nullptr);
+
+  out_bootEntries.push_back({ "Disable autoboot", 0, false });
+
+  for (auto const& it : ini) {
+    if(it.first == "config") continue;
+    out_bootEntries.push_back({ it.first, ++id, false });
+
+    if(!currAutoboot_list && id == currAutoboot)
+      currEntry = out_bootEntries.back();
+  }
+
+  delete hekateIni;
+
+  DIR *dr = opendir("sdmc:/bootloader/ini");
+  struct dirent *de;
+  std::vector<std::string> iniFiles;
+
+
+  while((de = readdir(dr)) != nullptr)
+    iniFiles.push_back(de->d_name);
+  closedir(dr);
+
+  std::sort(iniFiles.begin(), iniFiles.end());
+
+  id = 0;
+
+  for(auto const& iniFile : iniFiles) {
+    hekateIni = new mINI::INIFile(std::string("sdmc:/bootloader/ini/") + iniFile);
+    hekateIni->read(ini);
+
+    for (auto const& it : ini) {
+      out_bootEntries.push_back({ it.first, ++id, true });
+
+      if(currAutoboot_list && id == currAutoboot)
+        currEntry = out_bootEntries.back();
+    }
+
+    delete hekateIni;
+  }
+
+  return currEntry;
+}
+
 void GuiMain::update() {
   Gui::update();
 }
@@ -123,7 +211,6 @@ void GuiMain::onInput(u32 kdown) {
   for(Button *btn : Button::g_buttons) {
     btn->onInput(kdown);
   }
-
 }
 
 void GuiMain::onTouch(touchPosition &touch) {
