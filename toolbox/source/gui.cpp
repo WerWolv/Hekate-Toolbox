@@ -10,6 +10,7 @@ Gui::Gui() {
 
   m_fontLibret = 1;
   m_fontFacesTotal = 0;
+  Gui::g_currListSelector = nullptr;
 
   if(R_FAILED(plInitialize())) printf("plInitialize failed!\n");
 
@@ -18,6 +19,7 @@ Gui::Gui() {
 }
 
 Gui::~Gui() {
+  Gui::g_currListSelector = nullptr;
 
   fontExit();
   plExit();
@@ -25,6 +27,10 @@ Gui::~Gui() {
 
 void Gui::update() {
   menuTimer += 0.005;
+
+  if (Gui::g_currListSelector != nullptr)
+    Gui::g_currListSelector->update();
+
 
   float highlightMultiplier = (sin(menuTimer) + 1) / 2.0F;
   currTheme.highlightColor.r = 0x27 + 0x61 * highlightMultiplier;
@@ -511,10 +517,12 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
 }
 
 void Gui::beginDraw() {
-
 }
 
 void Gui::endDraw() {
+  if (Gui::g_currListSelector != nullptr)
+    Gui::g_currListSelector->draw(this);
+
   gfxWaitForVsync();
   gfxFlushBuffers();
   gfxSwapBuffers();

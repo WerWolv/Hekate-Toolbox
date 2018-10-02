@@ -10,6 +10,8 @@ extern "C" {
   #include "theme.h"
 }
 
+#include "list_selector.hpp"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -33,6 +35,8 @@ public:
   u8 *framebuffer;
   static inline u32 g_framebuffer_width = 0;
   static inline u32 g_framebuffer_height = 0;
+
+  static inline ListSelector *g_currListSelector = nullptr;
 
   Gui();
   virtual ~Gui();
