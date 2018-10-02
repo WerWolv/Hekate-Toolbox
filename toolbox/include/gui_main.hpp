@@ -39,5 +39,5 @@ private:
 
   const char* keyToUnicode(u64 key);
   std::string keyToKeyChars(u64 key, bool overrideByDefault);
-  AutoBootEntry getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries);
+  AutoBootEntry getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex);
 };
