@@ -21,6 +21,10 @@ public:
     return m_isActivated;
   }
 
+  inline bool isSelected() {
+    return m_isSelected;
+  }
+
   static inline void select(s16 buttonIndex) {
     if (buttonIndex < 0) return;
 
@@ -28,6 +32,7 @@ public:
       btn->m_isSelected = false;
       btn->m_isActivated = false;
     }
+
 
     Button::g_buttons[buttonIndex]->m_isSelected = true;
   }

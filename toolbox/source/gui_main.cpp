@@ -209,7 +209,8 @@ void GuiMain::draw() {
 
 void GuiMain::onInput(u32 kdown) {
   for(Button *btn : Button::g_buttons) {
-    btn->onInput(kdown);
+    if (btn->isSelected())
+      btn->onInput(kdown);
   }
 }
 
