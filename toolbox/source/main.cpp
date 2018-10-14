@@ -88,8 +88,6 @@ int main(int argc, char **argv){
 
         touchCntOld = touchCnt;
       }
-
-      if (kdown & KEY_PLUS) break;
     }
 
 
