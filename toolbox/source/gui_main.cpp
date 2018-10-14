@@ -14,8 +14,9 @@ static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
 
 GuiMain::GuiMain() : Gui() {
-  m_loaderIni = new mINI::INIFile("sdmc:/atmosphere/loader.ini");
-  m_loaderIni->read(m_ini);
+  ini.SetUnicode();
+  ini.SetMultiKey(false);
+  ini.LoadFile("sdmc:/atmosphere/loader.ini");
 
   ldrCfgInitialize();
 
@@ -30,8 +31,8 @@ GuiMain::GuiMain() : Gui() {
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
         setCurrOverrideKeyCombo(kdown, &m_overrideKeyCombo);
-        m_ini["config"]["override_key"] = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
-        m_loaderIni->write(m_ini, true);
+        ini.SetValue("config", "override_key", GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault).c_str());
+        ini.SaveFile("sdmc:/atmosphere/loader.ini");
         *isActivated = false;
       }
     }
@@ -43,8 +44,8 @@ GuiMain::GuiMain() : Gui() {
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         setOverrideByDefault(!m_overrideByDefault, &m_overrideByDefault);
-        m_ini["config"]["override_key"] = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
-        m_loaderIni->write(m_ini, true);
+        ini.SetValue("config", "override_key", GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault).c_str());
+        ini.SaveFile("sdmc:/atmosphere/loader.ini");
       }
    }, { -1, 2, 0, -1 }, false);
 
@@ -68,15 +69,17 @@ GuiMain::GuiMain() : Gui() {
 
        (new ListSelector("Hekate autoboot", "\uE0E1 Back     \uE0E0 Ok", autobootNames, currAutoBootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
          if(k & KEY_A) {
-           mINI::INIFile hekateIni("sdmc:/bootloader/hekate_ipl.ini");
-           mINI::INIStructure ini;
+           CSimpleIniA hekateIni;
 
-           hekateIni.read(ini);
+           hekateIni.SetUnicode();
+           hekateIni.SetMultiKey(true);
+           hekateIni.LoadFile("sdmc:/bootloader/hekate_ipl.ini");
            currAutoBootEntryIndex = selectedItem;
            m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
-           ini["config"]["autoboot"] = std::to_string(m_currAutoBootConfig.id);
-           ini["config"]["autoboot_list"] = std::to_string(m_currAutoBootConfig.autoBootList);
-           hekateIni.write(ini, true);
+           hekateIni.SetValue("config", "autoboot", std::to_string(m_currAutoBootConfig.id).c_str(), nullptr, true);
+           hekateIni.SetValue("config", "autoboot_list", std::to_string(m_currAutoBootConfig.autoBootList).c_str(), nullptr, true);
+
+           hekateIni.SaveFile("sdmc:/bootloader/hekate_ipl.ini");
            Gui::g_currListSelector->hide();
          }
        })->show();
@@ -85,9 +88,7 @@ GuiMain::GuiMain() : Gui() {
 }
 
 GuiMain::~GuiMain() {
-  ldrCfgExit();
 
-  delete m_loaderIni;
 }
 
 const char* GuiMain::keyToUnicode(u64 key) {
@@ -141,23 +142,25 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
 }
 
 AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
-  mINI::INIFile *hekateIni = new mINI::INIFile("sdmc:/bootloader/hekate_ipl.ini");
-  mINI::INIStructure ini;
+  CSimpleIni hekateIni;
+  CSimpleIni::TNamesDepend sections;
+  hekateIni.LoadFile("sdmc:/bootloader/hekate_ipl.ini");
   u16 id = 0;
   AutoBootEntry currEntry;
 
-  hekateIni->read(ini);
+  currAutoBootEntryIndex = 0;
 
-
-
-  u16 currAutoboot = std::stoi(ini["config"]["autoboot"], nullptr);
-  bool currAutoboot_list = std::stoi(ini["config"]["autoboot_list"], nullptr);
+  u16 currAutoboot = std::stoi(hekateIni.GetValue("config", "autoboot", 0), nullptr);
+  bool currAutoboot_list = std::stoi(hekateIni.GetValue("config", "autoboot_list", 0), nullptr);
 
   out_bootEntries.push_back({ "Disable autoboot", 0, false });
+  currEntry = out_bootEntries.back();
 
-  for (auto const& it : ini) {
-    if(it.first == "config") continue;
-    out_bootEntries.push_back({ it.first, ++id, false });
+  hekateIni.GetAllSections(sections);
+
+  for (auto const& it : sections) {
+    if(std::string(it.pItem) == "config") continue;
+    out_bootEntries.push_back({ it.pItem, ++id, false });
 
     if(!currAutoboot_list && id == currAutoboot) {
       currEntry = out_bootEntries.back();
@@ -165,7 +168,7 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
     }
   }
 
-  delete hekateIni;
+  sections.clear();
 
   DIR *dr = opendir("sdmc:/bootloader/ini");
   struct dirent *de;
@@ -180,12 +183,16 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
 
   id = 0;
 
-  for(auto const& iniFile : iniFiles) {
-    hekateIni = new mINI::INIFile(std::string("sdmc:/bootloader/ini/") + iniFile);
-    hekateIni->read(ini);
+  hekateIni.Reset();
 
-    for (auto const& it : ini) {
-      out_bootEntries.push_back({ it.first, ++id, true });
+  for(auto const& iniFile : iniFiles) {
+    std::string file = std::string("sdmc:/bootloader/ini/") + iniFile;
+    hekateIni.LoadFile(file.c_str());
+
+    hekateIni.GetAllSections(sections);
+
+    for (auto const& it : sections) {
+      out_bootEntries.push_back({ it.pItem, ++id, true });
 
       if(currAutoboot_list && id == currAutoboot) {
         currEntry = out_bootEntries.back();
@@ -193,7 +200,8 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
       }
     }
 
-    delete hekateIni;
+    hekateIni.Reset();
+
   }
 
   return currEntry;
@@ -213,7 +221,7 @@ void GuiMain::draw() {
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        CFW settings", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
-  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 130, currTheme.textColor, "Press \uE0EF to save and return back to the homebrew menu", ALIGNED_CENTER);
+  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 130, currTheme.textColor, "Press \uE044 to save and return back to the home menu", ALIGNED_CENTER);
 
 
   for(Button *btn : Button::g_buttons)
