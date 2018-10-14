@@ -16,6 +16,7 @@ static u16 currAutoBootEntryIndex;
 GuiMain::GuiMain() : Gui() {
   ini.SetUnicode();
   ini.SetMultiKey(false);
+  ini.SetSpaces(false);
   ini.LoadFile("sdmc:/atmosphere/loader.ini");
 
   ldrCfgInitialize();
@@ -73,6 +74,7 @@ GuiMain::GuiMain() : Gui() {
 
            hekateIni.SetUnicode();
            hekateIni.SetMultiKey(true);
+           hekateIni.SetSpaces(false);
            hekateIni.LoadFile("sdmc:/bootloader/hekate_ipl.ini");
            currAutoBootEntryIndex = selectedItem;
            m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
@@ -144,6 +146,7 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
 AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
   CSimpleIni hekateIni;
   CSimpleIni::TNamesDepend sections;
+  hekateIni.SetSpaces(false);
   hekateIni.LoadFile("sdmc:/bootloader/hekate_ipl.ini");
   u16 id = 0;
   AutoBootEntry currEntry;
@@ -187,6 +190,7 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
 
   for(auto const& iniFile : iniFiles) {
     std::string file = std::string("sdmc:/bootloader/ini/") + iniFile;
+    hekateIni.SetSpaces(false);
     hekateIni.LoadFile(file.c_str());
 
     hekateIni.GetAllSections(sections);
