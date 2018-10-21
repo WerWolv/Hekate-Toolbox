@@ -2,11 +2,10 @@
 
 #include "gui.hpp"
 
-#include "SimpleIni.h"
-
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include "ini/ini.hpp"
 
 #define LOADER_INI "sdmc:/atmosphere/loader.ini"
 
@@ -32,8 +31,6 @@ private:
   bool m_overrideByDefault;
   AutoBootEntry m_currAutoBootConfig;
   std::vector<AutoBootEntry> m_autoBootConfigs;
-
-  CSimpleIniA ini;
 
   const char* keyToUnicode(u64 key);
   std::string keyToKeyChars(u64 key, bool overrideByDefault);
