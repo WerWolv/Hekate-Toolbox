@@ -4,8 +4,5 @@ A toolbox that allows the user to change settings of the loader (requires a modi
 
 ## Current Features
 - Reading and modifying of the hbmenu launch button combination 
-
-## Planed Features
 - Actually modifying the hbmenu config as well so settings stick across reboots
 - Reading and modifying wether the album or the hbmenu launches by default
-- Implement SDFilesUpdater
