@@ -14,11 +14,6 @@ static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
 
 GuiMain::GuiMain() : Gui() {
-  ini.SetUnicode();
-  ini.SetMultiKey(false);
-  ini.SetSpaces(false);
-  ini.LoadFile("sdmc:/atmosphere/loader.ini");
-
   ldrCfgInitialize();
 
   getCurrOverrideKeyCombo(&m_overrideKeyCombo);
@@ -32,9 +27,14 @@ GuiMain::GuiMain() : Gui() {
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
         setCurrOverrideKeyCombo(kdown, &m_overrideKeyCombo);
-        ini.SetValue("config", "override_key", GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault).c_str());
-        ini.SaveFile("sdmc:/atmosphere/loader.ini");
+        Ini *ini = Ini::parseFile("sdmc:/atmosphere/loader.ini");
+        auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
+        ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+
+        ini->writeToFile("sdmc:/atmosphere/loader.ini");
         *isActivated = false;
+
+        delete ini;
       }
     }
   }, { -1, -1, -1, 1 }, true);
@@ -45,8 +45,12 @@ GuiMain::GuiMain() : Gui() {
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         setOverrideByDefault(!m_overrideByDefault, &m_overrideByDefault);
-        ini.SetValue("config", "override_key", GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault).c_str());
-        ini.SaveFile("sdmc:/atmosphere/loader.ini");
+        Ini *ini = Ini::parseFile("sdmc:/atmosphere/loader.ini");
+        auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
+        ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+
+        ini->writeToFile("sdmc:/atmosphere/loader.ini");
+        delete ini;
       }
    }, { -1, 2, 0, -1 }, false);
 
@@ -70,18 +74,17 @@ GuiMain::GuiMain() : Gui() {
 
        (new ListSelector("Hekate autoboot", "\uE0E1 Back     \uE0E0 Ok", autobootNames, currAutoBootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
          if(k & KEY_A) {
-           CSimpleIniA hekateIni;
-
-           hekateIni.SetUnicode();
-           hekateIni.SetMultiKey(true);
-           hekateIni.SetSpaces(false);
-           hekateIni.LoadFile("sdmc:/bootloader/hekate_ipl.ini");
+           Ini *hekateIni = Ini::parseFile("sdmc:/bootloader/hekate_ipl.ini");
            currAutoBootEntryIndex = selectedItem;
            m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
-           hekateIni.SetValue("config", "autoboot", std::to_string(m_currAutoBootConfig.id).c_str(), nullptr, true);
-           hekateIni.SetValue("config", "autoboot_list", std::to_string(m_currAutoBootConfig.autoBootList).c_str(), nullptr, true);
 
-           hekateIni.SaveFile("sdmc:/bootloader/hekate_ipl.ini");
+           auto ini_autoboot = hekateIni->findSection("config")->findFirstOption("autoboot");
+           auto ini_autoboot_list = hekateIni->findSection("config")->findFirstOption("autoboot_list");
+
+           ini_autoboot->value = std::to_string(m_currAutoBootConfig.id);
+           ini_autoboot_list->value = std::to_string(m_currAutoBootConfig.autoBootList);
+
+           hekateIni->writeToFile("sdmc:/bootloader/hekate_ipl.ini");
            Gui::g_currListSelector->hide();
          }
        })->show();
@@ -90,7 +93,6 @@ GuiMain::GuiMain() : Gui() {
 }
 
 GuiMain::~GuiMain() {
-
 }
 
 const char* GuiMain::keyToUnicode(u64 key) {
@@ -144,26 +146,22 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
 }
 
 AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
-  CSimpleIni hekateIni;
-  CSimpleIni::TNamesDepend sections;
-  hekateIni.SetSpaces(false);
-  hekateIni.LoadFile("sdmc:/bootloader/hekate_ipl.ini");
+  Ini *hekateIni = Ini::parseFile("sdmc:/bootloader/hekate_ipl.ini");
+
   u16 id = 0;
   AutoBootEntry currEntry;
 
   currAutoBootEntryIndex = 0;
 
-  u16 currAutoboot = std::stoi(hekateIni.GetValue("config", "autoboot", 0), nullptr);
-  bool currAutoboot_list = std::stoi(hekateIni.GetValue("config", "autoboot_list", 0), nullptr);
+  u16 currAutoboot = std::stoi(hekateIni->findSection("config")->findFirstOption("autoboot")->value);
+  bool currAutoboot_list = std::stoi(hekateIni->findSection("config")->findFirstOption("autoboot_list")->value);
 
   out_bootEntries.push_back({ "Disable autoboot", 0, false });
   currEntry = out_bootEntries.back();
 
-  hekateIni.GetAllSections(sections);
-
-  for (auto const& it : sections) {
-    if(std::string(it.pItem) == "config") continue;
-    out_bootEntries.push_back({ it.pItem, ++id, false });
+  for (auto const& it : hekateIni->sections) {
+    if(std::string(it->value) == "config" || it->isComment()) continue;
+    out_bootEntries.push_back({ it->value, ++id, false });
 
     if(!currAutoboot_list && id == currAutoboot) {
       currEntry = out_bootEntries.back();
@@ -171,12 +169,9 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
     }
   }
 
-  sections.clear();
-
   DIR *dr = opendir("sdmc:/bootloader/ini");
   struct dirent *de;
   std::vector<std::string> iniFiles;
-
 
   while((de = readdir(dr)) != nullptr)
     iniFiles.push_back(de->d_name);
@@ -186,27 +181,24 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
 
   id = 0;
 
-  hekateIni.Reset();
+  delete hekateIni;
 
   for(auto const& iniFile : iniFiles) {
     std::string file = std::string("sdmc:/bootloader/ini/") + iniFile;
-    hekateIni.SetSpaces(false);
-    hekateIni.LoadFile(file.c_str());
+    hekateIni = Ini::parseFile(file);
 
-    hekateIni.GetAllSections(sections);
-
-    for (auto const& it : sections) {
-      out_bootEntries.push_back({ it.pItem, ++id, true });
+    for (auto const& it : hekateIni->sections) {
+      if (it->isComment()) continue;
+      out_bootEntries.push_back({ it->value, ++id, true });
 
       if(currAutoboot_list && id == currAutoboot) {
         currEntry = out_bootEntries.back();
         currAutoBootEntryIndex = out_bootEntries.size() - 1;
       }
     }
-
-    hekateIni.Reset();
-
   }
+
+  delete hekateIni;
 
   return currEntry;
 }

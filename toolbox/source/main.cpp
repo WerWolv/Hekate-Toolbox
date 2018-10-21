@@ -12,7 +12,7 @@
 static Gui *currGui = nullptr;
 static bool updateThreadRunning = false;
 static Mutex mutexCurrGui;
-
+u32 __nx_applet_type = AppletType_Default;
 
 void update(void *args) {
   while (updateThreadRunning) {
