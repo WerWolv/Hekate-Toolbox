@@ -8,6 +8,7 @@
 #include "gui_main.hpp"
 
 #include "threads.hpp"
+#include "title.hpp"
 
 static Gui *currGui = nullptr;
 static bool updateThreadRunning = false;
@@ -43,6 +44,14 @@ int main(int argc, char **argv){
     setsysGetColorSetId(&colorSetId);
     setTheme(colorSetId);
     setsysExit();
+
+    std::vector<FsSaveDataInfo> saveInfoList;
+    Title::getSaveList(saveInfoList);
+
+    for (auto saveInfo : saveInfoList) {
+      if (Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
+        Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
+    }
 
     Gui::g_nextGui = GUI_MAIN;
 

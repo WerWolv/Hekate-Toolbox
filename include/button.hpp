@@ -14,7 +14,7 @@ public:
   Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bool*)> drawAction, std::function<void(u32, bool*)> inputAction, std::vector<s16> adjacentButton, bool activatable);
 
   void draw(Gui *gui);
-  void onInput(u32 kdown);
+  bool onInput(u32 kdown);
   void onTouch(touchPosition &touch);
 
   inline bool isActivated() {

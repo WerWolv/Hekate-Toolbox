@@ -25,19 +25,23 @@ void Button::draw(Gui *gui) {
   m_drawAction(gui, m_x, m_y, &m_isActivated);
 }
 
-void Button::onInput(u32 kdown) {
+bool Button::onInput(u32 kdown) {
+  bool selectionChanged = false;
+
   if (!m_isActivated) {
     if ((kdown & KEY_A) && m_activatable) {
       m_isActivated = true;
-      return;
+      return false;
     }
+
+    selectionChanged = kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT);
 
     if (kdown & KEY_UP)    Button::select(m_adjacentButton[0]);
     if (kdown & KEY_DOWN)  Button::select(m_adjacentButton[1]);
     if (kdown & KEY_LEFT)  Button::select(m_adjacentButton[2]);
     if (kdown & KEY_RIGHT) Button::select(m_adjacentButton[3]);
 
-    if (m_activatable) return;
+    if (m_activatable) return selectionChanged;
 
   }
 
@@ -47,6 +51,8 @@ void Button::onInput(u32 kdown) {
 
   if (kdown & KEY_B)
     m_isActivated = false;
+
+  return selectionChanged;
 }
 
 void Button::onTouch(touchPosition &touch) {

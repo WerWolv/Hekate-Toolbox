@@ -3,35 +3,45 @@
 
 #include <stdio.h>
 #include <dirent.h>
+#include <sstream>
 
 #include "list_selector.hpp"
-
-extern "C" {
-  #include "ldr_cfg.h"
-}
+#include "title.hpp"
 
 static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
+static u16 currOverrideTidIndex;
 
 GuiMain::GuiMain() : Gui() {
-  ldrCfgInitialize();
+  m_titleIDs.push_back(0x010000000000100D);
+  m_titleNames.push_back("Album");
 
-  getCurrOverrideKeyCombo(&m_overrideKeyCombo);
-  getOverrideByDefault(&m_overrideByDefault);
+  for (auto title : Title::g_titles) {
+    m_titleIDs.push_back(title.first);
+    m_titleNames.push_back(title.second->getTitleName());
+  }
+
+  Ini *ini = Ini::parseFile(LOADER_INI);
+  keyCharsToKey(ini->findSection("config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
+
   m_currAutoBootConfig = getAutoBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
 
-  new Button(150, 240, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+  for(u16 i = 0; i < m_titleIDs.size(); i++)
+    if (m_titleIDs[i] == m_overrideHblTid)
+      currOverrideTidIndex = i;
+
+  new Button(150, 200, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
     gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "HBMenu key combo", ALIGNED_CENTER);
   }, [&](u32 kdown, bool *isActivated){
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
-        setCurrOverrideKeyCombo(kdown, &m_overrideKeyCombo);
-        Ini *ini = Ini::parseFile("sdmc:/atmosphere/loader.ini");
+        m_overrideKeyCombo = kdown;
+        Ini *ini = Ini::parseFile(LOADER_INI);
         auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
-        ini->writeToFile("sdmc:/atmosphere/loader.ini");
+        ini->writeToFile(LOADER_INI);
         *isActivated = false;
 
         delete ini;
@@ -39,22 +49,22 @@ GuiMain::GuiMain() : Gui() {
     }
   }, { -1, -1, -1, 1 }, true);
 
-   new Button(370, 240, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+   new Button(370, 200, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Open \uE134 by default", ALIGNED_LEFT);
      gui->drawTextAligned(font20, x + 620, y + 50, !m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), !m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
-        setOverrideByDefault(!m_overrideByDefault, &m_overrideByDefault);
-        Ini *ini = Ini::parseFile("sdmc:/atmosphere/loader.ini");
+        m_overrideByDefault = !m_overrideByDefault;
+        Ini *ini = Ini::parseFile(LOADER_INI);
         auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
-        ini->writeToFile("sdmc:/atmosphere/loader.ini");
+        ini->writeToFile(LOADER_INI);
         delete ini;
       }
    }, { -1, 2, 0, -1 }, false);
 
-   new Button(370, 340, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+   new Button(370, 300, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate autoboot", ALIGNED_LEFT);
 
      std::string autoBootName = m_currAutoBootConfig.name;
@@ -74,7 +84,7 @@ GuiMain::GuiMain() : Gui() {
 
        (new ListSelector("Hekate autoboot", "\uE0E1 Back     \uE0E0 Ok", autobootNames, currAutoBootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
          if(k & KEY_A) {
-           Ini *hekateIni = Ini::parseFile("sdmc:/bootloader/hekate_ipl.ini");
+           Ini *hekateIni = Ini::parseFile(HEKATE_INI);
            currAutoBootEntryIndex = selectedItem;
            m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
 
@@ -84,12 +94,49 @@ GuiMain::GuiMain() : Gui() {
            ini_autoboot->value = std::to_string(m_currAutoBootConfig.id);
            ini_autoboot_list->value = std::to_string(m_currAutoBootConfig.autoBootList);
 
-           hekateIni->writeToFile("sdmc:/bootloader/hekate_ipl.ini");
+           hekateIni->writeToFile(HEKATE_INI);
            Gui::g_currListSelector->hide();
          }
        })->show();
      }
-   }, { 1, -1, 0, -1 }, false);
+   }, { 1, 3, 0, -1 }, false);
+
+  /* new Button(370, 400, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "HBMenu override application", ALIGNED_LEFT);
+
+     std::string overrideTitleName = m_titleNames[currOverrideTidIndex];
+
+     if(overrideTitleName.length() >= 25) {
+       overrideTitleName = overrideTitleName.substr(0, 24);
+       overrideTitleName += "...";
+     }
+
+     gui->drawTextAligned(font20, x + 660, y + 50, currTheme.selectedColor, overrideTitleName.c_str(), ALIGNED_RIGHT);
+   }, [&](u32 kdown, bool *isActivated){
+     if (kdown & KEY_A) {
+       (new ListSelector("Override application", "\uE0E1 Back     \uE0E0 Ok", m_titleNames, currOverrideTidIndex))->setInputAction([&](u32 k, u16 selectedItem) {
+         if(k & KEY_A) {
+           setOverrideApplication(m_titleIDs[selectedItem], &m_overrideHblTid);
+           Ini *ini = Ini::parseFile(LOADER_INI);
+           auto ini_override_key = ini->findSection("config")->findFirstOption("hbl_tid");
+
+           std::stringstream ss;
+           ss << std::hex << m_titleIDs[selectedItem];
+
+           ini_override_key->value = ss.str();
+
+           ini->writeToFile(LOADER_INI);
+           delete ini;
+
+           for(u16 i = 0; i < m_titleIDs.size(); i++)
+             if (m_titleIDs[i] == m_overrideHblTid)
+               currOverrideTidIndex = i;
+
+           Gui::g_currListSelector->hide();
+         }
+       })->show();
+       }
+   }, { 2, -1, 0, -1 }, false);*/
 }
 
 GuiMain::~GuiMain() {
@@ -145,8 +192,33 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
   return ret;
 }
 
+void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) {
+  *overrideByDefault = (str[0] == '!');
+
+  str = str.substr(1);
+
+  if (str == "A") *key = KEY_A;
+  else if (str == "B") *key = KEY_B;
+  else if (str == "X") *key = KEY_X;
+  else if (str == "Y") *key = KEY_Y;
+  else if (str == "LS") *key = KEY_LSTICK;
+  else if (str == "RS") *key = KEY_RSTICK;
+  else if (str == "L") *key = KEY_L;
+  else if (str == "R") *key = KEY_R;
+  else if (str == "ZL") *key = KEY_ZL;
+  else if (str == "ZR") *key = KEY_ZR;
+  else if (str == "PLUS") *key = KEY_PLUS;
+  else if (str == "MINUS") *key = KEY_MINUS;
+  else if (str == "DLEFT") *key = KEY_DLEFT;
+  else if (str == "DUP") *key = KEY_DUP;
+  else if (str == "DRIGHT") *key = KEY_DRIGHT;
+  else if (str == "DDOWN") *key = KEY_DDOWN;
+  else if (str == "SL") *key = KEY_SL;
+  else if (str == "SR") *key = KEY_SR;
+}
+
 AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
-  Ini *hekateIni = Ini::parseFile("sdmc:/bootloader/hekate_ipl.ini");
+  Ini *hekateIni = Ini::parseFile(HEKATE_INI);
 
   u16 id = 0;
   AutoBootEntry currEntry;
@@ -169,7 +241,7 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
     }
   }
 
-  DIR *dr = opendir("sdmc:/bootloader/ini");
+  DIR *dr = opendir(INI_PATH);
   struct dirent *de;
   std::vector<std::string> iniFiles;
 
@@ -184,7 +256,7 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
   delete hekateIni;
 
   for(auto const& iniFile : iniFiles) {
-    std::string file = std::string("sdmc:/bootloader/ini/") + iniFile;
+    std::string file = std::string(INI_PATH) + iniFile;
     hekateIni = Ini::parseFile(file);
 
     for (auto const& it : hekateIni->sections) {
@@ -229,7 +301,7 @@ void GuiMain::draw() {
 void GuiMain::onInput(u32 kdown) {
   for(Button *btn : Button::g_buttons) {
     if (btn->isSelected())
-      btn->onInput(kdown);
+      if (btn->onInput(kdown)) break;
   }
 }
 
