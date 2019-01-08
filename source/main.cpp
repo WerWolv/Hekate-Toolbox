@@ -34,8 +34,6 @@ int main(int argc, char **argv){
     touchPosition touch;
     u8 touchCntOld = 0, touchCnt = 0;
 
-    gfxInitDefault();
-
     socketInitializeDefault();
     nxlinkStdio();
 
@@ -44,6 +42,9 @@ int main(int argc, char **argv){
     setsysGetColorSetId(&colorSetId);
     setTheme(colorSetId);
     setsysExit();
+
+    framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
+    framebufferMakeLinear(&Gui::g_fb_obj);
 
     std::vector<FsSaveDataInfo> saveInfoList;
     Title::getSaveList(saveInfoList);
@@ -105,6 +106,7 @@ int main(int argc, char **argv){
 
     socketExit();
 
-    gfxExit();
+    framebufferClose(&Gui::g_fb_obj);
+
     return 0;
 }
