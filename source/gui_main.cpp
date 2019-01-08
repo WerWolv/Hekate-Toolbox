@@ -6,30 +6,17 @@
 #include <sstream>
 
 #include "list_selector.hpp"
-#include "title.hpp"
 
 static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
 static u16 currOverrideTidIndex;
 
 GuiMain::GuiMain() : Gui() {
-  m_titleIDs.push_back(0x010000000000100D);
-  m_titleNames.push_back("Album");
-
-  for (auto title : Title::g_titles) {
-    m_titleIDs.push_back(title.first);
-    m_titleNames.push_back(title.second->getTitleName());
-  }
-
   Ini *ini = Ini::parseFile(LOADER_INI);
   keyCharsToKey(ini->findSection("config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
+  printf("%lx\n", m_overrideKeyCombo);
 
   m_currAutoBootConfig = getAutoBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
-
-  for(u16 i = 0; i < m_titleIDs.size(); i++)
-    if (m_titleIDs[i] == m_overrideHblTid)
-      currOverrideTidIndex = i;
-
   new Button(150, 200, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
     gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "HBMenu key combo", ALIGNED_CENTER);
@@ -48,7 +35,6 @@ GuiMain::GuiMain() : Gui() {
       }
     }
   }, { -1, -1, -1, 1 }, true);
-
    new Button(370, 200, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Open \uE134 by default", ALIGNED_LEFT);
      gui->drawTextAligned(font20, x + 620, y + 50, !m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), !m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
@@ -63,7 +49,6 @@ GuiMain::GuiMain() : Gui() {
         delete ini;
       }
    }, { -1, 2, 0, -1 }, false);
-
    new Button(370, 300, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate autoboot", ALIGNED_LEFT);
 
@@ -99,44 +84,7 @@ GuiMain::GuiMain() : Gui() {
          }
        })->show();
      }
-   }, { 1, 3, 0, -1 }, false);
-
-  /* new Button(370, 400, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "HBMenu override application", ALIGNED_LEFT);
-
-     std::string overrideTitleName = m_titleNames[currOverrideTidIndex];
-
-     if(overrideTitleName.length() >= 25) {
-       overrideTitleName = overrideTitleName.substr(0, 24);
-       overrideTitleName += "...";
-     }
-
-     gui->drawTextAligned(font20, x + 660, y + 50, currTheme.selectedColor, overrideTitleName.c_str(), ALIGNED_RIGHT);
-   }, [&](u32 kdown, bool *isActivated){
-     if (kdown & KEY_A) {
-       (new ListSelector("Override application", "\uE0E1 Back     \uE0E0 Ok", m_titleNames, currOverrideTidIndex))->setInputAction([&](u32 k, u16 selectedItem) {
-         if(k & KEY_A) {
-           setOverrideApplication(m_titleIDs[selectedItem], &m_overrideHblTid);
-           Ini *ini = Ini::parseFile(LOADER_INI);
-           auto ini_override_key = ini->findSection("config")->findFirstOption("hbl_tid");
-
-           std::stringstream ss;
-           ss << std::hex << m_titleIDs[selectedItem];
-
-           ini_override_key->value = ss.str();
-
-           ini->writeToFile(LOADER_INI);
-           delete ini;
-
-           for(u16 i = 0; i < m_titleIDs.size(); i++)
-             if (m_titleIDs[i] == m_overrideHblTid)
-               currOverrideTidIndex = i;
-
-           Gui::g_currListSelector->hide();
-         }
-       })->show();
-       }
-   }, { 2, -1, 0, -1 }, false);*/
+   }, { 1, -1, 0, -1 }, false);
 }
 
 GuiMain::~GuiMain() {
@@ -195,8 +143,10 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
 void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) {
   *overrideByDefault = (str[0] == '!');
 
-  str = str.substr(1);
+  str = str.substr(0);
 
+  printf("%s\n", str.c_str());
+  
   if (str == "A") *key = KEY_A;
   else if (str == "B") *key = KEY_B;
   else if (str == "X") *key = KEY_X;
@@ -254,6 +204,9 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
   id = 0;
 
   delete hekateIni;
+  hekateIni = nullptr;
+
+  if (iniFiles.empty()) return currEntry;
 
   for(auto const& iniFile : iniFiles) {
     std::string file = std::string(INI_PATH) + iniFile;
@@ -268,10 +221,10 @@ AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEn
         currAutoBootEntryIndex = out_bootEntries.size() - 1;
       }
     }
+	
+	delete hekateIni;
   }
-
-  delete hekateIni;
-
+  
   return currEntry;
 }
 
@@ -281,20 +234,16 @@ void GuiMain::update() {
 
 void GuiMain::draw() {
   Gui::beginDraw();
-
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 87, 1220, 1, currTheme.textColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
-
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
-  Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        CFW settings", ALIGNED_LEFT);
+  Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Kosmos Toolbox", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
   Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 130, currTheme.textColor, "Press \uE044 to save and return back to the home menu", ALIGNED_CENTER);
 
-
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
-
   Gui::endDraw();
 }
 

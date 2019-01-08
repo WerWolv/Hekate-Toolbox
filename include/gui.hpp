@@ -3,14 +3,13 @@
 #include <switch.h>
 #include <cstring>
 #include <unordered_map>
-#include <vector>
-
-extern "C" {
-  #include "types.h"
-  #include "theme.h"
-}
 
 #include "list_selector.hpp"
+
+extern "C" {
+  #include "theme.h"
+  #include "types.h"
+}
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -21,7 +20,7 @@ extern "C" {
 #define fontHuge 4
 #define font24 3
 #define font20 2
-#define font14 0
+#define font14 1
 
 enum gui_t {
   GUI_INVALID,
@@ -33,8 +32,9 @@ public:
   static inline enum gui_t g_nextGui = GUI_INVALID;
 
   u8 *framebuffer;
-  static inline u32 g_framebuffer_width = 0;
-  static inline u32 g_framebuffer_height = 0;
+    static inline Framebuffer g_fb_obj;
+  static inline u32 g_framebuffer_width = 1280;
+  static inline u32 g_framebuffer_height = 720;
 
   static inline ListSelector *g_currListSelector = nullptr;
 
@@ -63,6 +63,7 @@ public:
   void getTextDimensions(u32 font, const char* text, u32* width_out, u32* height_out);
 
   void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);
+  void drawImage(s16 x, s16 y, s16 startx, s16 starty, s16 width, s16 height, const u8 *image, ImageMode mode);
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
 protected:

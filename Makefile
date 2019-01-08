@@ -31,10 +31,10 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 1
-VERSION_MINOR := 0
+VERSION_MINOR := 1
 VERSION_MICRO := 0
 
-APP_TITLE	:=	CFW Settings
+APP_TITLE	:=	Kosmos Toolbox
 APP_AUTHOR	:=	WerWolv
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
