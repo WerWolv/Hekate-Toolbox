@@ -7,11 +7,25 @@
 
 #include "list_selector.hpp"
 
+extern "C" {
+  #include "pm_dmnt.h"
+}
+
+#define SYS_FTPD_TID 0x420000000000000E
+
 static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
-static u16 currOverrideTidIndex;
 
 GuiMain::GuiMain() : Gui() {
+  pmshellInitialize();
+  pmdmntInitialize();
+  pmdmntInitialize_mod();
+
+  u64 ftpd_pid;
+  pmdmntGetTitlePid(&ftpd_pid, SYS_FTPD_TID);
+
+  m_sysftpdRunning = ftpd_pid != 0;
+
   Ini *ini = Ini::parseFile(LOADER_INI);
   keyCharsToKey(ini->findSection("config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
   printf("%lx\n", m_overrideKeyCombo);
@@ -19,7 +33,7 @@ GuiMain::GuiMain() : Gui() {
   m_currAutoBootConfig = getAutoBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
   new Button(150, 200, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
-    gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "HBMenu key combo", ALIGNED_CENTER);
+    gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "Override key combo", ALIGNED_CENTER);
   }, [&](u32 kdown, bool *isActivated){
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
@@ -34,10 +48,10 @@ GuiMain::GuiMain() : Gui() {
         delete ini;
       }
     }
-  }, { -1, -1, -1, 1 }, true);
+  }, { -1, -1, -1, 1 }, true, []() -> bool {return true;});
    new Button(370, 200, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Open \uE134 by default", ALIGNED_LEFT);
-     gui->drawTextAligned(font20, x + 620, y + 50, !m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), !m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Override application by default", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 620, y + 50, m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         m_overrideByDefault = !m_overrideByDefault;
@@ -48,9 +62,9 @@ GuiMain::GuiMain() : Gui() {
         ini->writeToFile(LOADER_INI);
         delete ini;
       }
-   }, { -1, 2, 0, -1 }, false);
+   }, { -1, 2, 0, -1 }, false, []() -> bool {return true;});
    new Button(370, 300, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate autoboot", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Autoboot Hekate module", ALIGNED_LEFT);
 
      std::string autoBootName = m_currAutoBootConfig.name;
 
@@ -84,10 +98,26 @@ GuiMain::GuiMain() : Gui() {
          }
        })->show();
      }
-   }, { 1, -1, 0, -1 }, false);
+   }, { 1, 3, 0, -1 }, false, []() -> bool {return true;});
+
+      new Button(370, 400, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "FTP server", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 620, y + 50, m_sysftpdRunning ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_sysftpdRunning ? "On" : "Off", ALIGNED_LEFT);
+   }, [&](u32 kdown, bool *isActivated){
+     if (kdown & KEY_A) {
+         u64 cur_val, lim_val;
+         pmdmntGetCurrentLimitInfo(&cur_val, &lim_val, 0, 0);
+         printf("cur_val: %lu, lim_val: %lu\n", cur_val, lim_val);
+      }
+   }, { 2, -1, 0, -1 }, false, []() -> bool {return true;});
 }
 
 GuiMain::~GuiMain() {
+  pmshellExit();
+  pmdmntExit();
+  pmdmntExit_mod();
+
+  Button::g_buttons.clear();
 }
 
 const char* GuiMain::keyToUnicode(u64 key) {
@@ -135,6 +165,7 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
     case KEY_DDOWN:   ret += "DDOWN";    break;
     case KEY_SL:      ret += "SL";       break;
     case KEY_SR:      ret += "SR";       break;
+    default:          ret += "R";        break;
   }
 
   return ret;
@@ -165,6 +196,7 @@ void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) 
   else if (str == "DDOWN") *key = KEY_DDOWN;
   else if (str == "SL") *key = KEY_SL;
   else if (str == "SR") *key = KEY_SR;
+  else *key = KEY_R;
 }
 
 AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
@@ -248,6 +280,12 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
+  if (kdown & KEY_ZL) {
+    printf("Start\n");
+    Gui::g_nextGui = GUI_SM_SELECT;
+    return;
+  }
+
   for(Button *btn : Button::g_buttons) {
     if (btn->isSelected())
       if (btn->onInput(kdown)) break;

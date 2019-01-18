@@ -4,8 +4,8 @@ extern "C" {
   #include "theme.h"
 }
 
-Button::Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bool*)> drawAction, std::function<void(u32, bool*)> inputAction, std::vector<s16> adjacentButton, bool activatable)
- : m_x(x), m_y(y), m_w(w), m_h(h), m_drawAction(drawAction), m_inputAction(inputAction), m_adjacentButton(adjacentButton), m_activatable(activatable) {
+Button::Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bool*)> drawAction, std::function<void(u32, bool*)> inputAction, std::vector<s32> adjacentButton, bool activatable, std::function<bool()> usableCondition)
+ : m_x(x), m_y(y), m_w(w), m_h(h), m_drawAction(drawAction), m_inputAction(inputAction), m_usableCondition(usableCondition) , m_adjacentButton(adjacentButton), m_activatable(activatable){
   Button::g_buttons.push_back(this);
 
   m_isActivated = false;
@@ -23,6 +23,9 @@ void Button::draw(Gui *gui) {
   gui->drawRectangle(m_x, m_y, m_w, m_h, currTheme.selectedButtonColor);
 
   m_drawAction(gui, m_x, m_y, &m_isActivated);
+
+  if (!m_usableCondition())
+    gui->drawRectangled(m_x, m_y, m_w, m_h, gui->makeColor(0x80, 0x80, 0x80, 0x80));
 }
 
 bool Button::onInput(u32 kdown) {
@@ -45,6 +48,7 @@ bool Button::onInput(u32 kdown) {
 
   }
 
+  if(!m_usableCondition()) return false;
 
   if (m_isSelected)
     m_inputAction(kdown, &m_isActivated);
@@ -56,6 +60,8 @@ bool Button::onInput(u32 kdown) {
 }
 
 void Button::onTouch(touchPosition &touch) {
+  if (!m_usableCondition()) return;
+
   if (touch.px >= m_x && touch.px <= (m_x + m_w) && touch.py >= m_y && touch.py <= (m_y + m_h)) {
     if (m_isSelected) {
       if (m_activatable) m_isActivated = true;

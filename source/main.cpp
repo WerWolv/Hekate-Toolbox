@@ -6,6 +6,7 @@
 
 #include "gui.hpp"
 #include "gui_main.hpp"
+#include "gui_sysmodule.hpp"
 
 #include "threads.hpp"
 #include "title.hpp"
@@ -69,9 +70,15 @@ int main(int argc, char **argv){
 
       if (Gui::g_nextGui != GUI_INVALID) {
         mutexLock(&mutexCurrGui);
+
+        delete currGui;
+
         switch(Gui::g_nextGui) {
           case GUI_MAIN:
             currGui = new GuiMain();
+            break;
+          case GUI_SM_SELECT:
+            currGui = new GuiSysmodule();
             break;
         }
         mutexUnlock(&mutexCurrGui);
