@@ -32,6 +32,7 @@ private:
   u64 m_overrideKeyCombo;
   bool m_overrideByDefault;
   u64 m_overrideHblTid;
+  bool m_sysftpdRunning;
 
   AutoBootEntry m_currAutoBootConfig;
   std::vector<AutoBootEntry> m_autoBootConfigs;

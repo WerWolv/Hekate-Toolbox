@@ -24,7 +24,8 @@ extern "C" {
 
 enum gui_t {
   GUI_INVALID,
-  GUI_MAIN
+  GUI_MAIN,
+  GUI_SM_SELECT
 };
 
 class Gui {

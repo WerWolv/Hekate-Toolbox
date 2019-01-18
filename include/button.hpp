@@ -11,7 +11,7 @@ class Button {
 public:
   static inline std::vector<Button*> g_buttons;
 
-  Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bool*)> drawAction, std::function<void(u32, bool*)> inputAction, std::vector<s16> adjacentButton, bool activatable);
+  Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bool*)> drawAction, std::function<void(u32, bool*)> inputAction, std::vector<s32> adjacentButton, bool activatable, std::function<bool()> usableCondition);
 
   void draw(Gui *gui);
   bool onInput(u32 kdown);
@@ -43,9 +43,11 @@ private:
 
   std::function<void(Gui*, u16, u16, bool*)> m_drawAction;
   std::function<void(u32, bool*)> m_inputAction;
-  std::vector<s16> m_adjacentButton;
+  std::function<bool()> m_usableCondition;
 
   bool m_isActivated;
   bool m_isSelected;
   bool m_activatable;
+
+  std::vector<s32> m_adjacentButton;
 };

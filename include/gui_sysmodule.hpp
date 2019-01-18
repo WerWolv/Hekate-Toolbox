@@ -1,0 +1,31 @@
+#pragma once
+
+#include "gui.hpp"
+
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <set>
+
+typedef struct {
+  std::string name;
+  std::string description;
+  std::string titleID;
+  u32 maxRAM;
+} sysModule_t;
+
+class GuiSysmodule : public Gui {
+public:
+  GuiSysmodule();
+  ~GuiSysmodule();
+
+  void update();
+  void draw();
+  void onInput(u32 kdown);
+  void onTouch(touchPosition &touch);
+  void onGesture(touchPosition &startPosition, touchPosition &endPosition);
+
+private:
+  std::unordered_map<std::string, sysModule_t> m_sysmodules;
+  std::set<std::string> m_runningSysmodules;
+};
