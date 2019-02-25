@@ -13,7 +13,7 @@ static u16 currOverrideTidIndex;
 
 GuiMain::GuiMain() : Gui() {
   Ini *ini = Ini::parseFile(LOADER_INI);
-  keyCharsToKey(ini->findSection("config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
+  keyCharsToKey(ini->findSection("hbl_config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
   printf("%lx\n", m_overrideKeyCombo);
 
   m_currAutoBootConfig = getAutoBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
@@ -25,7 +25,7 @@ GuiMain::GuiMain() : Gui() {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
         m_overrideKeyCombo = kdown;
         Ini *ini = Ini::parseFile(LOADER_INI);
-        auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
+        auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
         ini->writeToFile(LOADER_INI);
@@ -42,7 +42,7 @@ GuiMain::GuiMain() : Gui() {
      if (kdown & KEY_A) {
         m_overrideByDefault = !m_overrideByDefault;
         Ini *ini = Ini::parseFile(LOADER_INI);
-        auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
+        auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
         ini->writeToFile(LOADER_INI);
@@ -143,9 +143,7 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
 void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) {
   *overrideByDefault = (str[0] == '!');
 
-  str = str.substr(0);
-
-  printf("%s\n", str.c_str());
+  str = str.substr(1);
   
   if (str == "A") *key = KEY_A;
   else if (str == "B") *key = KEY_B;
