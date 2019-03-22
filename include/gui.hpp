@@ -25,7 +25,8 @@ extern "C" {
 enum gui_t {
   GUI_INVALID,
   GUI_MAIN,
-  GUI_SM_SELECT
+  GUI_SM_SELECT,
+  GUI_HEKATE
 };
 
 class Gui {
@@ -33,7 +34,7 @@ public:
   static inline enum gui_t g_nextGui = GUI_INVALID;
 
   u8 *framebuffer;
-    static inline Framebuffer g_fb_obj;
+  static inline Framebuffer g_fb_obj;
   static inline u32 g_framebuffer_width = 1280;
   static inline u32 g_framebuffer_height = 720;
 

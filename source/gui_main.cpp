@@ -1,9 +1,10 @@
 #include "gui_main.hpp"
 #include "button.hpp"
 
-#include <stdio.h>
-#include <dirent.h>
 #include <sstream>
+
+#include "utils.hpp"
+#include "ini/ini.hpp"
 
 #include "list_selector.hpp"
 
@@ -12,6 +13,9 @@ extern "C" {
 }
 
 #define SYS_FTPD_TID 0x420000000000000E
+
+extern bool g_exitApplet;
+bool exitDisabled = false;
 
 static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
@@ -27,19 +31,22 @@ GuiMain::GuiMain() : Gui() {
   m_sysftpdRunning = ftpd_pid != 0;
 
   Ini *ini = Ini::parseFile(LOADER_INI);
-  keyCharsToKey(ini->findSection("config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
-  printf("%lx\n", m_overrideKeyCombo);
+  keyCharsToKey(ini->findSection("hbl_config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
 
-  m_currAutoBootConfig = getAutoBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
+  m_autoBootConfigs.push_back({ "Disable autoboot", 0, false });
+  m_currAutoBootConfig = getBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
+
+  //0
   new Button(150, 200, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
     gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "Override key combo", ALIGNED_CENTER);
   }, [&](u32 kdown, bool *isActivated){
+    exitDisabled = true;
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
         m_overrideKeyCombo = kdown;
         Ini *ini = Ini::parseFile(LOADER_INI);
-        auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
+        auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
         ini->writeToFile(LOADER_INI);
@@ -48,23 +55,28 @@ GuiMain::GuiMain() : Gui() {
         delete ini;
       }
     }
+    exitDisabled = false;
   }, { -1, -1, -1, 1 }, true, []() -> bool {return true;});
-   new Button(370, 200, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+
+  //1
+  new Button(370, 200, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Override application by default", ALIGNED_LEFT);
      gui->drawTextAligned(font20, x + 620, y + 50, m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         m_overrideByDefault = !m_overrideByDefault;
         Ini *ini = Ini::parseFile(LOADER_INI);
-        auto ini_override_key = ini->findSection("config")->findFirstOption("override_key");
+        auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
         ini->writeToFile(LOADER_INI);
         delete ini;
       }
    }, { -1, 2, 0, -1 }, false, []() -> bool {return true;});
-   new Button(370, 300, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Autoboot Hekate module", ALIGNED_LEFT);
+
+  //2
+  new Button(370, 300, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate autoboot profile", ALIGNED_LEFT);
 
      std::string autoBootName = m_currAutoBootConfig.name;
 
@@ -81,7 +93,7 @@ GuiMain::GuiMain() : Gui() {
        for(auto const& autoBootEntry : m_autoBootConfigs)
          autobootNames.push_back(autoBootEntry.name);
 
-       (new ListSelector("Hekate autoboot", "\uE0E1 Back     \uE0E0 Ok", autobootNames, currAutoBootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
+       (new ListSelector("Hekate autoboot profile", "\uE0E1 Back     \uE0E0 Ok", autobootNames, currAutoBootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
          if(k & KEY_A) {
            Ini *hekateIni = Ini::parseFile(HEKATE_INI);
            currAutoBootEntryIndex = selectedItem;
@@ -100,16 +112,24 @@ GuiMain::GuiMain() : Gui() {
      }
    }, { 1, 3, 0, -1 }, false, []() -> bool {return true;});
 
-      new Button(370, 400, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "FTP server", ALIGNED_LEFT);
-     gui->drawTextAligned(font20, x + 620, y + 50, m_sysftpdRunning ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_sysftpdRunning ? "On" : "Off", ALIGNED_LEFT);
-   }, [&](u32 kdown, bool *isActivated){
-     if (kdown & KEY_A) {
-         u64 cur_val, lim_val;
-         pmdmntGetCurrentLimitInfo(&cur_val, &lim_val, 0, 0);
-         printf("cur_val: %lu, lim_val: %lu\n", cur_val, lim_val);
-      }
-   }, { 2, -1, 0, -1 }, false, []() -> bool {return true;});
+  //3
+  new Button(370, 400, 340, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+    gui->drawRectangled(x, y, 340, 80, currTheme.selectedColor);
+    gui->drawTextAligned(font20, x + 37, y + 50, COLOR_BLACK, "Background services", ALIGNED_LEFT);
+    gui->drawTextAligned(font20, x + 620, y + 50, m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+  }, [&](u32 kdown, bool *isActivated){
+    if (kdown & KEY_A)
+      Gui::g_nextGui = GUI_SM_SELECT;
+  }, { 2, -1, 0, 4 }, false, []() -> bool {return true;});
+
+  new Button(735, 400, 335, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+    gui->drawRectangled(x, y, 335, 80, currTheme.selectedColor);
+    gui->drawTextAligned(font20, x + 55, y + 50, COLOR_BLACK, "Reboot to Hekate", ALIGNED_LEFT);
+    gui->drawTextAligned(font20, x + 620, y + 50, m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+  }, [&](u32 kdown, bool *isActivated){
+    if (kdown & KEY_A)
+      Gui::g_nextGui = GUI_HEKATE;
+  }, { 2, -1, 3, -1 }, false, []() -> bool {return true;});
 }
 
 GuiMain::~GuiMain() {
@@ -175,8 +195,6 @@ void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) 
   *overrideByDefault = (str[0] == '!');
 
   str = str.substr(0);
-
-  printf("%s\n", str.c_str());
   
   if (str == "A") *key = KEY_A;
   else if (str == "B") *key = KEY_B;
@@ -199,67 +217,6 @@ void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) 
   else *key = KEY_R;
 }
 
-AutoBootEntry GuiMain::getAutoBootConfigs(std::vector<AutoBootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
-  Ini *hekateIni = Ini::parseFile(HEKATE_INI);
-
-  u16 id = 0;
-  AutoBootEntry currEntry;
-
-  currAutoBootEntryIndex = 0;
-
-  u16 currAutoboot = std::stoi(hekateIni->findSection("config")->findFirstOption("autoboot")->value);
-  bool currAutoboot_list = std::stoi(hekateIni->findSection("config")->findFirstOption("autoboot_list")->value);
-
-  out_bootEntries.push_back({ "Disable autoboot", 0, false });
-  currEntry = out_bootEntries.back();
-
-  for (auto const& it : hekateIni->sections) {
-    if(std::string(it->value) == "config" || it->isComment()) continue;
-    out_bootEntries.push_back({ it->value, ++id, false });
-
-    if(!currAutoboot_list && id == currAutoboot) {
-      currEntry = out_bootEntries.back();
-      currAutoBootEntryIndex = out_bootEntries.size() - 1;
-    }
-  }
-
-  DIR *dr = opendir(INI_PATH);
-  struct dirent *de;
-  std::vector<std::string> iniFiles;
-
-  while((de = readdir(dr)) != nullptr)
-    iniFiles.push_back(de->d_name);
-  closedir(dr);
-
-  std::sort(iniFiles.begin(), iniFiles.end());
-
-  id = 0;
-
-  delete hekateIni;
-  hekateIni = nullptr;
-
-  if (iniFiles.empty()) return currEntry;
-
-  for(auto const& iniFile : iniFiles) {
-    std::string file = std::string(INI_PATH) + iniFile;
-    hekateIni = Ini::parseFile(file);
-
-    for (auto const& it : hekateIni->sections) {
-      if (it->isComment()) continue;
-      out_bootEntries.push_back({ it->value, ++id, true });
-
-      if(currAutoboot_list && id == currAutoboot) {
-        currEntry = out_bootEntries.back();
-        currAutoBootEntryIndex = out_bootEntries.size() - 1;
-      }
-    }
-	
-	delete hekateIni;
-  }
-  
-  return currEntry;
-}
-
 void GuiMain::update() {
   Gui::update();
 }
@@ -280,16 +237,14 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
-  if (kdown & KEY_ZL) {
-    printf("Start\n");
-    Gui::g_nextGui = GUI_SM_SELECT;
-    return;
-  }
-
   for(Button *btn : Button::g_buttons) {
     if (btn->isSelected())
-      if (btn->onInput(kdown)) break;
-  }
+      if (btn->onInput(kdown)) return;
+  }    
+    
+  if (kdown & KEY_B && !exitDisabled)
+    g_exitApplet = true;
+
 }
 
 void GuiMain::onTouch(touchPosition &touch) {

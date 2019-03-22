@@ -30,7 +30,6 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
   if (configFile.fail()) {
     Gui::g_nextGui = GUI_MAIN;
-    printf("Failed to open config file!\n");
     return;
   }
 
@@ -38,7 +37,6 @@ GuiSysmodule::GuiSysmodule() : Gui() {
   try {
     configFile >> configJson;
   } catch(json::parse_error& e) {
-    printf("Failed to parse JSON file!\n");
     return;
   }
 
@@ -56,15 +54,12 @@ GuiSysmodule::GuiSysmodule() : Gui() {
     }
   }
 
-  printf("\n");
-
-
   u16 xOffset = 0, yOffset = 0;
   s32 cnt = 0;
   u32 sysmoduleCnt = this->m_sysmodules.size();
 
   for (auto &sysmodule : this->m_sysmodules) {
-     new Button(100 + xOffset, 200 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+     new Button(100 + xOffset, 2503 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
       gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
       gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
     }, [&](u32 kdown, bool *isActivated){
@@ -103,7 +98,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
     yOffset += 100;
 
-    if (yOffset == 400) {
+    if (yOffset == 300) {
       xOffset += 550;
       yOffset = 0;
     }
@@ -134,6 +129,8 @@ void GuiSysmodule::draw() {
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Kosmos Toolbox", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
 
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
+
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
   Gui::endDraw();
@@ -144,6 +141,10 @@ void GuiSysmodule::onInput(u32 kdown) {
     if (btn->isSelected())
       if (btn->onInput(kdown)) break;
   }
+
+  if (kdown & KEY_B)
+    Gui::g_nextGui = GUI_MAIN;
+
 }
 
 void GuiSysmodule::onTouch(touchPosition &touch) {
