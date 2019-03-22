@@ -7,6 +7,7 @@
 #include "gui.hpp"
 #include "gui_main.hpp"
 #include "gui_sysmodule.hpp"
+#include "gui_hekate.hpp"
 
 #include "threads.hpp"
 #include "title.hpp"
@@ -15,6 +16,8 @@ static Gui *currGui = nullptr;
 static bool updateThreadRunning = false;
 static Mutex mutexCurrGui;
 u32 __nx_applet_type = AppletType_Default;
+
+bool g_exitApplet = false;
 
 void update(void *args) {
   while (updateThreadRunning) {
@@ -80,6 +83,9 @@ int main(int argc, char **argv){
           case GUI_SM_SELECT:
             currGui = new GuiSysmodule();
             break;
+          case GUI_HEKATE:
+            currGui = new GuiHekate();
+            break;
         }
         mutexUnlock(&mutexCurrGui);
         Gui::g_nextGui = GUI_INVALID;
@@ -104,15 +110,16 @@ int main(int argc, char **argv){
         }
 
         touchCntOld = touchCnt;
+
+        if (g_exitApplet)
+          break;
+
       }
     }
 
-
     updateThreadRunning = false;
     Threads::joinAll();
-
     socketExit();
-
     framebufferClose(&Gui::g_fb_obj);
 
     return 0;

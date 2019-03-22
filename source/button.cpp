@@ -16,11 +16,11 @@ Button::Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bo
 
 void Button::draw(Gui *gui) {
   if(m_isSelected) {
-    gui->drawRectangle(m_x - 5, m_y - 5, m_w + 9, m_h + 10, m_isActivated ? currTheme.selectedColor : currTheme.highlightColor);
-    gui->drawShadow(m_x - 5, m_y - 5, m_w + 9, m_h + 10);
+    gui->drawRectangled(m_x - 5, m_y - 5, m_w + 10, m_h + 10, m_isActivated ? currTheme.selectedColor : currTheme.highlightColor);
+    gui->drawShadow(m_x - 5, m_y - 5, m_w + 10, m_h + 10);
   } else gui->drawShadow(m_x, m_y, m_w, m_h);
 
-  gui->drawRectangle(m_x, m_y, m_w, m_h, currTheme.selectedButtonColor);
+  gui->drawRectangled(m_x, m_y, m_w, m_h, currTheme.selectedButtonColor);
 
   m_drawAction(gui, m_x, m_y, &m_isActivated);
 
