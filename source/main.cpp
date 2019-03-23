@@ -8,9 +8,13 @@
 #include "gui_main.hpp"
 #include "gui_sysmodule.hpp"
 #include "gui_hekate.hpp"
+#include "gui_hid_mitm.hpp"
 
 #include "threads.hpp"
-#include "title.hpp"
+
+extern "C" {
+  #include "hid_extra.h"
+}
 
 static Gui *currGui = nullptr;
 static bool updateThreadRunning = false;
@@ -41,6 +45,8 @@ int main(int argc, char **argv){
     socketInitializeDefault();
     nxlinkStdio();
 
+    hidExtraInitialize();
+
     setsysInitialize();
     ColorSetId colorSetId;
     setsysGetColorSetId(&colorSetId);
@@ -49,14 +55,6 @@ int main(int argc, char **argv){
 
     framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
     framebufferMakeLinear(&Gui::g_fb_obj);
-
-    std::vector<FsSaveDataInfo> saveInfoList;
-    Title::getSaveList(saveInfoList);
-
-    for (auto saveInfo : saveInfoList) {
-      if (Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
-        Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
-    }
 
     Gui::g_nextGui = GUI_MAIN;
 
@@ -85,6 +83,9 @@ int main(int argc, char **argv){
             break;
           case GUI_HEKATE:
             currGui = new GuiHekate();
+            break;
+          case GUI_HID_MITM:
+            currGui = new GuiHIDMitm();
             break;
         }
         mutexUnlock(&mutexCurrGui);
@@ -117,10 +118,16 @@ int main(int argc, char **argv){
       }
     }
 
+    if (currGui != nullptr)
+      delete currGui;
+
     updateThreadRunning = false;
     Threads::joinAll();
     socketExit();
+    hidExtraExit();
     framebufferClose(&Gui::g_fb_obj);
+
+    appletEndBlockingHomeButton();
 
     return 0;
 }

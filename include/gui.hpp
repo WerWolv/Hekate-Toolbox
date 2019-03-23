@@ -26,7 +26,8 @@ enum gui_t {
   GUI_INVALID,
   GUI_MAIN,
   GUI_SM_SELECT,
-  GUI_HEKATE
+  GUI_HEKATE,
+  GUI_HID_MITM
 };
 
 class Gui {

@@ -15,6 +15,7 @@ using json = nlohmann::json;
 
 extern "C" {
   #include "pm_dmnt.h"
+  #include "hid_extra.h"
 }
 
 static u64 cur_val, lim_val;
@@ -26,7 +27,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
   pmdmntGetCurrentLimitInfo(&cur_val, &lim_val, 0, 0);
 
-  std::ifstream configFile("/switch/KosmosToolbox/config.json");
+  std::ifstream configFile("sdmc:/switch/KosmosToolbox/config.json");
 
   if (configFile.fail()) {
     Gui::g_nextGui = GUI_MAIN;
@@ -59,7 +60,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
   u32 sysmoduleCnt = this->m_sysmodules.size();
 
   for (auto &sysmodule : this->m_sysmodules) {
-     new Button(100 + xOffset, 2503 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+     new Button(100 + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
       gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
       gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
     }, [&](u32 kdown, bool *isActivated){
@@ -127,12 +128,17 @@ void GuiSysmodule::draw() {
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Kosmos Toolbox", ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+
+  if (hidMitmInstalled())
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Key configuration     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+  else
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
 
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
+
   Gui::endDraw();
 }
 
@@ -144,6 +150,9 @@ void GuiSysmodule::onInput(u32 kdown) {
 
   if (kdown & KEY_B)
     Gui::g_nextGui = GUI_MAIN;
+
+  if (hidMitmInstalled() && kdown & KEY_X)
+    Gui::g_nextGui = GUI_HID_MITM;
 
 }
 

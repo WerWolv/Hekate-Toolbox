@@ -39,7 +39,7 @@ APP_AUTHOR	:=	WerWolv
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
 TARGET		:=	$(notdir $(CURDIR))
-OUTDIR    := out
+OUTDIR    	:= out
 BUILD		:=	build
 SOURCES		:=	source source/ini
 DATA		:=	data
