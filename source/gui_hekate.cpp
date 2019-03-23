@@ -106,9 +106,9 @@ GuiHekate::GuiHekate() : Gui() {
         fread(g_reboot_payload, 1, sizeof(g_reboot_payload), f);
         fclose(f);
 
-        g_reboot_payload[0x94] = 0;
-        g_reboot_payload[0x95] = 0;
-        g_reboot_payload[0x96] = 0;
+        g_reboot_payload[0x94] = 1;
+        g_reboot_payload[0x95] = m_currRebootConfig.id;
+        g_reboot_payload[0x96] = m_currRebootConfig.autoBootList;
 
         reboot_to_payload();
      }
@@ -116,7 +116,7 @@ GuiHekate::GuiHekate() : Gui() {
 }
 
 GuiHekate::~GuiHekate() {
-    splExit();
+  splExit();
   Button::g_buttons.clear();
 }
 
