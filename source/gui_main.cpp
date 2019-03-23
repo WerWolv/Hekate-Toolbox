@@ -12,8 +12,6 @@ extern "C" {
   #include "pm_dmnt.h"
 }
 
-#define SYS_FTPD_TID 0x420000000000000E
-
 extern bool g_exitApplet;
 bool exitDisabled = false;
 
@@ -21,15 +19,6 @@ static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
 
 GuiMain::GuiMain() : Gui() {
-  pmshellInitialize();
-  pmdmntInitialize();
-  pmdmntInitialize_mod();
-
-  u64 ftpd_pid;
-  pmdmntGetTitlePid(&ftpd_pid, SYS_FTPD_TID);
-
-  m_sysftpdRunning = ftpd_pid != 0;
-
   Ini *ini = Ini::parseFile(LOADER_INI);
   keyCharsToKey(ini->findSection("hbl_config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
 
@@ -133,10 +122,6 @@ GuiMain::GuiMain() : Gui() {
 }
 
 GuiMain::~GuiMain() {
-  pmshellExit();
-  pmdmntExit();
-  pmdmntExit_mod();
-
   Button::g_buttons.clear();
 }
 
