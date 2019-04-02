@@ -179,7 +179,9 @@ std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
 void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) {
   *overrideByDefault = (str[0] == '!');
 
-  str = str.substr(0);
+  if (*overrideByDefault) {
+	  str = str.substr(1);
+  }
   
   if (str == "A") *key = KEY_A;
   else if (str == "B") *key = KEY_B;
