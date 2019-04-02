@@ -34,7 +34,6 @@ GuiHIDMitm::GuiHIDMitm() : Gui() {
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         Gui::g_nextGui = GUI_SM_SELECT;
-        hidExtraReloadConfig();
         
         for (u16 i = 0; i < m_hidConfig.size(); i++)
           m_configFile->findSection("player1")->options[i]->value = m_hidConfig[m_configFile->findSection("player1")->options[i]->key];
@@ -47,6 +46,7 @@ GuiHIDMitm::GuiHIDMitm() : Gui() {
 
 GuiHIDMitm::~GuiHIDMitm() {
   m_configFile->writeToFile(HID_MITM_INI);
+  hidExtraReloadConfig();
   Button::g_buttons.clear();
 }
 
