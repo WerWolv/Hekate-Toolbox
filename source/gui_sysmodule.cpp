@@ -44,20 +44,18 @@ GuiSysmodule::GuiSysmodule() : Gui() {
   for (auto sysmodule : configJson["sysmodules"]) {
     try {
       std::stringstream path;
-      path << "/atmosphere/titles/" << sysmodule["tid"] << "/flags/boot2.flag";
+      path << "/atmosphere/titles/" << sysmodule["tid"].get<std::string>() << "/exefs.nsp";
 
-      this->m_sysmodules.insert(std::make_pair(sysmodule["tid"].get<std::string>(), (sysModule_t){ sysmodule["name"], sysmodule["tid"], sysmodule["requires_reboot"] }));
+      if (access(path.str().c_str(), F_OK) == -1) continue;
       
-      if (sysmodule["requires_reboot"]) {
-        if (access(path.str().c_str(), F_OK) == 0)
-          this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
-      } else {
-        u64 sysmodulePid = 0;
-        pmdmntGetTitlePid(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
+      this->m_sysmodules.insert(std::make_pair(sysmodule["tid"].get<std::string>(), (sysModule_t){ sysmodule["name"].get<std::string>(), sysmodule["tid"].get<std::string>(), sysmodule["requires_reboot"].get<bool>() }));
+      
+      u64 sysmodulePid = 0;
+      pmdmntGetTitlePid(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
 
-        if (sysmodulePid > 0)
-          this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
-      }
+      if (sysmodulePid > 0)
+        this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
+      
     } catch(json::parse_error &e) {
       continue;
     }
