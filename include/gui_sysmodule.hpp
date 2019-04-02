@@ -9,9 +9,8 @@
 
 typedef struct {
   std::string name;
-  std::string description;
   std::string titleID;
-  u32 maxRAM;
+  bool requiresReboot;
 } sysModule_t;
 
 class GuiSysmodule : public Gui {
@@ -28,4 +27,5 @@ public:
 private:
   std::unordered_map<std::string, sysModule_t> m_sysmodules;
   std::set<std::string> m_runningSysmodules;
+  std::set<std::string> m_presentSysmodules;
 };

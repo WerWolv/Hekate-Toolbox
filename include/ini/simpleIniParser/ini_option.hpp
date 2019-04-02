@@ -15,27 +15,18 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#include "ini/simpleIniParser/ini_option.hpp"
-#include "trim.hpp"
+#pragma once
 
-using namespace std;
+#include <string>
 
 namespace simpleIniParser {
-    IniOption::IniOption(string name, string val) {
-        key = name;
-        value = val;
-    }
+    class IniOption {
+        public:
+            std::string key;
+            std::string value;
 
-    string IniOption::build() {
-        return key + '=' + value;
-    }
-
-    IniOption * IniOption::parse(string line) {
-        size_t pos = line.find('=');
-        if (pos != string::npos && pos > 0) {
-            return new IniOption(rtrim_copy(line.substr(0, pos)), ltrim_copy(line.substr(pos + 1)));
-        } else {
-            return nullptr;
-        }
-    }
+            IniOption(std::string name, std::string val);
+            std::string build();
+            static IniOption * parse(std::string line);
+    };
 }

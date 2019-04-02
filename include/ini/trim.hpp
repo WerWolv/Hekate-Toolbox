@@ -1,4 +1,6 @@
-#include <algorithm>
+// Source: https://stackoverflow.com/questions/216823
+
+#include <algorithm> 
 #include <cctype>
 #include <locale>
 
@@ -18,10 +20,6 @@ static inline void rtrim(std::string &s) {
 
 // trim from both ends (in place)
 static inline void trim(std::string &s) {
-    if (s[0] == 0xEF && s[1] == 0xBB && s[2] == 0xBF) {
-      s[0] = s[1] = s[2] = 0x20;
-    }
-
     ltrim(s);
     rtrim(s);
 }

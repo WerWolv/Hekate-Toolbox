@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "list_selector.hpp"
+#include "message_box.hpp"
 
 #include "json.hpp"
 
@@ -18,14 +19,13 @@ extern "C" {
   #include "hid_extra.h"
 }
 
-static u64 cur_val, lim_val;
+static bool anyModulesPresent = false;
 
 GuiSysmodule::GuiSysmodule() : Gui() {
   pmshellInitialize();
   pmdmntInitialize();
-  pmdmntInitialize_mod();
 
-  pmdmntGetCurrentLimitInfo(&cur_val, &lim_val, 0, 0);
+  anyModulesPresent = false;
 
   std::ifstream configFile("sdmc:/switch/KosmosToolbox/config.json");
 
@@ -43,13 +43,21 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
   for (auto sysmodule : configJson["sysmodules"]) {
     try {
-      this->m_sysmodules.insert(std::make_pair(sysmodule["tid"].get<std::string>(), (sysModule_t){ sysmodule["name"], sysmodule["desc"], sysmodule["tid"], sysmodule["maxRAM"]}));
-    
-      u64 sysmodulePid = 0;
-      pmdmntGetTitlePid(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
+      std::stringstream path;
+      path << "/atmosphere/titles/" << sysmodule["tid"] << "/flags/boot2.flag";
 
-      if (sysmodulePid > 0)
-        this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
+      this->m_sysmodules.insert(std::make_pair(sysmodule["tid"].get<std::string>(), (sysModule_t){ sysmodule["name"], sysmodule["tid"], sysmodule["requires_reboot"] }));
+      
+      if (sysmodule["requires_reboot"]) {
+        if (access(path.str().c_str(), F_OK) == 0)
+          this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
+      } else {
+        u64 sysmodulePid = 0;
+        pmdmntGetTitlePid(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
+
+        if (sysmodulePid > 0)
+          this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
+      }
     } catch(json::parse_error &e) {
       continue;
     }
@@ -57,10 +65,19 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
   u16 xOffset = 0, yOffset = 0;
   s32 cnt = 0;
-  u32 sysmoduleCnt = this->m_sysmodules.size();
+  s32 sysmoduleCnt = this->m_sysmodules.size();
 
   for (auto &sysmodule : this->m_sysmodules) {
-     new Button(100 + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+    FILE *exefs = fopen(std::string("/atmosphere/titles/" + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
+
+    if (exefs == nullptr)
+      continue;
+
+    fclose(exefs);
+
+    anyModulesPresent = true;
+
+    new Button(100 + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
       gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
       gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
     }, [&](u32 kdown, bool *isActivated){
@@ -73,28 +90,44 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
 
         if (this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end()) {
-          pmshellTerminateProcessByTitleId(tid);
+          if (!sysmodule.second.requiresReboot) {
+            pmshellTerminateProcessByTitleId(tid);
+          } else {
+            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use in.", MessageBox::OKAY))->show();
+          }
+
           remove(path.str().c_str());
         }
         else {
-          if (R_SUCCEEDED(pmshellLaunchProcess(0, tid, FsStorageId_None, &pid))) {
+          if (sysmodule.second.requiresReboot) {
+            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use in.", MessageBox::OKAY))->show();
             FILE *fptr = fopen(path.str().c_str(), "wb+");
             if (fptr != nullptr) fclose(fptr);
+          } else {
+            if (R_SUCCEEDED(pmshellLaunchProcess(0, tid, FsStorageId_None, &pid))) {
+              FILE *fptr = fopen(path.str().c_str(), "wb+");
+              if (fptr != nullptr) fclose(fptr);
+            }
           }
         }
 
         pid = 0;
         pmdmntGetTitlePid(&pid, tid);
 
-        if (pid != 0)
-          this->m_runningSysmodules.insert(sysmodule.first);
-        else
-          this->m_runningSysmodules.erase(sysmodule.first);   
-
-        pmdmntGetCurrentLimitInfo(&cur_val, &lim_val, 0, 0);      
+        if (!sysmodule.second.requiresReboot) {
+          if (pid != 0)
+            this->m_runningSysmodules.insert(sysmodule.first);
+          else
+            this->m_runningSysmodules.erase(sysmodule.first);     
+        } else {
+          if (access(path.str().c_str(), F_OK) == 0)
+            this->m_runningSysmodules.insert(sysmodule.first);
+          else
+            this->m_runningSysmodules.erase(sysmodule.first);    
+        }
       }
-    }, { (cnt - 1), (u32)(cnt + 1) == sysmoduleCnt ? -1 : (cnt + 1), (cnt - 4) >= 0 ? cnt - 4 : -1, (u32)(cnt + 4) < sysmoduleCnt ? cnt + 4 : -1 }, false, 
-    [&]() -> bool { return this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() || (lim_val - cur_val) > (sysmodule.second.maxRAM * 1024); });
+    }, { (cnt % 3) > 0 ? cnt - 1 : -1, ((cnt % 3) < 2) && (cnt < (sysmoduleCnt - 1)) ? cnt + 1 : -1, cnt >= 3 ? cnt - 3 : -1, (cnt < 3) && (cnt + 3 < sysmoduleCnt) ? cnt + 3 : -1 }, false, 
+    [&]() -> bool { return true; });
   
 
     yOffset += 100;
@@ -112,7 +145,6 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 GuiSysmodule::~GuiSysmodule() {
   pmshellExit();
   pmdmntExit();
-  pmdmntExit_mod();
 
   Button::g_buttons.clear();
 }
@@ -134,7 +166,10 @@ void GuiSysmodule::draw() {
   else
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
 
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
+  if (anyModulesPresent)
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
+  else
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "You currently don't have any supported sysmodules installed. To use this \n feature, please install any supported sysmodule as an NSP.", ALIGNED_CENTER);
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);

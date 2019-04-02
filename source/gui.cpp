@@ -8,6 +8,7 @@ static u32 stride;
 
 Gui::Gui() {
   Gui::g_currListSelector = nullptr;
+  Gui::g_currMessageBox = nullptr;
 
   m_fontLibret = 1;
   m_fontFacesTotal = 0;
@@ -20,6 +21,7 @@ Gui::Gui() {
 
 Gui::~Gui() {
   Gui::g_currListSelector = nullptr;
+  Gui::g_currMessageBox = nullptr;
 
   fontExit();
   plExit();
@@ -522,6 +524,9 @@ void Gui::beginDraw() {
 void Gui::endDraw() {
   if (Gui::g_currListSelector != nullptr)
     Gui::g_currListSelector->draw(this);
+
+  if (Gui::g_currMessageBox != nullptr)
+    Gui::g_currMessageBox->draw(this);
 
   framebufferEnd(&Gui::g_fb_obj);
 }

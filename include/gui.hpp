@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "list_selector.hpp"
+#include "message_box.hpp"
 
 extern "C" {
   #include "theme.h"
@@ -40,6 +41,7 @@ public:
   static inline u32 g_framebuffer_height = 720;
 
   static inline ListSelector *g_currListSelector = nullptr;
+  static inline MessageBox *g_currMessageBox = nullptr;
 
   Gui();
   virtual ~Gui();

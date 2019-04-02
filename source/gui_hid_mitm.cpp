@@ -20,7 +20,7 @@ const char * const keyNames[16] = { "KEY_A", "KEY_B", "KEY_X", "KEY_Y", "KEY_LST
 GuiHIDMitm::GuiHIDMitm() : Gui() {
   hidExtraPause();
 
-  m_configFile = Ini::parseFile(HID_MITM_INI);
+  m_configFile = simpleIniParser::Ini::parseFile(HID_MITM_INI);
 
   if (m_configFile != nullptr && m_configFile->findSection("player1") != nullptr) {
     for (u8 i = 0; i < m_configFile->findSection("player1")->options.size(); i++) {

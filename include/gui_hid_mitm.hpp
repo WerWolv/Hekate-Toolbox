@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 #include "utils.hpp"
-#include "ini/ini.hpp"
+#include "ini/simple_ini_parser.hpp"
 
 
 class GuiHIDMitm : public Gui {
@@ -21,7 +21,7 @@ public:
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
 private:
-  Ini *m_configFile;
+  simpleIniParser::Ini *m_configFile;
   std::map<std::string, std::string> m_hidConfig; 
   s32 m_selectedButton = -1;
 };
