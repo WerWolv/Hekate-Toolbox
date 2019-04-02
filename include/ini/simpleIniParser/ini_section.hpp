@@ -15,27 +15,32 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#include "ini/simpleIniParser/ini_option.hpp"
-#include "trim.hpp"
+#pragma once
 
-using namespace std;
+#include <string>
+#include <vector>
+
+#include "ini_option.hpp"
 
 namespace simpleIniParser {
-    IniOption::IniOption(string name, string val) {
-        key = name;
-        value = val;
-    }
+    typedef enum {
+        SECTION,
+        SEMICOLON_COMMENT,
+        HASHTAG_COMMENT,
+        HEKATE_CAPTION,
+        BLANK_LINE
+    } IniSectionType;
 
-    string IniOption::build() {
-        return key + '=' + value;
-    }
+    class IniSection {
+        public:
+            IniSectionType type;
+            std::string value;
+            std::vector<IniOption *> options;
 
-    IniOption * IniOption::parse(string line) {
-        size_t pos = line.find('=');
-        if (pos != string::npos && pos > 0) {
-            return new IniOption(rtrim_copy(line.substr(0, pos)), ltrim_copy(line.substr(pos + 1)));
-        } else {
-            return nullptr;
-        }
-    }
+            IniSection(IniSectionType type, std::string value);
+            ~IniSection();
+            IniOption * findFirstOption(std::string key);
+            std::string build();
+            static IniSection * parse(std::string line);
+    };
 }

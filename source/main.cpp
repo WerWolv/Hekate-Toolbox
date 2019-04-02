@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include <switch.h>
+#include <thread>
 
 #include "gui.hpp"
 #include "gui_main.hpp"
@@ -23,7 +24,7 @@ u32 __nx_applet_type = AppletType_Default;
 
 bool g_exitApplet = false;
 
-void update(void *args) {
+void update() {
   while (updateThreadRunning) {
     auto begin = std::chrono::steady_clock::now();
 
@@ -61,7 +62,8 @@ int main(int argc, char **argv){
     mutexInit(&mutexCurrGui);
 
     updateThreadRunning = true;
-    Threads::create(&update);
+    std::thread updateThread(update);
+    
 
     touchCntOld = hidTouchCount();
 
@@ -98,6 +100,8 @@ int main(int argc, char **argv){
         if (kdown) {
           if(Gui::g_currListSelector != nullptr)
             Gui::g_currListSelector->onInput(kdown);
+          else if(Gui::g_currMessageBox != nullptr)
+            Gui::g_currMessageBox->onInput(kdown);
           else currGui->onInput(kdown);
         }
 
@@ -122,7 +126,7 @@ int main(int argc, char **argv){
       delete currGui;
 
     updateThreadRunning = false;
-    Threads::joinAll();
+    updateThread.join();
     socketExit();
     hidExtraExit();
     framebufferClose(&Gui::g_fb_obj);

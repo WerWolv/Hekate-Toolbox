@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "utils.hpp"
-#include "ini/ini.hpp"
+#include "ini/simple_ini_parser.hpp"
 
 #include "list_selector.hpp"
 
@@ -19,7 +19,7 @@ static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
 
 GuiMain::GuiMain() : Gui() {
-  Ini *ini = Ini::parseFile(LOADER_INI);
+  simpleIniParser::Ini *ini = simpleIniParser::Ini::parseFile(LOADER_INI);
   keyCharsToKey(ini->findSection("hbl_config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
 
   m_autoBootConfigs.push_back({ "Disable autoboot", 0, false });
@@ -34,7 +34,7 @@ GuiMain::GuiMain() : Gui() {
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
         m_overrideKeyCombo = kdown;
-        Ini *ini = Ini::parseFile(LOADER_INI);
+        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseFile(LOADER_INI);
         auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
@@ -54,7 +54,7 @@ GuiMain::GuiMain() : Gui() {
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         m_overrideByDefault = !m_overrideByDefault;
-        Ini *ini = Ini::parseFile(LOADER_INI);
+        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseFile(LOADER_INI);
         auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
         ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
 
@@ -84,7 +84,7 @@ GuiMain::GuiMain() : Gui() {
 
        (new ListSelector("Hekate autoboot profile", "\uE0E1 Back     \uE0E0 Ok", autobootNames, currAutoBootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
          if(k & KEY_A) {
-           Ini *hekateIni = Ini::parseFile(HEKATE_INI);
+           simpleIniParser::Ini *hekateIni = simpleIniParser::Ini::parseFile(HEKATE_INI);
            currAutoBootEntryIndex = selectedItem;
            m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
 

@@ -1,3 +1,4 @@
+//
 // SimpleIniParser
 // Copyright (C) 2019 Steven Mattera
 //
@@ -14,28 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+//
 
-#include "ini/simpleIniParser/ini_option.hpp"
-#include "trim.hpp"
-
-using namespace std;
-
-namespace simpleIniParser {
-    IniOption::IniOption(string name, string val) {
-        key = name;
-        value = val;
-    }
-
-    string IniOption::build() {
-        return key + '=' + value;
-    }
-
-    IniOption * IniOption::parse(string line) {
-        size_t pos = line.find('=');
-        if (pos != string::npos && pos > 0) {
-            return new IniOption(rtrim_copy(line.substr(0, pos)), ltrim_copy(line.substr(pos + 1)));
-        } else {
-            return nullptr;
-        }
-    }
-}
+#include "simpleIniParser/ini.hpp"
+#include "simpleIniParser/ini_section.hpp"
+#include "simpleIniParser/ini_section.hpp"

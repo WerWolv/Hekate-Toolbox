@@ -1,76 +1,96 @@
+// SimpleIniParser
+// Copyright (C) 2019 Steven Mattera
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 #include <fstream>
 #include <iostream>
-#include "ini.hpp"
-#include "ini_option.hpp"
+#include "ini/simpleIniParser/ini.hpp"
+#include "ini/simpleIniParser/ini_option.hpp"
 #include "trim.hpp"
 
-Ini::~Ini() {
-    for (IniSection * section : sections) {
-        if (section != nullptr) {
-            delete section;
-            section = nullptr;
+using namespace std;
+
+namespace simpleIniParser {
+    Ini::~Ini() {
+        for (IniSection * section : sections) {
+            if (section != nullptr) {
+                delete section;
+                section = nullptr;
+            }
         }
-    }
-    sections.clear();
-}
-
-std::string Ini::build() {
-    std::string result;
-
-    for (IniSection * section : sections) {
-        result += section->build() + "\n";
+        sections.clear();
     }
 
-    return result;
-}
+    string Ini::build() {
+        string result;
 
-IniSection * Ini::findSection(std::string name) {
-    auto it = std::find_if(sections.begin(), sections.end(), [&name](const IniSection * obj) { return obj->value == name; });
-    if (it == sections.end())
-        return nullptr;
+        for (IniSection * section : sections) {
+            result += section->build() + "\n";
+        }
 
-    return (*it);
-}
+        return result;
+    }
 
-bool Ini::writeToFile(std::string path) {
-    std::ofstream file(path);
-    if (!file.is_open())
-        return false;
+    IniSection * Ini::findSection(string name) {
+        auto it = find_if(sections.begin(), sections.end(), [&name](const IniSection * obj) { return obj->value == name; });
+        if (it == sections.end())
+            return nullptr;
 
-    file << build();
+        return (*it);
+    }
 
-    file.close();
+    bool Ini::writeToFile(string path) {
+        ofstream file(path);
+        if (!file.is_open())
+            return false;
 
-    return true;
-}
+        file << build();
 
-Ini * Ini::parseFile(std::string path) {
-    std::ifstream file(path);
-    if (!file.is_open())
-        return nullptr;
+        file.close();
 
-    Ini * ini = new Ini();
-    std::string line;
-    while (getline(file, line)) {
-        trim(line);
+        return true;
+    }
 
-        if (line.size() == 0)
-            continue;
+    Ini * Ini::parseFile(string path) {
+        ifstream file(path);
+        if (!file.is_open())
+            return nullptr;
 
-        if (line.at(0) == '[' || line.at(0) == '{') {
+        Ini * ini = new Ini();
+        string line;
+        while (getline(file, line)) {
+            trim(line);
+
+            if (line.size() == 0)
+                continue;
+
             IniSection * section = IniSection::parse(line);
-
-            if (section != nullptr)
+            if (section != nullptr) {
                 ini->sections.push_back(section);
-        } else if (ini->sections.size() != 0 && ini->sections.back()->isComment() == false) {
-            IniOption * option = IniOption::parse(line);
+            }
+            else if (ini->sections.size() != 0 && ini->sections.back()->type == SECTION) {
+                IniOption * option = IniOption::parse(line);
 
-            if (option != nullptr)
-                ini->sections.back()->options.push_back(option);
+                if (option != nullptr)
+                    ini->sections.back()->options.push_back(option);
+            }
         }
+
+        file.close();
+
+        return ini;
     }
-
-    file.close();
-
-    return ini;
 }

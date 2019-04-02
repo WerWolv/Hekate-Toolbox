@@ -1,11 +1,11 @@
 #include "utils.hpp"
-#include "ini/ini.hpp"
+#include "ini/simple_ini_parser.hpp"
 #include <stdio.h>
 #include <dirent.h>
 #include <algorithm>
 
 BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
-  Ini *hekateIni = Ini::parseFile(HEKATE_INI);
+  simpleIniParser::Ini *hekateIni = simpleIniParser::Ini::parseFile(HEKATE_INI);
 
   u16 id = 0;
   BootEntry currEntry;
@@ -18,7 +18,7 @@ BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoB
   currEntry = out_bootEntries.back();
 
   for (auto const& it : hekateIni->sections) {
-    if(std::string(it->value) == "config" || it->isComment()) continue;
+    if(std::string(it->value) == "config" || it->type != simpleIniParser::SECTION) continue;
     out_bootEntries.push_back({ it->value, ++id, false });
 
     if(!currAutoboot_list && id == currAutoboot) {
@@ -46,10 +46,10 @@ BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoB
 
   for(auto const& iniFile : iniFiles) {
     std::string file = std::string(INI_PATH) + iniFile;
-    hekateIni = Ini::parseFile(file);
+    hekateIni = simpleIniParser::Ini::parseFile(file);
 
     for (auto const& it : hekateIni->sections) {
-      if (it->isComment()) continue;
+      if (it->type != simpleIniParser::SECTION) continue;
       out_bootEntries.push_back({ it->value, ++id, true });
 
       if(currAutoboot_list && id == currAutoboot) {
