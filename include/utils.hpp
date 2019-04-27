@@ -7,7 +7,7 @@
 #define LOADER_INI    "sdmc:/atmosphere/loader.ini"
 #define HEKATE_INI    "sdmc:/bootloader/hekate_ipl.ini"
 #define INI_PATH      "sdmc:/bootloader/ini/"
-#define HID_MITM_INI  "sdmc:/modules/hid_mitm/config.ini"
+#define HID_MITM_INI  "sdmc:/config/hid_mitm/config.ini"
 
 typedef struct {
   std::string name;
