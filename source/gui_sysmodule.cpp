@@ -91,14 +91,14 @@ GuiSysmodule::GuiSysmodule() : Gui() {
           if (!sysmodule.second.requiresReboot) {
             pmshellTerminateProcessByTitleId(tid);
           } else {
-            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use in.", MessageBox::OKAY))->show();
+            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use it.", MessageBox::OKAY))->show();
           }
 
           remove(path.str().c_str());
         }
         else {
           if (sysmodule.second.requiresReboot) {
-            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use in.", MessageBox::OKAY))->show();
+            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use it.", MessageBox::OKAY))->show();
             FILE *fptr = fopen(path.str().c_str(), "wb+");
             if (fptr != nullptr) fclose(fptr);
           } else {
