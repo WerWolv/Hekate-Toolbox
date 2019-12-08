@@ -80,7 +80,7 @@ private:
   FT_Library m_fontLibrary;
   FT_Face m_fontFaces[FONT_FACES_MAX];
   FT_Face m_fontLastUsedFace;
-  size_t m_fontFacesTotal;
+  s32 m_fontFacesTotal;
 
   std::unordered_map<size_t, std::pair<u16, u16>> m_stringDimensions;
 
