@@ -52,6 +52,17 @@ namespace simpleIniParser {
         return (*it);
     }
 
+    IniSection * Ini::findOrCreateSection(IniSectionType type, string name) {
+        auto it = findSection(name);
+        if (it == nullptr)
+        {
+            it = new IniSection(type, name);
+            sections.push_back(it);
+        }
+
+        return it;
+    }
+
     bool Ini::writeToFile(string path) {
         ofstream file(path);
         if (!file.is_open())
@@ -92,5 +103,12 @@ namespace simpleIniParser {
         file.close();
 
         return ini;
+    }
+
+    Ini * Ini::parseOrCreateFile(std::string path) {
+        auto it = Ini::parseFile(path);
+        if (it == nullptr)
+            it = new Ini();
+        return it;
     }
 }

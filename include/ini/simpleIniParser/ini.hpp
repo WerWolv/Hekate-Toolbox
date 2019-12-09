@@ -30,7 +30,9 @@ namespace simpleIniParser {
             ~Ini();
             std::string build();
             IniSection * findSection(std::string name);
+            IniSection * findOrCreateSection(IniSectionType type, std::string name);
             bool writeToFile(std::string path);
             static Ini * parseFile(std::string path);
+            static Ini * parseOrCreateFile(std::string path);
     };
 }

@@ -44,6 +44,17 @@ namespace simpleIniParser {
         return (*it);
     }
 
+    IniOption * IniSection::findOrCreateFirstOption(string key, string val) {
+        auto it = findFirstOption(key);
+        if (it == nullptr)
+        {
+            it = new IniOption(key, val);
+            options.push_back(it);
+        }
+
+        return it;
+    }
+
     string IniSection::build() {
         if (type == HEKATE_CAPTION)
             return "{" + value + "}\n";

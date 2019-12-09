@@ -40,6 +40,7 @@ namespace simpleIniParser {
             IniSection(IniSectionType type, std::string value);
             ~IniSection();
             IniOption * findFirstOption(std::string key);
+            IniOption * findOrCreateFirstOption(std::string key, std::string val);
             std::string build();
             static IniSection * parse(std::string line);
     };
