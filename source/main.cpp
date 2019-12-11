@@ -69,7 +69,10 @@ int main(int argc, char **argv){
 
     while(appletMainLoop()) {
       hidScanInput();
-      kdown = hidKeysDown(CONTROLLER_P1_AUTO);
+      kdown = 0;
+      for (u8 controller = 0; controller < 10; controller++) {
+        kdown |= hidKeysDown(static_cast<HidControllerID>(controller));
+      }
 
       if (Gui::g_nextGui != GUI_INVALID) {
         mutexLock(&mutexCurrGui);
