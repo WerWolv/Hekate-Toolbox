@@ -41,9 +41,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	KosmosToolbox
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/ini source/GUI source/Utils
+SOURCES		:=	source source/ini source/gui source/utils
 DATA		:=	data
-INCLUDES	:=	include include/ini include/GUI include/Utils
+INCLUDES	:=	include include/ini include/gui include/utils
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
