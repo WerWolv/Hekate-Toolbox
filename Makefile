@@ -38,12 +38,12 @@ APP_TITLE	:=	Kosmos Toolbox
 APP_AUTHOR	:=	WerWolv
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
-TARGET		:=	$(notdir $(CURDIR))
-OUTDIR    	:= out
+TARGET		:=	KosmosToolbox
+OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/ini
+SOURCES		:=	source source/ini source/GUI source/Utils
 DATA		:=	data
-INCLUDES	:=	include include/ini
+INCLUDES	:=	include include/ini include/GUI include/Utils
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
