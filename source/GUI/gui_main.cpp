@@ -7,6 +7,7 @@
 #include "ini/simple_ini_parser.hpp"
 
 #include "list_selector.hpp"
+#include "override_key.hpp"
 
 extern "C" {
   #include "pm_dmnt.h"
@@ -22,7 +23,7 @@ GuiMain::GuiMain() : Gui() {
   {
     // Get the override keys, if any exist
     simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-    keyCharsToKey(ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "!R")->value, &m_overrideKeyCombo, &m_overrideByDefault);
+    m_albumOverrideKey = OverrideKey::StringToKeyCombo(ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "!R")->value);
     delete ini;
   }
 
@@ -31,16 +32,16 @@ GuiMain::GuiMain() : Gui() {
 
   //0
   new Button(150, 200, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, keyToUnicode(m_overrideKeyCombo), ALIGNED_LEFT);
+    gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, OverrideKey::KeyToUnicode(m_albumOverrideKey.key), ALIGNED_LEFT);
     gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "Override key combo", ALIGNED_CENTER);
-  }, [&](u32 kdown, bool *isActivated){
+  }, [&](u64 kdown, bool *isActivated){
     exitDisabled = true;
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
-        m_overrideKeyCombo = kdown;
+        m_albumOverrideKey.key = static_cast<HidControllerKeys>(kdown);
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        auto keyValue = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        auto keyValue = m_albumOverrideKey.ToString();
         ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
@@ -55,13 +56,13 @@ GuiMain::GuiMain() : Gui() {
   //1
   new Button(370, 200, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Override application by default", ALIGNED_LEFT);
-     gui->drawTextAligned(font20, x + 620, y + 50, m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 620, y + 50, m_albumOverrideKey.overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_albumOverrideKey.overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
-        m_overrideByDefault = !m_overrideByDefault;
+        m_albumOverrideKey.overrideByDefault = !m_albumOverrideKey.overrideByDefault;
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        auto keyValue = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        auto keyValue = m_albumOverrideKey.ToString();
         ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
@@ -111,7 +112,7 @@ GuiMain::GuiMain() : Gui() {
   new Button(370, 400, 340, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawRectangled(x, y, 340, 80, currTheme.selectedColor);
     gui->drawTextAligned(font20, x + 37, y + 50, COLOR_BLACK, "Background services", ALIGNED_LEFT);
-    gui->drawTextAligned(font20, x + 620, y + 50, m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+    gui->drawTextAligned(font20, x + 620, y + 50, m_albumOverrideKey.overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_albumOverrideKey.overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
   }, [&](u32 kdown, bool *isActivated){
     if (kdown & KEY_A)
       Gui::g_nextGui = GUI_SM_SELECT;
@@ -120,7 +121,7 @@ GuiMain::GuiMain() : Gui() {
   new Button(735, 400, 335, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawRectangled(x, y, 335, 80, currTheme.selectedColor);
     gui->drawTextAligned(font20, x + 55, y + 50, COLOR_BLACK, "Reboot to Hekate", ALIGNED_LEFT);
-    gui->drawTextAligned(font20, x + 620, y + 50, m_overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+    gui->drawTextAligned(font20, x + 620, y + 50, m_albumOverrideKey.overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_albumOverrideKey.overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
   }, [&](u32 kdown, bool *isActivated){
     if (kdown & KEY_A)
       Gui::g_nextGui = GUI_HEKATE;
@@ -129,85 +130,6 @@ GuiMain::GuiMain() : Gui() {
 
 GuiMain::~GuiMain() {
   Button::g_buttons.clear();
-}
-
-const char* GuiMain::keyToUnicode(u64 key) {
-  switch(key) {
-    case KEY_A:       return "\uE0E0";
-    case KEY_B:       return "\uE0E1";
-    case KEY_X:       return "\uE0E2";
-    case KEY_Y:       return "\uE0E3";
-    case KEY_LSTICK:  return "\uE101";
-    case KEY_RSTICK:  return "\uE102";
-    case KEY_L:       return "\uE0E4";
-    case KEY_R:       return "\uE0E5";
-    case KEY_ZL:      return "\uE0E6";
-    case KEY_ZR:      return "\uE0E7";
-    case KEY_PLUS:    return "\uE0EF";
-    case KEY_MINUS:   return "\uE0F0";
-    case KEY_DLEFT:   return "\uE0ED";
-    case KEY_DUP:     return "\uE0EB";
-    case KEY_DRIGHT:  return "\uE0EE";
-    case KEY_DDOWN:   return "\uE0EC";
-    case KEY_SL:      return "\uE0E8";
-    case KEY_SR:      return "\uE0E9";
-    default:          return "\uE152";
-  }
-}
-
-std::string GuiMain::keyToKeyChars(u64 key, bool overrideByDefault) {
-  std::string ret = overrideByDefault ? "!" : "";
-  switch(key) {
-    case KEY_A:       ret += "A";        break;
-    case KEY_B:       ret += "B";        break;
-    case KEY_X:       ret += "X";        break;
-    case KEY_Y:       ret += "Y";        break;
-    case KEY_LSTICK:  ret += "LS";       break;
-    case KEY_RSTICK:  ret += "RS";       break;
-    case KEY_L:       ret += "L";        break;
-    case KEY_R:       ret += "R";        break;
-    case KEY_ZL:      ret += "ZL";       break;
-    case KEY_ZR:      ret += "ZR";       break;
-    case KEY_PLUS:    ret += "PLUS";     break;
-    case KEY_MINUS:   ret += "MINUS";    break;
-    case KEY_DLEFT:   ret += "DLEFT";    break;
-    case KEY_DUP:     ret += "DUP";      break;
-    case KEY_DRIGHT:  ret += "DRIGHT";   break;
-    case KEY_DDOWN:   ret += "DDOWN";    break;
-    case KEY_SL:      ret += "SL";       break;
-    case KEY_SR:      ret += "SR";       break;
-    default:          ret += "R";        break;
-  }
-
-  return ret;
-}
-
-void GuiMain::keyCharsToKey(std::string str, u64 *key, bool *overrideByDefault) {
-  *overrideByDefault = (str[0] == '!');
-
-  if (*overrideByDefault) {
-	  str = str.substr(1);
-  }
-  
-  if (str == "A") *key = KEY_A;
-  else if (str == "B") *key = KEY_B;
-  else if (str == "X") *key = KEY_X;
-  else if (str == "Y") *key = KEY_Y;
-  else if (str == "LS") *key = KEY_LSTICK;
-  else if (str == "RS") *key = KEY_RSTICK;
-  else if (str == "L") *key = KEY_L;
-  else if (str == "R") *key = KEY_R;
-  else if (str == "ZL") *key = KEY_ZL;
-  else if (str == "ZR") *key = KEY_ZR;
-  else if (str == "PLUS") *key = KEY_PLUS;
-  else if (str == "MINUS") *key = KEY_MINUS;
-  else if (str == "DLEFT") *key = KEY_DLEFT;
-  else if (str == "DUP") *key = KEY_DUP;
-  else if (str == "DRIGHT") *key = KEY_DRIGHT;
-  else if (str == "DDOWN") *key = KEY_DDOWN;
-  else if (str == "SL") *key = KEY_SL;
-  else if (str == "SR") *key = KEY_SR;
-  else *key = KEY_R;
 }
 
 void GuiMain::update() {
