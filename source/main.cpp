@@ -92,6 +92,8 @@ int main(int argc, char **argv){
           case GUI_HID_MITM:
             currGui = new GuiHIDMitm();
             break;
+          default:
+            break;
         }
         mutexUnlock(&mutexCurrGui);
         Gui::g_nextGui = GUI_INVALID;
