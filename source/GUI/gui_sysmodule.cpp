@@ -112,7 +112,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
       if (kdown & KEY_A) {
         u64 pid;
         u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
-
+        mkdir(std::string("/atmosphere/contents/" + sysmodule.second.titleID + "/flags").c_str(), 777);
         std::stringstream path;
         path << "/atmosphere/contents/" << sysmodule.first << "/flags/boot2.flag";
 
