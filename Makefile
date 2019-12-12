@@ -41,9 +41,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	KosmosToolbox
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/ini source/gui source/utils
+SOURCES		:=	source source/gui source/utils
 DATA		:=	data
-INCLUDES	:=	include include/ini include/gui include/utils
+INCLUDES	:=	include include/gui include/utils
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
@@ -62,13 +62,13 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx `freetype-config --libs`
+LIBS	:= -lnx `freetype-config --libs` -lSimpleIniParser
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX)
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(TOPDIR)/SimpleIniParser
 
 
 #---------------------------------------------------------------------------------

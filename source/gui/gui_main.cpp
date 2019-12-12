@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "utils.hpp"
-#include "ini/simple_ini_parser.hpp"
+#include "SimpleIniParser.hpp"
 
 #include "list_selector.hpp"
 
@@ -22,7 +22,7 @@ GuiMain::GuiMain() : Gui() {
   {
     // Get the override keys, if any exist
     simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-    keyCharsToKey(ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "!R")->value, &m_overrideKeyCombo, &m_overrideByDefault);
+    keyCharsToKey(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "!R")->value, &m_overrideKeyCombo, &m_overrideByDefault);
     delete ini;
   }
 
@@ -41,7 +41,7 @@ GuiMain::GuiMain() : Gui() {
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
-        ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "")->value = keyValue;
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         *isActivated = false;
@@ -62,7 +62,7 @@ GuiMain::GuiMain() : Gui() {
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
-        ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "")->value = keyValue;
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         delete ini;
