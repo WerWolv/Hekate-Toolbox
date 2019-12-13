@@ -46,6 +46,7 @@ DATA		:=	data
 INCLUDES	:=	include include/gui include/utils
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
+CUSTOM_LIBS	:=	SimpleIniParser
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -62,13 +63,15 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx `freetype-config --libs` -lSimpleIniParser
+LIBS	:= -lnx `freetype-config --libs` \
+			$(foreach lib,$(CUSTOM_LIBS),-l$(lib))
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(TOPDIR)/SimpleIniParser
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) \
+			$(foreach dir,$(CUSTOM_LIBS),$(TOPDIR)/$(dir))
 
 
 #---------------------------------------------------------------------------------
@@ -147,12 +150,15 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(CUSTOM_LIBS) $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
 
-$(BUILD):
+$(CUSTOM_LIBS):
+	@$(MAKE) -C $@
+
+$(BUILD):	$(CUSTOM_LIBS)
 	@[ -d $@ ] || mkdir -p $@ $(BUILD) $(OUTDIR)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
@@ -160,6 +166,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTDIR) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+	@for lib in $(CUSTOM_LIBS); do $(MAKE) -C $$lib clean; done
 
 
 #---------------------------------------------------------------------------------
