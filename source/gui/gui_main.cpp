@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "utils.hpp"
-#include "ini/simple_ini_parser.hpp"
+#include "SimpleIniParser.hpp"
 
 #include "list_selector.hpp"
 #include "override_key.hpp"
@@ -23,7 +23,7 @@ GuiMain::GuiMain() : Gui() {
   {
     // Get the override keys, if any exist
     simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-    m_albumOverrideKey = OverrideKey::StringToKeyCombo(ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "!R")->value);
+    m_albumOverrideKey = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "!R")->value);
     delete ini;
   }
 
@@ -42,7 +42,7 @@ GuiMain::GuiMain() : Gui() {
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = m_albumOverrideKey.ToString();
-        ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "")->value = keyValue;
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         *isActivated = false;
@@ -63,7 +63,7 @@ GuiMain::GuiMain() : Gui() {
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = m_albumOverrideKey.ToString();
-        ini->findOrCreateSection(simpleIniParser::SECTION, "hbl_config")->findOrCreateFirstOption("override_key", "")->value = keyValue;
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         delete ini;

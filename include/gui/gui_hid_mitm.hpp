@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 #include "utils.hpp"
-#include "ini/simple_ini_parser.hpp"
+#include "SimpleIniParser.hpp"
 
 
 class GuiHIDMitm : public Gui {
