@@ -2,6 +2,19 @@
 #include <string>
 #include <switch.h>
 
+enum class OverrideKeyType {
+  Override0 = 0,  //default when un-numbered
+  Override1,
+  Override2,
+  Override3,
+  Override4,
+  Override5,
+  Override6,
+  Override7,
+  AnyAppOverride,
+  NUM_OVERRIDEKEY_TYPES,
+};
+
 struct OverrideKey {
   HidControllerKeys key;
   bool overrideByDefault;
