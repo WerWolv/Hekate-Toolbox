@@ -1,62 +1,27 @@
 #include "gui_overrides_menu.hpp"
 #include "button.hpp"
-
-#include <sstream>
-
 #include "utils.hpp"
 #include "SimpleIniParser.hpp"
 
+#include "utils.hpp"
 #include "list_selector.hpp"
 #include "override_key.hpp"
 
 GuiOverridesMenu::GuiOverridesMenu() : Gui() {
-  {
-    // Get the override keys, if any exist
-    simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-    m_overrideKeys[0] = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "!R")->value);
-    delete ini;
-  }
-  //\uE134
+  Button::g_buttons.clear();
+  loadConfigFile();
 
-  //0
-  new Button(150, 200, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawTextAligned(fontHuge, x + 37, y + 145, currTheme.textColor, OverrideKey::KeyToUnicode(m_overrideKeys[0].key), ALIGNED_LEFT);
-    gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "Override key", ALIGNED_CENTER);
-  }, [&](u64 kdown, bool *isActivated){
-    m_inputBlocked = true;
-    if(*isActivated) {
-      if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
-        m_overrideKeys[0].key = static_cast<HidControllerKeys>(kdown);
-        //Find or create a loader ini file with set override_key values, and write the result to the file.
-        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        auto keyValue = m_overrideKeys[0].ToString();
-        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
+  if (m_overrideAnyApp)
+      addButton(OverrideButtonType::Any_Title, m_anyAppOverride);
 
-        ini->writeToFile(LOADER_INI);
-        *isActivated = false;
-
-        delete ini;
-      }
+  for (auto &&programOverrideKey : m_overrides) {
+    if (programOverrideKey.programID != ProgramID::Invalid) {
+      if (programOverrideKey.programID == ProgramID::AppletPhotoViewer)
+        addButton(OverrideButtonType::Album, programOverrideKey);
+      else
+        addButton(OverrideButtonType::Custom_Title, programOverrideKey);
     }
-    m_inputBlocked = false;
-  }, { -1, -1, -1, 1 }, true, []() -> bool {return true;});
-
-  //1
-  new Button(370, 200, 700, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-     gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Key must be", ALIGNED_LEFT);
-     gui->drawTextAligned(font20, x + 663, y + 50, currTheme.selectedColor, m_overrideKeys[0].overrideByDefault ? "Unpressed" : "Pressed", ALIGNED_RIGHT);
-   }, [&](u32 kdown, bool *isActivated){
-     if (kdown & KEY_A) {
-        m_overrideKeys[0].overrideByDefault = !m_overrideKeys[0].overrideByDefault;
-        //Find or create a loader ini file with set override_key values, and write the result to the file.
-        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        auto keyValue = m_overrideKeys[0].ToString();
-        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
-
-        ini->writeToFile(LOADER_INI);
-        delete ini;
-      }
-   }, { -1, 2, 0, -1 }, false, []() -> bool {return true;});
+  }
 }
 
 GuiOverridesMenu::~GuiOverridesMenu() {
@@ -87,7 +52,7 @@ void GuiOverridesMenu::onInput(u32 kdown) {
       if (btn->onInput(kdown)) return;
   }    
     
-  if (kdown & KEY_B && !m_inputBlocked)
+  if (kdown & KEY_B)
     Gui::g_nextGui = GUI_MAIN;
 }
 
@@ -99,4 +64,84 @@ void GuiOverridesMenu::onTouch(touchPosition &touch) {
 
 void GuiOverridesMenu::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
 
+}
+
+void GuiOverridesMenu::addButton(OverrideButtonType type, const ProgramOverrideKey &key) {
+  std::function<void(Gui*, u16, u16, bool*)> drawAction;
+  switch (type)
+  {
+  case OverrideButtonType::Album:
+    drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE134", ALIGNED_CENTER);
+      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Album", ALIGNED_CENTER);
+    };
+    break;
+  case OverrideButtonType::Any_Title:
+    drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE135", ALIGNED_CENTER);
+      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Any title", ALIGNED_CENTER);
+    };
+    break;
+  case OverrideButtonType::Custom_Title:
+    drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE131", ALIGNED_CENTER);
+      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Custom title", ALIGNED_CENTER);
+    };
+    break;
+  default:
+    break;
+  }
+  new Button((220*m_buttonCount)+150, 200, 200, 300, drawAction, [&](u64 kdown, bool *isActivated){
+    if (kdown & KEY_A) {
+      Gui::g_nextGui = GUI_OVERRIDE_KEY;
+    }
+  }, { -1, -1, m_buttonCount-1, m_buttonCount+1 }, false, []() -> bool {return true;});
+
+  m_buttonCount++;
+}
+
+void GuiOverridesMenu::loadConfigFile() {
+  // If it doesn't find the config with a section [hbl_config], it stops, as there is nothing more to read.
+  simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+  auto section = ini->findSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
+
+  if (section == nullptr)
+    return;
+
+  // Get the override key and program for un-numbered override
+  auto option = section->findFirstOption("override_key");
+  if (option != nullptr) {
+    m_overrides[0].key = OverrideKey::StringToKeyCombo(option->value);
+    option = section->findFirstOption("program_id");
+    if (option != nullptr)
+      m_overrides[0].programID = strtoul(option->value.c_str(), nullptr, 16);
+    else
+      m_overrides[0].programID = ProgramID::AppletPhotoViewer;
+  }
+
+  // Get the override key if config is set to override any app
+  option = section->findFirstOption("override_any_app");
+  if (option != nullptr)
+    m_overrideAnyApp = (option->value == "true" || option->value == "1");
+
+  if (m_overrideAnyApp) {
+    option = section->findFirstOption("override_any_app_key");
+    if (option != nullptr) {
+      m_anyAppOverride.key = OverrideKey::StringToKeyCombo(option->value);
+    }
+  }
+
+  // Get the override keys and programs for numbered overrides
+  for (u8 i=0; i!=8; ++i) {
+
+    option = section->findFirstOption("override_key_" + i);
+    if (option != nullptr)
+      m_overrides[i].key = OverrideKey::StringToKeyCombo(option->value);
+
+    option = section->findFirstOption("program_id_" + i);
+    if (option != nullptr)
+      m_overrides[i].programID = strtoul(option->value.c_str(), nullptr, 16);
+
+  }
+  delete ini;
 }

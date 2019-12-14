@@ -1,13 +1,14 @@
 #pragma once
 
 #include "gui.hpp"
-
-#include <vector>
-#include <string>
-#include <unordered_map>
-#include <set>
-#include "utils.hpp"
 #include "override_key.hpp"
+
+enum class OverrideButtonType {
+  Album,
+  Any_Title,
+  Custom_Title,
+  AddNew,
+};
 
 
 class GuiOverridesMenu : public Gui {
@@ -21,7 +22,12 @@ public:
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
+  void addButton(OverrideButtonType type, const ProgramOverrideKey &key=ProgramOverrideKey{});
+  void loadConfigFile();
+
 private:
-  OverrideKey m_overrideKeys[8];
-  bool m_inputBlocked = false;
+  ProgramOverrideKey m_overrides[8]{};
+  ProgramOverrideKey m_anyAppOverride{};
+  bool m_overrideAnyApp = false;
+  u8 m_buttonCount = 0;
 };

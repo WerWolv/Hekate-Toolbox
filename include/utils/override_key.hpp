@@ -2,10 +2,10 @@
 #include <string>
 #include <switch.h>
 
-class OverrideKey {
-public:
-  OverrideKey() {}
-  OverrideKey(HidControllerKeys key, bool overrideByDefault) : key(key), overrideByDefault(overrideByDefault) {}
+struct OverrideKey {
+  HidControllerKeys key;
+  bool overrideByDefault;
+  u64 programID;
 
   inline std::string ToString() { return KeyComboToString(*this); }
 
@@ -13,8 +13,9 @@ public:
   static OverrideKey StringToKeyCombo(const char* keyString);
   static std::string KeyComboToString(const OverrideKey& keyCombo);
   static const char* KeyToUnicode(HidControllerKeys key);
+};
 
-public:
-  HidControllerKeys key;
-  bool overrideByDefault;
+struct ProgramOverrideKey {
+  u64 programID;
+  OverrideKey key;
 };
