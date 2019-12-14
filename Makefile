@@ -35,7 +35,7 @@ VERSION_MINOR := 0
 VERSION_MICRO := 0
 
 APP_TITLE	:=	Kosmos Toolbox
-APP_AUTHOR	:=	WerWolv
+APP_AUTHOR	:=	WerWolv, cathery
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
 TARGET		:=	KosmosToolbox
