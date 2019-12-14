@@ -15,6 +15,11 @@ public:
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
+  //the override_key option names as they are defined in the Atmosphere config
+  const char* getOverrideKeyString(OverrideKeyType type);
+  //the program_id option names as they are defined in the Atmosphere config
+  const char* getOverrideProgramString(OverrideKeyType type);
+
 private:
   ProgramOverrideKey m_override{};
   bool m_inputBlocked = false;
