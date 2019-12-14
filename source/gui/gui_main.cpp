@@ -32,7 +32,7 @@ GuiMain::GuiMain() : Gui() {
 
   //0
   new Button(150, 230, 200, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawTextAligned(fontHuge, x + 50, y + 100, currTheme.textColor, "...", ALIGNED_LEFT);
+    gui->drawTextAligned(fontHuge, x + 100, y + 100, currTheme.textColor, "...", ALIGNED_CENTER);
     gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "Change override keys", ALIGNED_CENTER);
   }, [&](u64 kdown, bool *isActivated){
     if (kdown & KEY_A)
