@@ -10,7 +10,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
   {
     // Get the override keys, if any exist
     simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-    m_override.key = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(getOverrideKeyString(g_overrideKeyType), "")->value);
+    m_override.key = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value);
     delete ini;
   }
 
@@ -26,7 +26,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = m_override.key.ToString();
-        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(getOverrideKeyString(g_overrideKeyType), "")->value = keyValue;
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         *isActivated = false;
@@ -47,7 +47,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = m_override.key.ToString();
-        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(getOverrideKeyString(g_overrideKeyType), "")->value = keyValue;
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         delete ini;
