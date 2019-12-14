@@ -22,7 +22,7 @@ public:
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
-  void addButton(OverrideButtonType type, const ProgramOverrideKey &key=ProgramOverrideKey{});
+  void addButton(OverrideButtonType buttonType, OverrideKeyType keyType, const ProgramOverrideKey &key=ProgramOverrideKey{});
   void loadConfigFile();
 
 private:

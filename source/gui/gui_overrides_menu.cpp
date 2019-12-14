@@ -1,4 +1,5 @@
 #include "gui_overrides_menu.hpp"
+#include "gui_override_key.hpp"
 #include "button.hpp"
 #include "utils.hpp"
 #include "SimpleIniParser.hpp"
@@ -11,17 +12,18 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   Button::g_buttons.clear();
   loadConfigFile();
 
-  if (m_overrideAnyApp)
-      addButton(OverrideButtonType::Any_Title, m_anyAppOverride);
-
-  for (auto &&programOverrideKey : m_overrides) {
-    if (programOverrideKey.programID != ProgramID::Invalid) {
-      if (programOverrideKey.programID == ProgramID::AppletPhotoViewer)
-        addButton(OverrideButtonType::Album, programOverrideKey);
+  for (int i=0; i!=8; ++i) {
+    if (m_overrides[i].programID != ProgramID::Invalid) {
+      if (m_overrides[i].programID == ProgramID::AppletPhotoViewer)
+        addButton(OverrideButtonType::Album, static_cast<OverrideKeyType>(i), m_overrides[i]);
       else
-        addButton(OverrideButtonType::Custom_Title, programOverrideKey);
+        addButton(OverrideButtonType::Custom_Title, static_cast<OverrideKeyType>(i), m_overrides[i]);
     }
   }
+
+  if (m_overrideAnyApp)
+    if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
+      addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
 }
 
 GuiOverridesMenu::~GuiOverridesMenu() {
@@ -66,9 +68,9 @@ void GuiOverridesMenu::onGesture(touchPosition &startPosition, touchPosition &en
 
 }
 
-void GuiOverridesMenu::addButton(OverrideButtonType type, const ProgramOverrideKey &key) {
+void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType keyType, const ProgramOverrideKey &key) {
   std::function<void(Gui*, u16, u16, bool*)> drawAction;
-  switch (type)
+  switch (buttonType)
   {
   case OverrideButtonType::Album:
     drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
@@ -91,8 +93,10 @@ void GuiOverridesMenu::addButton(OverrideButtonType type, const ProgramOverrideK
   default:
     break;
   }
-  new Button((220*m_buttonCount)+150, 200, 200, 300, drawAction, [&](u64 kdown, bool *isActivated){
+  new Button((220*m_buttonCount)+150, 200, 200, 300, drawAction, [&, keyType, key](u64 kdown, bool *isActivated){
     if (kdown & KEY_A) {
+      GuiOverrideKey::g_overrideKey = key;
+      GuiOverrideKey::g_keyType = keyType;
       Gui::g_nextGui = GUI_OVERRIDE_KEY;
     }
   }, { -1, -1, m_buttonCount-1, m_buttonCount+1 }, false, []() -> bool {return true;});

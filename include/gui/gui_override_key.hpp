@@ -23,4 +23,8 @@ public:
 private:
   ProgramOverrideKey m_override{};
   bool m_inputBlocked = false;
+
+public:
+  static inline ProgramOverrideKey g_overrideKey{};
+  static inline OverrideKeyType g_keyType{};
 };
