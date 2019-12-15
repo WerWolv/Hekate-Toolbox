@@ -6,6 +6,7 @@
 
 #include "utils.hpp"
 #include "list_selector.hpp"
+#include "message_box.hpp"
 #include "override_key.hpp"
 #include <algorithm>
 
@@ -54,7 +55,7 @@ void GuiOverridesMenu::draw() {
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Application override settings", ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Delete     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
@@ -69,6 +70,46 @@ void GuiOverridesMenu::onInput(u32 kdown) {
     
   if (kdown & KEY_B)
     Gui::g_nextGui = GUI_MAIN;
+
+  if (kdown & KEY_X) {
+    //Get the button options based on selection
+    currentSelection = Button::getSelectedIndex();
+    auto tuple = m_buttons[currentSelection];
+    auto buttonType = std::get<0>(tuple);
+    auto keyType = std::get<1>(tuple);
+    if (buttonType != OverrideButtonType::AddNew) {
+      (new MessageBox("Are you sure you want to delete this setting?", MessageBox::YES_NO))->setSelectionAction([&, keyType](s8 selectedItem){
+        if (selectedItem == 1) {
+          //Parse INI file and remove any occurences of wanted options
+          auto ini = simpleIniParser::Ini::parseFile(LOADER_INI);
+          if (ini != nullptr) {
+            auto section = ini->findSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
+            if (section != nullptr) {
+              auto option = section->findFirstOption(OverrideKey::getOverrideKeyString(keyType));
+              if (option != nullptr) {
+                auto &options = section->options;
+                options.erase(std::remove(options.begin(), options.end(), option), options.end());
+              }
+              if (keyType == OverrideKeyType::AnyAppOverride) {
+                option = section->findFirstOption("override_any_app");
+                if (option != nullptr) {
+                  auto &options = section->options;
+                  options.erase(std::remove(options.begin(), options.end(), option), options.end());
+                }
+              }
+
+              //Write the resulting ini back in its place
+              ini->writeToFile(LOADER_INI);
+              delete ini;
+            }
+          }
+          //Reload the GUI menu because i can't be bothered to remove buttons manually
+          Gui::g_nextGui = GUI_OVERRIDES_MENU;
+        }
+        Gui::g_currMessageBox->hide();
+      })->show();
+    }
+  }
 }
 
 void GuiOverridesMenu::onTouch(touchPosition &touch) {
@@ -142,6 +183,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
 
   if (buttonType != OverrideButtonType::AddNew)
     removeFromList(keyType);
+  m_buttons.push_back(std::tuple(buttonType,keyType));
   m_buttonCount++;
 }
 
