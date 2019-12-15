@@ -198,8 +198,9 @@ const char* GuiOverrideKey::getOverrideProgramString(OverrideKeyType type) {
 void GuiOverrideKey::loadConfigFile()  {
   // Get the override keys, if any exist
   simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-  m_override.key = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(getOverrideKeyString(g_keyType), "")->value);
-  auto option = ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findFirstOption("override_any_app", "");
+  m_override.key = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)
+  ->findOrCreateFirstOption(getOverrideKeyString(g_keyType), g_keyType == OverrideKeyType::AnyAppOverride ? "R" : "!R")->value);
+  auto option = ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findFirstOption("override_any_app");
   if (option != nullptr)
     m_overrideAnyApp = (option->value == "true") || (option->value == "1");
   else

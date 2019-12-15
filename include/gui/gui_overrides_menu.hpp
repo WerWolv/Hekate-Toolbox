@@ -11,7 +11,7 @@ enum class OverrideButtonType {
 };
 
 inline const char* buttonNames[] {
-  "Default",
+  "Album",
   "Custom title 1",
   "Custom title 2",
   "Custom title 3",
