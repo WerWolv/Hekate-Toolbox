@@ -9,6 +9,8 @@
 #include "override_key.hpp"
 #include <algorithm>
 
+static int currentSelection = 0;
+
 GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   Button::g_buttons.clear();
   loadConfigFile();
@@ -33,9 +35,12 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
 
   if (m_addConfigs.size() != 0)
     addButton(OverrideButtonType::AddNew);
+
+  Button::select(currentSelection);
 }
 
 GuiOverridesMenu::~GuiOverridesMenu() {
+  currentSelection = Button::getSelectedIndex();
   Button::g_buttons.clear();
 }
 
