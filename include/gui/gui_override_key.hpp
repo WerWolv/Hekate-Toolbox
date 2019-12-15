@@ -20,9 +20,12 @@ public:
   //the program_id option names as they are defined in the Atmosphere config
   const char* getOverrideProgramString(OverrideKeyType type);
 
+  void loadConfigFile();
+
 private:
   ProgramOverrideKey m_override{};
   bool m_inputBlocked = false;
+  bool m_overrideAnyApp = false;
 
 public:
   static inline ProgramOverrideKey g_overrideKey{};

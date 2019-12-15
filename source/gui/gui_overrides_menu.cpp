@@ -29,9 +29,8 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
     }
   }
 
-  if (m_overrideAnyApp)
-    if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
-      addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
+  if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
+    addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
 
   if (m_addConfigs.size() != 0)
     addButton(OverrideButtonType::AddNew);
@@ -109,14 +108,14 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
     break;
   case OverrideButtonType::Custom_Title:
     drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE131", ALIGNED_CENTER);
+      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
       gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Custom title", ALIGNED_CENTER);
     };
     break;
   case OverrideButtonType::AddNew:
     drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.unselectedTextColor, "\uE0F1", ALIGNED_CENTER);
-      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.unselectedTextColor, "Add...", ALIGNED_CENTER);
+      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.unselectedColor, "\uE0F1", ALIGNED_CENTER);
+      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.unselectedColor, "Add...", ALIGNED_CENTER);
     };
 
     inputAction = [&](u64 kdown, bool *isActivated){
@@ -175,11 +174,9 @@ void GuiOverridesMenu::loadConfigFile() {
   else
     m_overrideAnyApp = true;
 
-  if (m_overrideAnyApp) {
-    option = section->findFirstOption("override_any_app_key");
-    if (option != nullptr) {
-      m_anyAppOverride.key = OverrideKey::StringToKeyCombo(option->value);
-    }
+  option = section->findFirstOption("override_any_app_key");
+  if (option != nullptr) {
+    m_anyAppOverride.key = OverrideKey::StringToKeyCombo(option->value);
   }
 
   // Get the override keys and programs for numbered overrides
