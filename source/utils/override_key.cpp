@@ -52,6 +52,8 @@ OverrideKey OverrideKey::StringToKeyCombo(const char* keyString) {
     keyCombo.key = KEY_SL;
   } else if (strcasecmp(keyString, "SR") == 0) {
     keyCombo.key = KEY_SR;
+  } else {
+    keyCombo.key = static_cast<HidControllerKeys>(0);
   }
 
   return keyCombo;
@@ -78,7 +80,7 @@ std::string OverrideKey::KeyComboToString(const OverrideKey& keyCombo) {
     case KEY_DDOWN:   keyString = "DDOWN";    break;
     case KEY_SL:      keyString = "SL";       break;
     case KEY_SR:      keyString = "SR";       break;
-    default:          break;
+    default:          keyString = "";         break;
   }
 
   return (keyCombo.overrideByDefault ? "!" : "") + keyString;

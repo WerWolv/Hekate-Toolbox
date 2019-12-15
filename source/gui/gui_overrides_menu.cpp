@@ -7,10 +7,16 @@
 #include "utils.hpp"
 #include "list_selector.hpp"
 #include "override_key.hpp"
+#include <algorithm>
 
 GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   Button::g_buttons.clear();
   loadConfigFile();
+
+  //TODO: remove this in Atmosphere 0.10.2
+  for(int i=1; i!=8; ++i) {
+    removeFromList(static_cast<OverrideKeyType>(i));
+  }
 
   for (int i=0; i!=8; ++i) {
     if (m_overrides[i].programID != ProgramID::Invalid) {
@@ -24,6 +30,9 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   if (m_overrideAnyApp)
     if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
       addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
+
+  if (m_addConfigs.size() != 0)
+    addButton(OverrideButtonType::AddNew);
 }
 
 GuiOverridesMenu::~GuiOverridesMenu() {
@@ -69,7 +78,16 @@ void GuiOverridesMenu::onGesture(touchPosition &startPosition, touchPosition &en
 }
 
 void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType keyType, const ProgramOverrideKey &key) {
+  static std::vector<std::string> configNames;
+  configNames.reserve(OVERRIDEKEY_TYPES);
   std::function<void(Gui*, u16, u16, bool*)> drawAction;
+  std::function<void(u32, bool*)> inputAction = [&, keyType, key](u64 kdown, bool *isActivated){
+    if (kdown & KEY_A) {
+      GuiOverrideKey::g_overrideKey = key;
+      GuiOverrideKey::g_keyType = keyType;
+      Gui::g_nextGui = GUI_OVERRIDE_KEY;
+    }
+  };
   switch (buttonType)
   {
   case OverrideButtonType::Album:
@@ -90,21 +108,43 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
       gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Custom title", ALIGNED_CENTER);
     };
     break;
+  case OverrideButtonType::AddNew:
+    drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.unselectedTextColor, "\uE0F1", ALIGNED_CENTER);
+      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.unselectedTextColor, "Add...", ALIGNED_CENTER);
+    };
+
+    inputAction = [&](u64 kdown, bool *isActivated){
+      if (kdown & KEY_A) {
+        configNames.clear();
+
+        for(auto const &config : m_addConfigs)
+          configNames.push_back(std::string(buttonNames[static_cast<int>(config)]));
+
+        (new ListSelector("Add new key override for:", "\uE0E1 Back     \uE0E0 Ok", configNames, 0))->setInputAction([&](u32 k, u16 selectedItem){
+          if(k & KEY_A) {
+            GuiOverrideKey::g_keyType = m_addConfigs[selectedItem];
+            Gui::g_currListSelector->hide();
+            Gui::g_nextGui = GUI_OVERRIDE_KEY;
+          }
+        })->show();
+      }
+    };
   default:
     break;
   }
-  new Button((220*m_buttonCount)+150, 200, 200, 300, drawAction, [&, keyType, key](u64 kdown, bool *isActivated){
-    if (kdown & KEY_A) {
-      GuiOverrideKey::g_overrideKey = key;
-      GuiOverrideKey::g_keyType = keyType;
-      Gui::g_nextGui = GUI_OVERRIDE_KEY;
-    }
-  }, { -1, -1, m_buttonCount-1, m_buttonCount+1 }, false, []() -> bool {return true;});
+  new Button((220*m_buttonCount)+150, 200, 200, 300, drawAction, inputAction,
+    { -1, -1, m_buttonCount-1, m_buttonCount+1 }, false, []() -> bool {return true;});
 
+  if (buttonType != OverrideButtonType::AddNew)
+    removeFromList(keyType);
   m_buttonCount++;
 }
 
 void GuiOverridesMenu::loadConfigFile() {
+  for (int i=0; i!= OVERRIDEKEY_TYPES; ++i) {
+    m_addConfigs.push_back(static_cast<OverrideKeyType>(i));
+  }
   // If it doesn't find the config with a section [hbl_config], it stops, as there is nothing more to read.
   simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
   auto section = ini->findSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
@@ -127,6 +167,8 @@ void GuiOverridesMenu::loadConfigFile() {
   option = section->findFirstOption("override_any_app");
   if (option != nullptr)
     m_overrideAnyApp = (option->value == "true" || option->value == "1");
+  else
+    m_overrideAnyApp = true;
 
   if (m_overrideAnyApp) {
     option = section->findFirstOption("override_any_app_key");
@@ -148,4 +190,8 @@ void GuiOverridesMenu::loadConfigFile() {
 
   }
   delete ini;
+}
+
+void GuiOverridesMenu::removeFromList(OverrideKeyType keyEntry) {
+  m_addConfigs.erase(std::remove(m_addConfigs.begin(), m_addConfigs.end(), keyEntry), m_addConfigs.end());
 }

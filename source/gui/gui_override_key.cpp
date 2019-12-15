@@ -44,6 +44,9 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         m_override.key.overrideByDefault = !m_override.key.overrideByDefault;
+        if (m_override.key.key == static_cast<HidControllerKeys>(0))
+          return;
+
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = m_override.key.ToString();

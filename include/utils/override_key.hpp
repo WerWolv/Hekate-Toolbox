@@ -15,6 +15,8 @@ enum class OverrideKeyType {
   NUM_OVERRIDEKEY_TYPES,
 };
 
+#define OVERRIDEKEY_TYPES static_cast<int>(OverrideKeyType::NUM_OVERRIDEKEY_TYPES)
+
 struct OverrideKey {
   HidControllerKeys key;
   bool overrideByDefault;
