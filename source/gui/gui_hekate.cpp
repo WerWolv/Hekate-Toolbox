@@ -85,7 +85,7 @@ GuiHekate::GuiHekate() : Gui() {
        for(auto const& autoBootEntry : m_rebootConfigs)
          rebootNames.push_back(autoBootEntry.name);
 
-       (new ListSelector("Hekate profile to reboot to", "\uE0E1 Back     \uE0E0 Ok", rebootNames, 0))->setInputAction([&](u32 k, u16 selectedItem){
+       (new ListSelector("Hekate profile to reboot to", "\uE0E1 Back     \uE0E0 OK", rebootNames, 0))->setInputAction([&](u32 k, u16 selectedItem){
          if(k & KEY_A) {
            m_currRebootConfig = m_rebootConfigs[selectedItem];
 
@@ -132,7 +132,7 @@ void GuiHekate::draw() {
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Kosmos Toolbox", ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the Hekate profile you want to reboot your Nintendo Switch into. \n Make sure to close all open titles beforehand as this will reboot your device immediately.", ALIGNED_CENTER);
 

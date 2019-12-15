@@ -50,7 +50,7 @@ void GuiOverridesMenu::draw() {
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Application override settings", ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
@@ -121,7 +121,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
         for(auto const &config : m_addConfigs)
           configNames.push_back(std::string(buttonNames[static_cast<int>(config)]));
 
-        (new ListSelector("Add new key override for:", "\uE0E1 Back     \uE0E0 Ok", configNames, 0))->setInputAction([&](u32 k, u16 selectedItem){
+        (new ListSelector("Add new key override for:", "\uE0E1 Back     \uE0E0 OK", configNames, 0))->setInputAction([&](u32 k, u16 selectedItem){
           if(k & KEY_A) {
             GuiOverrideKey::g_keyType = m_addConfigs[selectedItem];
             Gui::g_currListSelector->hide();
