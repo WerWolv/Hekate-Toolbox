@@ -38,7 +38,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
   //1
   new Button(640, 420, 380, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-     gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Key must be", ALIGNED_LEFT);
+     gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Key must be:", ALIGNED_LEFT);
      gui->drawTextAligned(font20, x + 360, y + 50, currTheme.selectedColor, m_override.key.overrideByDefault ? "Unpressed" : "Pressed", ALIGNED_RIGHT);
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
