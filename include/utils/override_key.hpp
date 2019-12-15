@@ -28,6 +28,11 @@ struct OverrideKey {
   static OverrideKey StringToKeyCombo(const char* keyString);
   static std::string KeyComboToString(const OverrideKey& keyCombo);
   static const char* KeyToUnicode(HidControllerKeys key);
+
+  //the override_key option names as they are defined in the Atmosphere config
+  static const char* getOverrideKeyString(OverrideKeyType type);
+  //the program_id option names as they are defined in the Atmosphere config
+  static const char* getOverrideProgramString(OverrideKeyType type);
 };
 
 struct ProgramOverrideKey {

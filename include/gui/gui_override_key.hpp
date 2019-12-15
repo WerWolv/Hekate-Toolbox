@@ -14,12 +14,6 @@ public:
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
-
-  //the override_key option names as they are defined in the Atmosphere config
-  const char* getOverrideKeyString(OverrideKeyType type);
-  //the program_id option names as they are defined in the Atmosphere config
-  const char* getOverrideProgramString(OverrideKeyType type);
-
   void loadConfigFile();
 
 private:
