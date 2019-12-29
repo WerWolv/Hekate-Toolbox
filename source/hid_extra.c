@@ -8,36 +8,7 @@ static bool hidExtraPaused = false;
 
 Result hidExtraReloadConfig()
 {
-    IpcCommand c;
-    ipcInitialize(&c);
-
-    struct
-    {
-        u64 magic;
-        u64 cmd_id;
-    } * raw;
-
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
-
-    raw->magic = SFCI_MAGIC;
-    raw->cmd_id = 65000;
-
-    Result rc = serviceIpcDispatch(&hid_service);
-
-    if (R_SUCCEEDED(rc))
-    {
-        IpcParsedCommand r;
-        ipcParse(&r);
-
-        struct
-        {
-            u64 magic;
-            u64 result;
-        } *resp = r.Raw;
-
-        rc = resp->result;
-    }
-
+    Result rc = serviceDispatch(&hid_service, 65000);
     hidExtraPaused = false;
     svcSleepThread(1e9L/50); // Need to wait for hid to be polled again
 
@@ -51,36 +22,7 @@ Result hidExtraPause()
     if(hidExtraPaused)
         return 0;
 
-    IpcCommand c;
-    ipcInitialize(&c);
-
-    struct
-    {
-        u64 magic;
-        u64 cmd_id;
-    } * raw;
-
-    raw = ipcPrepareHeader(&c, sizeof(*raw));
-
-    raw->magic = SFCI_MAGIC;
-    raw->cmd_id = 65001;
-
-    Result rc = serviceIpcDispatch(&hid_service);
-
-    if (R_SUCCEEDED(rc))
-    {
-        IpcParsedCommand r;
-        ipcParse(&r);
-
-        struct
-        {
-            u64 magic;
-            u64 result;
-        } *resp = r.Raw;
-
-        rc = resp->result;
-    }
-
+    Result rc = serviceDispatch(&hid_service, 65001);
     svcSleepThread(1e9L/50); // Need to wait for hid to be polled again
 
     hidExtraPaused = true;

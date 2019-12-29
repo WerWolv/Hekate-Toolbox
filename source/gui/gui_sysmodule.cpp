@@ -48,14 +48,14 @@ GuiSysmodule::GuiSysmodule() : Gui() {
   for (auto sysmodule : configJson["sysmodules"]) {
     try {
       std::stringstream path;
-      path << "/atmosphere/titles/" << sysmodule["tid"].get<std::string>() << "/exefs.nsp";
+      path << "/atmosphere/contents/" << sysmodule["tid"].get<std::string>() << "/exefs.nsp";
 
       if (access(path.str().c_str(), F_OK) == -1) continue;
       
       this->m_sysmodules.insert(std::make_pair(sysmodule["tid"].get<std::string>(), (sysModule_t){ sysmodule["name"].get<std::string>(), sysmodule["tid"].get<std::string>(), sysmodule["requires_reboot"].get<bool>() }));
       
       u64 sysmodulePid = 0;
-      pmdmntGetTitlePid(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
+      pmdmntGetProcessId(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
 
       if (sysmodulePid > 0)
         this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
@@ -70,7 +70,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
   s32 sysmoduleCnt = this->m_sysmodules.size();
 
   for (auto &sysmodule : this->m_sysmodules) {
-    FILE *exefs = fopen(std::string("/atmosphere/titles/" + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
+    FILE *exefs = fopen(std::string("/atmosphere/contents/" + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
 
     if (exefs == nullptr)
       continue;
@@ -112,14 +112,14 @@ GuiSysmodule::GuiSysmodule() : Gui() {
       if (kdown & KEY_A) {
         u64 pid;
         u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
-
+        mkdir(std::string("/atmosphere/contents/" + sysmodule.second.titleID + "/flags").c_str(), 777);
         std::stringstream path;
-        path << "/atmosphere/titles/" << sysmodule.first << "/flags/boot2.flag";
+        path << "/atmosphere/contents/" << sysmodule.first << "/flags/boot2.flag";
 
 
         if (this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end()) {
           if (!sysmodule.second.requiresReboot) {
-            pmshellTerminateProcessByTitleId(tid);
+            pmshellTerminateProgram(tid);
           } else {
             (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use it.", MessageBox::OKAY))->show();
           }
@@ -132,7 +132,11 @@ GuiSysmodule::GuiSysmodule() : Gui() {
             FILE *fptr = fopen(path.str().c_str(), "wb+");
             if (fptr != nullptr) fclose(fptr);
           } else {
-            if (R_SUCCEEDED(pmshellLaunchProcess(0, tid, FsStorageId_None, &pid))) {
+            NcmProgramLocation programLocation{
+              .program_id = tid,
+              .storageID = NcmStorageId_None,
+            };
+            if (R_SUCCEEDED(pmshellLaunchProgram(0, &programLocation, &pid))) {
               FILE *fptr = fopen(path.str().c_str(), "wb+");
               if (fptr != nullptr) fclose(fptr);
             }
@@ -140,7 +144,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
         }
 
         pid = 0;
-        pmdmntGetTitlePid(&pid, tid);
+        pmdmntGetProcessId(&pid, tid);
 
         if (!sysmodule.second.requiresReboot) {
           if (pid != 0)

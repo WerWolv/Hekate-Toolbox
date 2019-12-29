@@ -5,7 +5,7 @@ extern "C" {
 }
 
 Button::Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bool*)> drawAction, std::function<void(u32, bool*)> inputAction, std::vector<s32> adjacentButton, bool activatable, std::function<bool()> usableCondition)
- : m_x(x), m_y(y), m_w(w), m_h(h), m_drawAction(drawAction), m_inputAction(inputAction), m_usableCondition(usableCondition) , m_adjacentButton(adjacentButton), m_activatable(activatable){
+ : m_x(x), m_y(y), m_w(w), m_h(h), m_drawAction(drawAction), m_inputAction(inputAction), m_usableCondition(usableCondition), m_activatable(activatable), m_adjacentButton(adjacentButton){
   Button::g_buttons.push_back(this);
 
   m_isActivated = false;

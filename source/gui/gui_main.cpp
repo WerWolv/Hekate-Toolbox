@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "utils.hpp"
-#include "ini/simple_ini_parser.hpp"
+#include "SimpleIniParser.hpp"
 
 #include "list_selector.hpp"
 
@@ -19,8 +19,12 @@ static std::vector<std::string> autobootNames;
 static u16 currAutoBootEntryIndex;
 
 GuiMain::GuiMain() : Gui() {
-  simpleIniParser::Ini *ini = simpleIniParser::Ini::parseFile(LOADER_INI);
-  keyCharsToKey(ini->findSection("hbl_config")->findFirstOption("override_key")->value, &m_overrideKeyCombo, &m_overrideByDefault);
+  {
+    // Get the override keys, if any exist
+    simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+    keyCharsToKey(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "!R")->value, &m_overrideKeyCombo, &m_overrideByDefault);
+    delete ini;
+  }
 
   m_autoBootConfigs.push_back({ "Disable autoboot", 0, false });
   m_currAutoBootConfig = getBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
@@ -34,9 +38,10 @@ GuiMain::GuiMain() : Gui() {
     if(*isActivated) {
       if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
         m_overrideKeyCombo = kdown;
-        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseFile(LOADER_INI);
-        auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
-        ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        //Find or create a loader ini file with set override_key values, and write the result to the file.
+        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+        auto keyValue = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         *isActivated = false;
@@ -54,9 +59,10 @@ GuiMain::GuiMain() : Gui() {
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
         m_overrideByDefault = !m_overrideByDefault;
-        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseFile(LOADER_INI);
-        auto ini_override_key = ini->findSection("hbl_config")->findFirstOption("override_key");
-        ini_override_key->value = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        //Find or create a loader ini file with set override_key values, and write the result to the file.
+        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+        auto keyValue = GuiMain::keyToKeyChars(m_overrideKeyCombo, m_overrideByDefault);
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         delete ini;
