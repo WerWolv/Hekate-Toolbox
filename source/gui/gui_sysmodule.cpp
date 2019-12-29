@@ -12,6 +12,7 @@
 
 #include "json.hpp"
 
+
 #define CONTENTS_PATH "/atmosphere/contents/"
 
 using json = nlohmann::json;
@@ -130,6 +131,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
       if (kdown & KEY_A) {
         u64 pid;
         u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
+
         mkdir(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/flags").c_str(), 777);
         std::stringstream path;
         path << CONTENTS_PATH << sysmodule.first << "/flags/boot2.flag";
