@@ -6,7 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <utility>
-#include "ini/simple_ini_parser.hpp"
+#include "SimpleIniParser.hpp"
 
 #include "list_selector.hpp"
 

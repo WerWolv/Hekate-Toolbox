@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#define LOADER_INI    "sdmc:/atmosphere/loader.ini"
+#define LOADER_INI    "sdmc:/atmosphere/config/override_config.ini"
 #define HEKATE_INI    "sdmc:/bootloader/hekate_ipl.ini"
 #define INI_PATH      "sdmc:/bootloader/ini/"
 #define HID_MITM_INI  "sdmc:/config/hid_mitm/config.ini"

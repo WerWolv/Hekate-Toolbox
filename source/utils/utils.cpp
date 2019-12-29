@@ -1,5 +1,5 @@
 #include "utils.hpp"
-#include "ini/simple_ini_parser.hpp"
+#include "SimpleIniParser.hpp"
 #include <stdio.h>
 #include <dirent.h>
 #include <algorithm>
@@ -18,7 +18,7 @@ BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoB
   currEntry = out_bootEntries.back();
 
   for (auto const& it : hekateIni->sections) {
-    if(std::string(it->value) == "config" || it->type != simpleIniParser::SECTION) continue;
+    if(std::string(it->value) == "config" || it->type != simpleIniParser::IniSectionType::Section) continue;
     out_bootEntries.push_back({ it->value, ++id, false });
 
     if(!currAutoboot_list && id == currAutoboot) {
@@ -49,7 +49,7 @@ BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoB
     hekateIni = simpleIniParser::Ini::parseFile(file);
 
     for (auto const& it : hekateIni->sections) {
-      if (it->type != simpleIniParser::SECTION) continue;
+      if (it->type != simpleIniParser::IniSectionType::Section) continue;
       out_bootEntries.push_back({ it->value, ++id, true });
 
       if(currAutoboot_list && id == currAutoboot) {
