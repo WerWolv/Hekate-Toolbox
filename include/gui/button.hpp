@@ -25,8 +25,17 @@ public:
     return m_isSelected;
   }
 
+  static inline s16 getSelectedIndex() {
+    for(size_t i=0; i != g_buttons.size(); ++i) {
+      if (g_buttons[i]->m_isSelected)
+        return i;
+    }
+    return -1;
+  }
+
   static inline void select(s16 buttonIndex) {
     if (buttonIndex < 0) return;
+    if (Button::g_buttons.size() <= static_cast<u16>(buttonIndex)) return;
 
     for(Button *btn : Button::g_buttons) {
       btn->m_isSelected = false;
