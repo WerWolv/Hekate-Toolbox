@@ -10,6 +10,8 @@
 #include "gui_sysmodule.hpp"
 #include "gui_hekate.hpp"
 #include "gui_hid_mitm.hpp"
+#include "gui_overrides_menu.hpp"
+#include "gui_override_key.hpp"
 
 #include "threads.hpp"
 
@@ -91,6 +93,14 @@ int main(int argc, char **argv){
             break;
           case GUI_HID_MITM:
             currGui = new GuiHIDMitm();
+            break;
+          case GUI_OVERRIDES_MENU:
+            currGui = new GuiOverridesMenu();
+            break;
+          case GUI_OVERRIDE_KEY:
+            currGui = new GuiOverrideKey();
+            break;
+          default:
             break;
         }
         mutexUnlock(&mutexCurrGui);
