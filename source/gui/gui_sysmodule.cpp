@@ -12,6 +12,9 @@
 
 #include "json.hpp"
 
+
+#define CONTENTS_PATH "/atmosphere/contents/"
+
 using json = nlohmann::json;
 
 extern "C" {
@@ -45,10 +48,26 @@ GuiSysmodule::GuiSysmodule() : Gui() {
     return;
   }
 
+  DIR *contents_dir = opendir(CONTENTS_PATH);
+  if (contents_dir != nullptr) {
+    json toolboxJson;
+    struct dirent *ent;
+    while ((ent = readdir(contents_dir)) != nullptr) {
+      std::ifstream sysconfig(CONTENTS_PATH + std::string(ent->d_name) + "/toolbox.json");
+      if (!sysconfig.fail()) {
+        try {
+          sysconfig >> toolboxJson;
+          configJson["sysmodules"].push_back(toolboxJson);
+        } catch(json::parse_error& e) {}
+      }
+    }
+  }
+  closedir(contents_dir);
+
   for (auto sysmodule : configJson["sysmodules"]) {
     try {
       std::stringstream path;
-      path << "/atmosphere/contents/" << sysmodule["tid"].get<std::string>() << "/exefs.nsp";
+      path << CONTENTS_PATH << sysmodule["tid"].get<std::string>() << "/exefs.nsp";
 
       if (access(path.str().c_str(), F_OK) == -1) continue;
       
@@ -70,7 +89,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
   s32 sysmoduleCnt = this->m_sysmodules.size();
 
   for (auto &sysmodule : this->m_sysmodules) {
-    FILE *exefs = fopen(std::string("/atmosphere/contents/" + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
+    FILE *exefs = fopen(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
 
     if (exefs == nullptr)
       continue;
@@ -112,9 +131,10 @@ GuiSysmodule::GuiSysmodule() : Gui() {
       if (kdown & KEY_A) {
         u64 pid;
         u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
-        mkdir(std::string("/atmosphere/contents/" + sysmodule.second.titleID + "/flags").c_str(), 777);
+
+        mkdir(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/flags").c_str(), 777);
         std::stringstream path;
-        path << "/atmosphere/contents/" << sysmodule.first << "/flags/boot2.flag";
+        path << CONTENTS_PATH << sysmodule.first << "/flags/boot2.flag";
 
 
         if (this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end()) {
