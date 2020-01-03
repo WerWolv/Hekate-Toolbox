@@ -97,8 +97,8 @@ GuiHekate::GuiHekate() : Gui() {
 
   new Button(400, 450, Gui::g_framebuffer_width - 800, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     
-    gui->drawRectangled(x, y, Gui::g_framebuffer_width - 800, 80, currTheme.selectedColor);
-    gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, COLOR_BLACK, "Reboot now!", ALIGNED_CENTER);
+    gui->drawRectangled(x, y, Gui::g_framebuffer_width - 800, 80, currTheme.submenuButtonColor);
+    gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Reboot now!", ALIGNED_CENTER);
 
    }, [&](u32 kdown, bool *isActivated){
      if (kdown & KEY_A) {
