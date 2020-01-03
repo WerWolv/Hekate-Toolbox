@@ -80,9 +80,8 @@ GuiMain::GuiMain() : Gui() {
 
   //2
   new Button(370, 340, 340, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawRectangled(x, y, 340, 80, currTheme.selectedColor);
-    gui->drawTextAligned(font20, x + 37, y + 50, COLOR_BLACK, "Background services", ALIGNED_LEFT);
-    gui->drawTextAligned(font20, x + 620, y + 50, m_albumOverrideKey.overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_albumOverrideKey.overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+    gui->drawRectangled(x, y, 340, 80, currTheme.submenuButtonColor);
+    gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Background services", ALIGNED_LEFT);
   }, [&](u32 kdown, bool *isActivated){
     if (kdown & KEY_A)
       Gui::g_nextGui = GUI_SM_SELECT;
@@ -90,9 +89,8 @@ GuiMain::GuiMain() : Gui() {
 
   //3
   new Button(735, 340, 335, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawRectangled(x, y, 335, 80, currTheme.selectedColor);
-    gui->drawTextAligned(font20, x + 55, y + 50, COLOR_BLACK, "Reboot to Hekate", ALIGNED_LEFT);
-    gui->drawTextAligned(font20, x + 620, y + 50, m_albumOverrideKey.overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_albumOverrideKey.overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
+    gui->drawRectangled(x, y, 335, 80, currTheme.submenuButtonColor);
+    gui->drawTextAligned(font20, x + 55, y + 50, currTheme.textColor, "Reboot to Hekate", ALIGNED_LEFT);
   }, [&](u32 kdown, bool *isActivated){
     if (kdown & KEY_A) {
       Gui::g_nextGui = GUI_HEKATE;
