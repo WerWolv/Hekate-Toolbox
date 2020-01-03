@@ -65,7 +65,7 @@ GuiHekate::GuiHekate() : Gui() {
 
     m_rebootConfigs.push_back({ "Hekate menu", 0, false });
     getBootConfigs(m_rebootConfigs, currRebootEntryIndex);
-    m_currRebootConfig = m_rebootConfigs[0];
+    //m_currRebootConfig = m_rebootConfigs[0];
 
     new Button(200, 250, Gui::g_framebuffer_width - 400, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     

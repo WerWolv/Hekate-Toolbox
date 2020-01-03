@@ -20,7 +20,7 @@ public:
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
+  static inline BootEntry m_currRebootConfig{};
 private:
-    BootEntry m_currRebootConfig;
-    std::vector<BootEntry> m_rebootConfigs;
+  std::vector<BootEntry> m_rebootConfigs;
 };

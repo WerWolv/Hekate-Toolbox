@@ -8,6 +8,7 @@
 
 #include "list_selector.hpp"
 #include "override_key.hpp"
+#include "gui_hekate.hpp"
 
 extern "C" {
   #include "pm_dmnt.h"
@@ -27,7 +28,7 @@ GuiMain::GuiMain() : Gui() {
     delete ini;
   }
 
-  m_autoBootConfigs.push_back({ "Disable autoboot", 0, false });
+  m_autoBootConfigs.push_back({ "Hekate menu", 0, false });
   m_currAutoBootConfig = getBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
 
   //0
@@ -93,8 +94,10 @@ GuiMain::GuiMain() : Gui() {
     gui->drawTextAligned(font20, x + 55, y + 50, COLOR_BLACK, "Reboot to Hekate", ALIGNED_LEFT);
     gui->drawTextAligned(font20, x + 620, y + 50, m_albumOverrideKey.overrideByDefault ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), m_albumOverrideKey.overrideByDefault ? "On" : "Off", ALIGNED_LEFT);
   }, [&](u32 kdown, bool *isActivated){
-    if (kdown & KEY_A)
+    if (kdown & KEY_A) {
       Gui::g_nextGui = GUI_HEKATE;
+      GuiHekate::m_currRebootConfig = m_currAutoBootConfig;
+    }
   }, { 1, -1, 2, -1 }, false, []() -> bool {return true;});
 }
 
