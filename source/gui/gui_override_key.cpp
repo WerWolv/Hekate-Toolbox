@@ -6,6 +6,7 @@
 #include "list_selector.hpp"
 #include "override_key.hpp"
 #include "gametitle.hpp"
+#include "gui_title_list.hpp"
 
 GuiOverrideKey::GuiOverrideKey() : Gui() {
   loadConfigFile();
@@ -107,14 +108,18 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
       }
     }, [&](u64 kdown, bool *isActivated){
       if (kdown & KEY_A) {
+        GuiTitleList::selectedAppID = m_override.programID;
         Gui::g_nextGui = GUI_TITLE_LIST;
       }
     }, { -1, 1, -1, 0 }, false, []() -> bool {return true;});
     break;
   }
+
+  Button::select(selection);
 }
 
 GuiOverrideKey::~GuiOverrideKey() {
+  selection = Button::getSelectedIndex();
   Button::g_buttons.clear();
 }
 

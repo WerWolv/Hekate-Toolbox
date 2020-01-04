@@ -14,4 +14,6 @@ public:
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
   void loadConfigFile();
+
+  static inline u64 selectedAppID = 0;
 };

@@ -47,4 +47,7 @@ private:
   OverrideKeyType m_selectedConfig;
   std::vector<OverrideKeyType> m_addConfigs;
   std::vector<std::tuple<OverrideButtonType, OverrideKeyType>> m_buttons;
+
+public:
+  static inline int selection = 0;
 };

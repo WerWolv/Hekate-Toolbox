@@ -13,16 +13,17 @@ GuiTitleList::GuiTitleList() : Gui() {
   auto apps = DumpAllGames();
   size_t position = 0;
   int buttonIndex = 0;
+  int buttonSelection = 0;
 
   for (auto &&app : apps) {
 
     new Button(107 + position, 194, 256, 256,
 
-    [app](Gui *gui, u16 x, u16 y, bool *isActivated){
+    [app, buttonIndex](Gui *gui, u16 x, u16 y, bool *isActivated){
       if (app->icon.get() != nullptr)
         gui->drawImage(x, y, 256, 256, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
-      if (*isActivated) {
-        gui->drawTextAligned(font14, x + 128, y - 32, currTheme.textColor, app->name, ALIGNED_CENTER);
+      if (Button::getSelectedIndex() == buttonIndex) {
+        gui->drawTextAligned(font20, x + 128, y - 32, currTheme.textColor, app->name, ALIGNED_CENTER);
       }
     },
 
@@ -44,10 +45,16 @@ GuiTitleList::GuiTitleList() : Gui() {
         Gui::g_nextGui = GUI_OVERRIDE_KEY;
       }
     }, { -1, -1, buttonIndex - 1, buttonIndex + 1 }, false, []() -> bool {return true;});
+
+    if (app->application_id == selectedAppID) {
+      buttonSelection = buttonIndex;
+    }
     
     position += 256 + 14;
     buttonIndex++;
   }
+
+  Button::select(buttonSelection);
 }
 
 GuiTitleList::~GuiTitleList() {
@@ -66,6 +73,8 @@ void GuiTitleList::draw() {
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Application override settings", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+
+  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, 550, currTheme.textColor, "Select the title you wish to override.", ALIGNED_CENTER);
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);

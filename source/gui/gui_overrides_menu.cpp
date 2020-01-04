@@ -11,8 +11,6 @@
 #include "gametitle.hpp"
 #include <algorithm>
 
-static int currentSelection = 0;
-
 GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   Button::g_buttons.clear();
   loadConfigFile();
@@ -33,11 +31,11 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   if (m_addConfigs.size() != 0)
     addButton(OverrideButtonType::AddNew);
 
-  Button::select(currentSelection);
+  Button::select(selection);
 }
 
 GuiOverridesMenu::~GuiOverridesMenu() {
-  currentSelection = Button::getSelectedIndex();
+  selection = Button::getSelectedIndex();
   Button::g_buttons.clear();
 }
 
@@ -70,8 +68,7 @@ void GuiOverridesMenu::onInput(u32 kdown) {
 
   if (kdown & KEY_X) {
     //Get the button options based on selection
-    currentSelection = Button::getSelectedIndex();
-    auto tuple = m_buttons[currentSelection];
+    auto tuple = m_buttons[Button::getSelectedIndex()];
     auto buttonType = std::get<0>(tuple);
     auto keyType = std::get<1>(tuple);
     if (buttonType != OverrideButtonType::AddNew) {
