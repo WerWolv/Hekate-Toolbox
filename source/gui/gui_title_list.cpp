@@ -35,7 +35,7 @@ GuiTitleList::GuiTitleList() : Gui() {
 
         //write title id to config
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)
+        ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)
           ->findOrCreateFirstOption(OverrideKey::getOverrideProgramString(GuiOverrideKey::g_keyType), "")
           ->value = buffer;
 

@@ -80,7 +80,7 @@ void GuiOverridesMenu::onInput(u32 kdown) {
           //Parse INI file and remove any occurences of wanted options
           auto ini = simpleIniParser::Ini::parseFile(LOADER_INI);
           if (ini != nullptr) {
-            auto section = ini->findSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
+            auto section = ini->findSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section);
             if (section != nullptr) {
               auto option = section->findFirstOption(OverrideKey::getOverrideKeyString(keyType));
               if (option != nullptr) {
@@ -202,7 +202,7 @@ void GuiOverridesMenu::loadConfigFile() {
   }
   // If it doesn't find the config with a section [hbl_config], it stops, as there is nothing more to read.
   simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-  auto section = ini->findSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
+  auto section = ini->findSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section);
 
   if (section == nullptr)
     return;

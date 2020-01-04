@@ -26,7 +26,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
           //Find or create a loader ini file with set override_key values, and write the result to the file.
           simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
           auto keyValue = m_override.key.ToString();
-          ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
+          ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
 
           ini->writeToFile(LOADER_INI);
           *isActivated = false;
@@ -50,7 +50,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
         auto keyValue = m_override.key.ToString();
-        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
+        ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
 
         ini->writeToFile(LOADER_INI);
         delete ini;
@@ -86,7 +86,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
         //Find or create a loader ini file with set override_key values, and write the result to the file.
         simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_any_app", "")->value = m_overrideAnyApp ? "true" : "false";
+        ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_any_app", "")->value = m_overrideAnyApp ? "true" : "false";
 
         ini->writeToFile(LOADER_INI);
         delete ini;
@@ -159,7 +159,7 @@ void GuiOverrideKey::onGesture(touchPosition &startPosition, touchPosition &endP
 void GuiOverrideKey::loadConfigFile()  {
   // Get the override keys, if any exist
   auto ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-  auto iniSection = ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
+  auto iniSection = ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section);
   m_override.key = OverrideKey::StringToKeyCombo(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), g_keyType != OverrideKeyType::Override0 ? "" : "!R")->value);
   m_override.programID = strtoul(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideProgramString(g_keyType), "")->value.c_str(), nullptr, 16);
   auto option = iniSection->findFirstOption("override_any_app");
