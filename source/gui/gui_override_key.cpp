@@ -5,6 +5,7 @@
 
 #include "list_selector.hpp"
 #include "override_key.hpp"
+#include "gametitle.hpp"
 
 GuiOverrideKey::GuiOverrideKey() : Gui() {
   loadConfigFile();
@@ -94,10 +95,16 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
     break;
   default:
     //2
-    new Button(220, 200, 300, 300, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawTextAligned(fontHuge, x + 150, y + 190, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
-    gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
-    gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, "Custom title", ALIGNED_LEFT);
+    new Button(220, 200, 300, 300,
+    [&, game{DumpGame(g_overrideKey.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated){
+
+      gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
+      if (game.get() != nullptr) {
+        gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, game->name, ALIGNED_LEFT);
+
+        if(game->icon.get() != nullptr)
+          gui->drawImage(x+22, y+22, 256, 256, game->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+      }
     }, [&](u64 kdown, bool *isActivated){
       if (kdown & KEY_A) {
         Gui::g_nextGui = GUI_TITLE_LIST;

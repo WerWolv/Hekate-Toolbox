@@ -56,6 +56,7 @@ int main(int argc, char **argv){
     setsysGetColorSetId(&colorSetId);
     setTheme(colorSetId);
     setsysExit();
+    nsInitialize();
 
     framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
     framebufferMakeLinear(&Gui::g_fb_obj);
@@ -143,6 +144,7 @@ int main(int argc, char **argv){
 
     updateThreadRunning = false;
     updateThread.join();
+    nsExit();
     socketExit();
     hidExtraExit();
     framebufferClose(&Gui::g_fb_obj);

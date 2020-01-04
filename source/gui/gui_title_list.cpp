@@ -1,8 +1,39 @@
 #include "gui_title_list.hpp"
 #include "button.hpp"
 #include "utils.hpp"
+#include <memory>
+#include <string>
+#include <cstring>
+#include "gui_override_key.hpp"
+#include "gametitle.hpp"
 
 GuiTitleList::GuiTitleList() : Gui() {
+  auto apps = DumpAllGames();
+  size_t position = 0;
+  int buttonIndex = 0;
+
+  for (auto &&app : apps) {
+
+    new Button(107 + position, 194, 256, 256,
+
+    [app](Gui *gui, u16 x, u16 y, bool *isActivated){
+      if (app->icon.get() != nullptr)
+        gui->drawImage(x, y, 256, 256, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+      if (*isActivated) {
+        gui->drawTextAligned(font14, x + 128, y - 32, currTheme.textColor, app->name, ALIGNED_CENTER);
+      }
+    },
+
+    [&, app](u64 kdown, bool *isActivated){
+      if (kdown & KEY_A) {
+        GuiOverrideKey::g_overrideKey.programID = app->application_id;
+        Gui::g_nextGui = GUI_OVERRIDE_KEY;
+      }
+    }, { -1, -1, buttonIndex - 1, buttonIndex + 1 }, false, []() -> bool {return true;});
+    
+    position += 256 + 14;
+    buttonIndex++;
+  }
 }
 
 GuiTitleList::~GuiTitleList() {
