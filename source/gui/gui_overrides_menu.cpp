@@ -8,6 +8,7 @@
 #include "list_selector.hpp"
 #include "message_box.hpp"
 #include "override_key.hpp"
+#include "gametitle.hpp"
 #include <algorithm>
 
 static int currentSelection = 0;
@@ -15,6 +16,9 @@ static int currentSelection = 0;
 GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   Button::g_buttons.clear();
   loadConfigFile();
+
+  if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
+    addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
 
   for (int i=0; i!=8; ++i) {
     if (m_overrides[i].programID != ProgramID::Invalid) {
@@ -25,8 +29,6 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
     }
   }
 
-  if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
-    addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
 
   if (m_addConfigs.size() != 0)
     addButton(OverrideButtonType::AddNew);
@@ -81,6 +83,11 @@ void GuiOverridesMenu::onInput(u32 kdown) {
             auto section = ini->findSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
             if (section != nullptr) {
               auto option = section->findFirstOption(OverrideKey::getOverrideKeyString(keyType));
+              if (option != nullptr) {
+                auto &options = section->options;
+                options.erase(std::remove(options.begin(), options.end(), option), options.end());
+              }
+              option = section->findFirstOption(OverrideKey::getOverrideProgramString(keyType));
               if (option != nullptr) {
                 auto &options = section->options;
                 options.erase(std::remove(options.begin(), options.end(), option), options.end());
@@ -143,8 +150,15 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
     };
     break;
   case OverrideButtonType::Custom_Title:
-    drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
+    drawAction = [&, game{DumpGame(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
+
+      if(game != nullptr && game->icon.get() != nullptr) {
+        gui->drawShadow(x+4, y+4, 192, 192);
+        gui->drawImage(x+4, y+4, 192, 192, game->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+      }
+      else
+        gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
+
       gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Custom title", ALIGNED_CENTER);
     };
     break;
@@ -219,11 +233,11 @@ void GuiOverridesMenu::loadConfigFile() {
   // Get the override keys and programs for numbered overrides
   for (u8 i=0; i!=8; ++i) {
 
-    option = section->findFirstOption("override_key_" + i);
+    option = section->findFirstOption(OverrideKey::getOverrideKeyString(static_cast<OverrideKeyType>(i)));
     if (option != nullptr)
       m_overrides[i].key = OverrideKey::StringToKeyCombo(option->value);
 
-    option = section->findFirstOption("program_id_" + i);
+    option = section->findFirstOption(OverrideKey::getOverrideProgramString(static_cast<OverrideKeyType>(i)));
     if (option != nullptr)
       m_overrides[i].programID = strtoul(option->value.c_str(), nullptr, 16);
 

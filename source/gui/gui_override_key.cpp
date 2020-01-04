@@ -96,7 +96,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
   default:
     //2
     new Button(220, 200, 300, 300,
-    [&, game{DumpGame(g_overrideKey.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated){
+    [&, game{DumpGame(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
       gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
       if (game.get() != nullptr) {
@@ -158,10 +158,11 @@ void GuiOverrideKey::onGesture(touchPosition &startPosition, touchPosition &endP
 
 void GuiOverrideKey::loadConfigFile()  {
   // Get the override keys, if any exist
-  simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-  m_override.key = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)
-  ->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), g_keyType == OverrideKeyType::AnyAppOverride ? "R" : "!R")->value);
-  auto option = ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findFirstOption("override_any_app");
+  auto ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+  auto iniSection = ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section);
+  m_override.key = OverrideKey::StringToKeyCombo(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), g_keyType != OverrideKeyType::Override0 ? "" : "!R")->value);
+  m_override.programID = strtoul(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideProgramString(g_keyType), "")->value.c_str(), nullptr, 16);
+  auto option = iniSection->findFirstOption("override_any_app");
   if (option != nullptr)
     m_overrideAnyApp = (option->value == "true") || (option->value == "1");
   else

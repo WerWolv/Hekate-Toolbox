@@ -2,6 +2,7 @@
 #include "switch.h"
 #include <memory>
 #include <vector>
+#include "jpeg.hpp"
 
 struct TitleIcon {
   u64 application_id;
@@ -9,8 +10,11 @@ struct TitleIcon {
   std::unique_ptr<const u8> icon;
 };
 
-std::shared_ptr<TitleIcon> DumpGame(u64 appID);
+//Dump a game's info based on the application ID. if width or height are specified, the icon will be set to that size.
+std::shared_ptr<TitleIcon> DumpGame(u64 appID, WidthHeight res = {});
 
-std::vector<u64> DumpAllTitleIDs();
+//Dump all games' application IDs.
+std::vector<u64> DumpAllAppIDs();
 
-std::vector<std::shared_ptr<TitleIcon>> DumpAllGames();
+//Dump all games' info. if width or height are specified, the icons will be set to that size.
+std::vector<std::shared_ptr<TitleIcon>> DumpAllGames(WidthHeight res = {});

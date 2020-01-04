@@ -6,6 +6,8 @@
 #include <cstring>
 #include "gui_override_key.hpp"
 #include "gametitle.hpp"
+#include "SimpleIniParser.hpp"
+#include <cstdlib>
 
 GuiTitleList::GuiTitleList() : Gui() {
   auto apps = DumpAllGames();
@@ -26,7 +28,19 @@ GuiTitleList::GuiTitleList() : Gui() {
 
     [&, app](u64 kdown, bool *isActivated){
       if (kdown & KEY_A) {
-        GuiOverrideKey::g_overrideKey.programID = app->application_id;
+
+        //convert title id to a hex string
+        char buffer[17];
+        sprintf(buffer, "%016lx", app->application_id);
+
+        //write title id to config
+        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+        ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)
+          ->findOrCreateFirstOption(OverrideKey::getOverrideProgramString(GuiOverrideKey::g_keyType), "")
+          ->value = buffer;
+
+        ini->writeToFile(LOADER_INI);
+        delete ini;
         Gui::g_nextGui = GUI_OVERRIDE_KEY;
       }
     }, { -1, -1, buttonIndex - 1, buttonIndex + 1 }, false, []() -> bool {return true;});
