@@ -98,7 +98,11 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
     gui->drawTextAligned(fontHuge, x + 150, y + 190, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
     gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
     gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, "Custom title", ALIGNED_LEFT);
-    }, [&](u64 kdown, bool *isActivated){}, { -1, 1, -1, 0 }, false, []() -> bool {return false;});
+    }, [&](u64 kdown, bool *isActivated){
+      if (kdown & KEY_A) {
+        Gui::g_nextGui = GUI_TITLE_LIST;
+      }
+    }, { -1, 1, -1, 0 }, false, []() -> bool {return true;});
     break;
   }
 }

@@ -12,6 +12,7 @@
 #include "gui_hid_mitm.hpp"
 #include "gui_overrides_menu.hpp"
 #include "gui_override_key.hpp"
+#include "gui_title_list.hpp"
 
 #include "threads.hpp"
 
@@ -100,6 +101,8 @@ int main(int argc, char **argv){
           case GUI_OVERRIDE_KEY:
             currGui = new GuiOverrideKey();
             break;
+          case GUI_TITLE_LIST:
+            currGui = new GuiTitleList();
           default:
             break;
         }

@@ -31,6 +31,7 @@ enum gui_t {
   GUI_HID_MITM,
   GUI_OVERRIDES_MENU,
   GUI_OVERRIDE_KEY,
+  GUI_TITLE_LIST,
 };
 
 class Gui {

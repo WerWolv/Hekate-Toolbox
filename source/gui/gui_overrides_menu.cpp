@@ -16,11 +16,6 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   Button::g_buttons.clear();
   loadConfigFile();
 
-  //TODO: remove this in Atmosphere 0.10.2
-  for(int i=1; i!=8; ++i) {
-    removeFromList(static_cast<OverrideKeyType>(i));
-  }
-
   for (int i=0; i!=8; ++i) {
     if (m_overrides[i].programID != ProgramID::Invalid) {
       if (m_overrides[i].programID == ProgramID::AppletPhotoViewer)
