@@ -12,6 +12,8 @@ public:
   static inline std::vector<Button*> g_buttons;
   static inline u16 pageOffsetX = 0;
   static inline u16 pageOffsetY = 0;
+  static inline u16 targetOffsetX = 0;
+  static inline u16 targetOffsetY = 0;
   static inline u16 pageLeftmostBoundary = 100;
   static inline u16 pageTopmostBoundary = 64;
   static inline u16 pageRightmostBoundary = 1280 - 100;

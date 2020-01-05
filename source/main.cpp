@@ -86,6 +86,8 @@ int main(int argc, char **argv){
 
         Button::pageOffsetX = 0;
         Button::pageOffsetY = 0;
+        Button::targetOffsetX = 0;
+        Button::targetOffsetY = 0;
 
         switch(Gui::g_nextGui) {
           case GUI_MAIN:
@@ -116,6 +118,8 @@ int main(int argc, char **argv){
       }
 
       if(currGui != nullptr) {
+        Button::targetOffsetX = Lerp(Button::targetOffsetX, Button::pageOffsetX, SCROLL_SPEED);
+        Button::targetOffsetY = Lerp(Button::targetOffsetY, Button::pageOffsetY, SCROLL_SPEED);
         currGui->draw();
 
         if (kdown) {

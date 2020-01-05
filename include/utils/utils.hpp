@@ -10,6 +10,9 @@
 #define HID_MITM_INI  "sdmc:/config/hid_mitm/config.ini"
 #define HBL_CONFIG    "hbl_config"
 
+//From 0 to 1 float. Defines how smooth the scrolling should be. 1 is instant.
+#define SCROLL_SPEED 0.5f
+
 typedef struct {
   std::string name;
   u16 id;
@@ -47,4 +50,9 @@ namespace ProgramID {
   constexpr u64 AppletUserMigration   = 0x010000000000101C;
   constexpr u64 AppletEncounter       = 0x010000000000101D;
   constexpr u64 AppletStory           = 0x0100000000001020;
+}
+
+template<class T>
+constexpr static T Lerp(T first,T second, float percent) {
+	return (first + (second - first)*percent);
 }

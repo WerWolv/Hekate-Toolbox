@@ -36,8 +36,8 @@ void Button::select(s16 buttonIndex) {
 
   auto leftmostDiff = (button->m_x) - (pageOffsetX) - pageLeftmostBoundary;
   auto topmostDiff = (button->m_y) - (pageOffsetY) - pageTopmostBoundary;
-  auto rightmostDiff = (button->m_x + button->m_w) - (pageOffsetX + pageRightmostBoundary);
-  auto bottommostDiff = (button->m_y + button->m_h) - (pageOffsetY + pageBottommostBoundary);
+  auto rightmostDiff = (button->m_x + button->m_w) - (pageOffsetX) - pageRightmostBoundary;
+  auto bottommostDiff = (button->m_y + button->m_h) - (pageOffsetY) - pageBottommostBoundary;
 
   if (leftmostDiff < 0)
     pageOffsetX += leftmostDiff;
@@ -54,8 +54,8 @@ void Button::select(s16 buttonIndex) {
 
 void Button::draw(Gui *gui) {
   // Offset calculation
-  u16 resultX = m_x - pageOffsetX;
-  u16 resultY = m_y - pageOffsetY;
+  u16 resultX = m_x - targetOffsetX;
+  u16 resultY = m_y - targetOffsetY;
   u16 borderX = resultX - 5;
   u16 borderY = resultY - 5;
   if(m_isSelected) {
