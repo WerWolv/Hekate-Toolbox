@@ -30,9 +30,26 @@ void Button::select(s16 buttonIndex) {
     btn->m_isSelected = false;
     btn->m_isActivated = false;
   }
-  Button::g_buttons[buttonIndex]->m_isSelected = true;
-  //pageOffsetX = Button::g_buttons[buttonIndex]->m_x;
-  //pageOffsetY = Button::g_buttons[buttonIndex]->m_y;
+
+  auto button = Button::g_buttons[buttonIndex];
+  button->m_isSelected = true;
+
+  auto leftmostDiff = (button->m_x) - (pageOffsetX) - pageLeftmostBoundary;
+  auto topmostDiff = (button->m_y) - (pageOffsetY) - pageTopmostBoundary;
+  auto rightmostDiff = (button->m_x + button->m_w) - (pageOffsetX + pageRightmostBoundary);
+  auto bottommostDiff = (button->m_y + button->m_h) - (pageOffsetY + pageBottommostBoundary);
+
+  if (leftmostDiff < 0)
+    pageOffsetX += leftmostDiff;
+
+  if (rightmostDiff > 0)
+    pageOffsetX += rightmostDiff;
+
+  if (topmostDiff < 0)
+    pageOffsetY += topmostDiff;
+
+  if (bottommostDiff > 0)
+    pageOffsetY += bottommostDiff;
 }
 
 void Button::draw(Gui *gui) {

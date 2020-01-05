@@ -13,6 +13,7 @@
 #include "gui_overrides_menu.hpp"
 #include "gui_override_key.hpp"
 #include "gui_title_list.hpp"
+#include "button.hpp"
 
 #include "threads.hpp"
 
@@ -82,6 +83,9 @@ int main(int argc, char **argv){
         mutexLock(&mutexCurrGui);
 
         delete currGui;
+
+        Button::pageOffsetX = 0;
+        Button::pageOffsetY = 0;
 
         switch(Gui::g_nextGui) {
           case GUI_MAIN:
