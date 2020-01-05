@@ -20,7 +20,7 @@ GuiTitleList::GuiTitleList() : Gui() {
     new Button(107 + position, 194, 256, 256,
 
     [app, buttonIndex](Gui *gui, u16 x, u16 y, bool *isActivated){
-      if (app->icon.get() != nullptr)
+      if (app.get() != nullptr && app->icon.get() != nullptr)
         gui->drawImage(x, y, 256, 256, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
       if (Button::getSelectedIndex() == buttonIndex) {
         gui->drawTextAligned(font20, x + 128, y - 32, currTheme.textColor, app->name, ALIGNED_CENTER);
@@ -49,7 +49,7 @@ GuiTitleList::GuiTitleList() : Gui() {
     if (app->application_id == selectedAppID) {
       buttonSelection = buttonIndex;
     }
-    
+
     position += 256 + 14;
     buttonIndex++;
   }
