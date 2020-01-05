@@ -14,18 +14,44 @@ Button::Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bo
   select(0);
 }
 
+s16 Button::getSelectedIndex() {
+  for(size_t i=0; i != g_buttons.size(); ++i) {
+    if (g_buttons[i]->m_isSelected)
+      return i;
+  }
+  return -1;
+}
+
+void Button::select(s16 buttonIndex) {
+  if (buttonIndex < 0) return;
+  if (Button::g_buttons.size() <= static_cast<u16>(buttonIndex)) return;
+
+  for(Button *btn : Button::g_buttons) {
+    btn->m_isSelected = false;
+    btn->m_isActivated = false;
+  }
+  Button::g_buttons[buttonIndex]->m_isSelected = true;
+  //pageOffsetX = Button::g_buttons[buttonIndex]->m_x;
+  //pageOffsetY = Button::g_buttons[buttonIndex]->m_y;
+}
+
 void Button::draw(Gui *gui) {
+  // Offset calculation
+  u16 resultX = m_x - pageOffsetX;
+  u16 resultY = m_y - pageOffsetY;
+  u16 borderX = resultX - 5;
+  u16 borderY = resultY - 5;
   if(m_isSelected) {
-    gui->drawRectangled(m_x - 5, m_y - 5, m_w + 10, m_h + 10, m_isActivated ? currTheme.selectedColor : currTheme.highlightColor);
-    gui->drawShadow(m_x - 5, m_y - 5, m_w + 10, m_h + 10);
-  } else gui->drawShadow(m_x, m_y, m_w, m_h);
+    gui->drawRectangled(borderX, borderY, m_w + 10, m_h + 10, m_isActivated ? currTheme.selectedColor : currTheme.highlightColor);
+    gui->drawShadow(borderX, borderY, m_w + 10, m_h + 10);
+  } else gui->drawShadow(resultX, resultY, m_w, m_h);
 
-  gui->drawRectangled(m_x, m_y, m_w, m_h, currTheme.selectedButtonColor);
+  gui->drawRectangled(resultX, resultY, m_w, m_h, currTheme.selectedButtonColor);
 
-  m_drawAction(gui, m_x, m_y, &m_isActivated);
+  m_drawAction(gui, resultX, resultY, &m_isActivated);
 
   if (!m_usableCondition())
-    gui->drawRectangled(m_x, m_y, m_w, m_h, gui->makeColor(0x80, 0x80, 0x80, 0x80));
+    gui->drawRectangled(resultX, resultY, m_w, m_h, gui->makeColor(0x80, 0x80, 0x80, 0x80));
 }
 
 bool Button::onInput(u32 kdown) {
