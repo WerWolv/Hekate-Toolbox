@@ -13,16 +13,22 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
   //0
   new Button(640, 200, 380, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawTextAligned(fontHuge, x + 190, y + 145, currTheme.textColor, OverrideKey::KeyToUnicode(m_override.key.key), ALIGNED_CENTER);
+    if (m_inputBlocked)
+      gui->drawTextAligned(font20, x + 190, y + 100, currTheme.textColor, "Press any key...", ALIGNED_CENTER);
+    else
+      if (m_override.key.key == 0)
+        gui->drawTextAligned(font24, x + 190, y + 100, currTheme.unselectedColor, "No key selected", ALIGNED_CENTER);
+      else
+        gui->drawTextAligned(fontHuge, x + 190, y + 136, currTheme.textColor, OverrideKey::KeyToUnicode(m_override.key.key), ALIGNED_CENTER);
     gui->drawTextAligned(font14, x + 190, y + 185, currTheme.textColor, "Override key", ALIGNED_CENTER);
   }, [&](u64 kdown, bool *isActivated){
       if(*isActivated) {
 
         // This is supposed to clear the key display, and block exit until a button is pressed.
         // For some reason, it doesn't work
-        this->m_override.key.key = static_cast<HidControllerKeys>(0);
-        this->m_inputBlocked = true;
-        if(!(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
+        m_override.key.key = static_cast<HidControllerKeys>(0);
+        m_inputBlocked = true;
+        if(kdown && !(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
           m_override.key.key = static_cast<HidControllerKeys>(kdown);
           //Find or create a loader ini file with set override_key values, and write the result to the file.
           simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
@@ -31,9 +37,9 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
           ini->writeToFile(LOADER_INI);
           *isActivated = false;
+          m_inputBlocked = false;
 
           delete ini;
-          this->m_inputBlocked = false;
         }
       }
   }, { -1, 1, 2, -1 }, true, []() -> bool {return true;});
@@ -100,11 +106,14 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
     [&, game{DumpGame(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
       gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
-      if (game.get() != nullptr) {
+      if (game.get() != nullptr && game->application_id != 0) {
         gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, game->name, ALIGNED_LEFT);
 
         if(game->icon.get() != nullptr)
           gui->drawImage(x+22, y+22, 256, 256, game->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+      } else {
+        gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.unselectedColor, "\uE06B", ALIGNED_CENTER);
+        gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No game selected", ALIGNED_CENTER);
       }
     }, [&](u64 kdown, bool *isActivated){
       if (kdown & KEY_A) {
@@ -142,13 +151,13 @@ void GuiOverrideKey::draw() {
 }
 
 void GuiOverrideKey::onInput(u32 kdown) {
+  if (!m_inputBlocked && kdown & KEY_B)
+    Gui::g_nextGui = GUI_OVERRIDES_MENU;
+
   for(Button *btn : Button::g_buttons) {
     if (btn->isSelected())
       if (btn->onInput(kdown)) return;
-  }    
-    
-  if (kdown & KEY_B && !m_inputBlocked)
-    Gui::g_nextGui = GUI_OVERRIDES_MENU;
+  }
 }
 
 void GuiOverrideKey::onTouch(touchPosition &touch) {
