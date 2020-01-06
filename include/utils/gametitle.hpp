@@ -10,6 +10,10 @@ struct TitleIcon {
   std::unique_ptr<const u8> icon;
 };
 
+void initJpegThread();
+
+void exitJpegThread();
+
 //Dump a game's info based on the application ID. if width or height are specified, the icon will be set to that size.
 std::shared_ptr<TitleIcon> DumpGame(u64 appID, WidthHeight res = {});
 

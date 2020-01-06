@@ -14,6 +14,7 @@
 #include "gui_override_key.hpp"
 #include "gui_title_list.hpp"
 #include "button.hpp"
+#include "gametitle.hpp"
 
 #include "threads.hpp"
 
@@ -61,6 +62,8 @@ int main(int argc, char **argv){
 
     framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
     framebufferMakeLinear(&Gui::g_fb_obj);
+
+    initJpegThread();
 
     Gui::g_nextGui = GUI_MAIN;
 
@@ -156,6 +159,9 @@ int main(int argc, char **argv){
 
     updateThreadRunning = false;
     updateThread.join();
+
+    exitJpegThread();
+
     nsExit();
     socketExit();
     hidExtraExit();
