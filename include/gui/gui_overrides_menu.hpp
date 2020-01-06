@@ -4,7 +4,6 @@
 #include "override_key.hpp"
 
 enum class OverrideButtonType {
-  Album,
   Any_Title,
   Custom_Title,
   AddNew,

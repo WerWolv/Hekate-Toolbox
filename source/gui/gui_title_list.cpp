@@ -15,6 +15,10 @@
 #define TEXT_BORDER 10
 #define GRIDPOS ( ( SCREEN_WIDTH - (COLUMNS * ICON_PADDING) ) /2)
 
+static u64 availableApplets[] {
+  AppletID::AppletPhotoViewer,
+};
+
 GuiTitleList::GuiTitleList() : Gui() {
   auto apps = DumpAllTitles(WidthHeight{ICON_SIZE, ICON_SIZE});
   int buttonIndex = 0;
@@ -22,20 +26,36 @@ GuiTitleList::GuiTitleList() : Gui() {
 
   size_t xOffset = 0, yOffset = 0;
 
+  for (auto &&applet : availableApplets) {
+    apps.insert(apps.begin(), std::make_shared<TitleIcon>(TitleIcon{.application_id = applet}));
+  }
+
   for (auto &&app : apps) {
 
     new Button(GRIDPOS + xOffset, 194 + yOffset, ICON_SIZE, ICON_SIZE,
 
     [app, buttonIndex](Gui *gui, u16 x, u16 y, bool *isActivated){
-      if (app.get() != nullptr && app->icon.get() != nullptr)
-        gui->drawImage(x, y, ICON_SIZE, ICON_SIZE, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
-      else
-        gui->drawTextAligned(fontHuge, x + ICON_SIZE/2, y + ICON_SIZE/2 + 40, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
-      if (Button::getSelectedIndex() == buttonIndex) {
-        u32 textWidth, textHeight;
-        gui->getTextDimensions(font20, app->name, &textWidth, &textHeight);
-        gui->drawRectangled((x + ICON_SIZE/2 - textWidth/2) - TEXT_BORDER*2, (y - 32 - textHeight) - TEXT_BORDER, textWidth+ TEXT_BORDER*4, textHeight+ TEXT_BORDER*2, currTheme.overlayColor);
-        gui->drawTextAligned(font20, x + ICON_SIZE/2, y - 32, currTheme.highlightTextColor, app->name, ALIGNED_CENTER);
+      if(app != nullptr && app->application_id != 0) {
+
+        auto appletName = GetAppletName(app->application_id);
+        if (appletName == nullptr)
+          appletName = app->name;
+
+        if(app->icon.get() != nullptr) {
+          gui->drawImage(x, y, ICON_SIZE, ICON_SIZE, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+        } else {
+          gui->drawTextAligned(fontHuge, x + ICON_SIZE/2, y + ICON_SIZE/2 + 48, GetAppletColor(app->application_id), GetAppletIcon(app->application_id), ALIGNED_CENTER);
+        }
+
+        if (Button::getSelectedIndex() == buttonIndex) {
+          u32 textWidth, textHeight;
+          gui->getTextDimensions(font20, appletName, &textWidth, &textHeight);
+          gui->drawRectangled((x + ICON_SIZE/2 - textWidth/2) - TEXT_BORDER*2, (y - 32 - textHeight) - TEXT_BORDER, textWidth+ TEXT_BORDER*4, textHeight+ TEXT_BORDER*2, currTheme.overlayColor);
+          gui->drawTextAligned(font20, x + ICON_SIZE/2, y - 32, currTheme.highlightTextColor, appletName, ALIGNED_CENTER);
+        }
+
+      } else {
+        gui->drawTextAligned(fontHuge, x + ICON_SIZE/2, y + ICON_SIZE/2 + 48, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
       }
     },
 

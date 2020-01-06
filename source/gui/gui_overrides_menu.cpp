@@ -19,11 +19,13 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
     addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
 
   for (int i=0; i!=8; ++i) {
-    if (m_overrides[i].programID != ProgramID::Invalid) {
-      if (m_overrides[i].programID == ProgramID::AppletPhotoViewer)
-        addButton(OverrideButtonType::Album, static_cast<OverrideKeyType>(i), m_overrides[i]);
-      else
-        addButton(OverrideButtonType::Custom_Title, static_cast<OverrideKeyType>(i), m_overrides[i]);
+    if (i == static_cast<int>(OverrideKeyType::Override0)
+    && m_overrides[i].programID == AppletID::AppletPhotoViewer) {
+        if (m_overrides[i].key.key != static_cast<HidControllerKeys>(0))
+          addButton(OverrideButtonType::Custom_Title, static_cast<OverrideKeyType>(i), m_overrides[i]);
+
+    } else if (m_overrides[i].programID != AppletID::Invalid) {
+      addButton(OverrideButtonType::Custom_Title, static_cast<OverrideKeyType>(i), m_overrides[i]);
     }
   }
 
@@ -90,6 +92,18 @@ void GuiOverridesMenu::onInput(u32 kdown) {
                 auto &options = section->options;
                 options.erase(std::remove(options.begin(), options.end(), option), options.end());
               }
+              if (keyType == OverrideKeyType::Override0) {
+                option = section->findFirstOption("override_key");
+                if (option != nullptr) {
+                  auto &options = section->options;
+                  options.erase(std::remove(options.begin(), options.end(), option), options.end());
+                }
+                option = section->findFirstOption("program_id");
+                if (option != nullptr) {
+                  auto &options = section->options;
+                  options.erase(std::remove(options.begin(), options.end(), option), options.end());
+                }
+              }
               if (keyType == OverrideKeyType::AnyAppOverride) {
                 option = section->findFirstOption("override_any_app");
                 if (option != nullptr) {
@@ -135,12 +149,6 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
   };
   switch (buttonType)
   {
-  case OverrideButtonType::Album:
-    drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-      gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE134", ALIGNED_CENTER);
-      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Album", ALIGNED_CENTER);
-    };
-    break;
   case OverrideButtonType::Any_Title:
     drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
       gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE135", ALIGNED_CENTER);
@@ -150,14 +158,25 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
   case OverrideButtonType::Custom_Title:
     drawAction = [&, title{DumpTitle(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
-      if(title != nullptr && title->icon.get() != nullptr) {
-        gui->drawShadow(x+4, y+4, 192, 192);
-        gui->drawImage(x+4, y+4, 192, 192, title->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
-      }
-      else
-        gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
+      if(title != nullptr && title->application_id != 0) {
 
-      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Custom title", ALIGNED_CENTER);
+        auto appletName = GetAppletName(title->application_id);
+        if (appletName == nullptr)
+          appletName = "Custom title";
+
+        gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, appletName, ALIGNED_CENTER);
+
+        if(title->icon.get() != nullptr) {
+          gui->drawShadow(x+4, y+4, 192, 192);
+          gui->drawImage(x+4, y+4, 192, 192, title->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+        } else {
+          gui->drawTextAligned(fontHuge, x + 100, y + 150, GetAppletColor(title->application_id), GetAppletIcon(title->application_id), ALIGNED_CENTER);
+        }
+
+      } else {
+        gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
+        gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Error", ALIGNED_CENTER);
+      }
     };
     break;
   case OverrideButtonType::AddNew:
@@ -206,15 +225,16 @@ void GuiOverridesMenu::loadConfigFile() {
     return;
 
   // Get the override key and program for un-numbered override
+  // TODO: this may be removed in a future atmosphere release
   auto option = section->findFirstOption("override_key");
-  if (option != nullptr) {
+  if (option != nullptr)
     m_overrides[0].key = OverrideKey::StringToKeyCombo(option->value);
-    option = section->findFirstOption("program_id");
-    if (option != nullptr)
-      m_overrides[0].programID = strtoul(option->value.c_str(), nullptr, 16);
-    else
-      m_overrides[0].programID = ProgramID::AppletPhotoViewer;
-  }
+
+  option = section->findFirstOption("program_id");
+  if (option != nullptr)
+    m_overrides[0].programID = strtoul(option->value.c_str(), nullptr, 16);
+  else
+    m_overrides[0].programID = AppletID::AppletPhotoViewer;
 
   // Get the override key if config is set to override any app
   option = section->findFirstOption("override_any_app");

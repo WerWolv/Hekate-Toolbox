@@ -69,14 +69,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
   switch (g_keyType)
   {
-  case OverrideKeyType::Override0:
-    //2
-    new Button(220, 200, 300, 300, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
-    gui->drawTextAligned(fontHuge, x + 150, y + 190, currTheme.textColor, "\uE134", ALIGNED_CENTER);
-    gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
-    gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, "Album", ALIGNED_LEFT);
-    }, [&](u64 kdown, bool *isActivated){}, { -1, 1, -1, 0 }, false, []() -> bool {return false;});
-    break;
+    //TODO: add a different render method for album/applets
   case OverrideKeyType::AnyAppOverride:
     //2
     new Button(220, 200, 300, 300, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
@@ -109,12 +102,17 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
       gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
       if (title.get() != nullptr && title->application_id != 0) {
-        gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, title->name, ALIGNED_LEFT);
+
+        auto appletName = GetAppletName(title->application_id);
+        if (appletName == nullptr)
+          appletName = title->name;
+
+        gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, appletName, ALIGNED_LEFT);
 
         if(title->icon.get() != nullptr)
           gui->drawImage(x+22, y+22, 256, 256, title->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
         else
-          gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
+          gui->drawTextAligned(fontHuge, x + 150, y + 186, GetAppletColor(title->application_id), GetAppletIcon(title->application_id), ALIGNED_CENTER);
       } else {
         gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.unselectedColor, "\uE06B", ALIGNED_CENTER);
         gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No title selected", ALIGNED_CENTER);
@@ -178,9 +176,34 @@ void GuiOverrideKey::loadConfigFile()  {
   // Get the override keys, if any exist
   auto ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
   auto iniSection = ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section);
-  m_override.key = OverrideKey::StringToKeyCombo(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), g_keyType != OverrideKeyType::Override0 ? "" : "!R")->value);
-  m_override.programID = strtoul(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideProgramString(g_keyType), "")->value.c_str(), nullptr, 16);
-  auto option = iniSection->findFirstOption("override_any_app");
+
+  // Get the override key and program for un-numbered override
+  // TODO: this may be removed in a future atmosphere release
+  if (g_keyType == OverrideKeyType::Override0) {
+    auto option = iniSection->findFirstOption("override_key");
+    if (option != nullptr)
+      m_override.key = OverrideKey::StringToKeyCombo(option->value);
+    else
+      m_override.key = OverrideKey::StringToKeyCombo("!R");
+
+    option = iniSection->findFirstOption("program_id");
+    if (option != nullptr)
+      m_override.programID = strtoul(option->value.c_str(), nullptr, 16);
+    else
+      m_override.programID = AppletID::AppletPhotoViewer;
+  }
+
+  auto option = iniSection->findFirstOption(OverrideKey::getOverrideKeyString(g_keyType));
+  if (option != nullptr)
+    m_override.key = OverrideKey::StringToKeyCombo(option->value);
+  
+  option = iniSection->findFirstOption(OverrideKey::getOverrideProgramString(g_keyType));
+  if (option != nullptr)
+    m_override.programID = strtoul(option->value.c_str(), nullptr, 16);
+
+  //m_override.key = OverrideKey::StringToKeyCombo(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value);
+  //m_override.programID = strtoul(iniSection->findOrCreateFirstOption(OverrideKey::getOverrideProgramString(g_keyType), "")->value.c_str(), nullptr, 16);
+  option = iniSection->findFirstOption("override_any_app");
   if (option != nullptr)
     m_overrideAnyApp = (option->value == "true") || (option->value == "1");
   else

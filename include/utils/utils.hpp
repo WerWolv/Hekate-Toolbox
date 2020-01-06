@@ -3,6 +3,7 @@
 #include <switch.h>
 #include <string>
 #include <vector>
+#include "types.h"
 
 #define LOADER_INI    "sdmc:/atmosphere/config/override_config.ini"
 #define HEKATE_INI    "sdmc:/bootloader/hekate_ipl.ini"
@@ -21,7 +22,7 @@ typedef struct {
 
 BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex);
 
-namespace ProgramID {
+namespace AppletID {
   constexpr u64 Invalid = 0x0;
   constexpr u64 AppletQlaunch         = 0x0100000000001000;
   constexpr u64 AppletAuth            = 0x0100000000001001;
@@ -51,6 +52,10 @@ namespace ProgramID {
   constexpr u64 AppletEncounter       = 0x010000000000101D;
   constexpr u64 AppletStory           = 0x0100000000001020;
 }
+
+const char *GetAppletName(u64 appID);
+const char *GetAppletIcon(u64 appID);
+color_t     GetAppletColor(u64 appID);
 
 template<class T>
 constexpr static T Lerp(T first,T second, float percent) {

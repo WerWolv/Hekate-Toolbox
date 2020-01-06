@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <algorithm>
+#include "theme.h"
 
 BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
   simpleIniParser::Ini *hekateIni = simpleIniParser::Ini::parseFile(HEKATE_INI);
@@ -62,4 +63,34 @@ BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoB
   }
   
   return currEntry;
+}
+
+const char *GetAppletName(u64 appID) {
+  switch (appID)
+  {
+  case AppletID::AppletPhotoViewer:
+    return "Album";
+  default:
+    return nullptr;
+  }
+}
+
+const char *GetAppletIcon(u64 appID) {
+  switch (appID)
+  {
+  case AppletID::AppletPhotoViewer:
+    return "\uE134";
+  default:
+    return "\uE06B";
+  }
+}
+
+color_t GetAppletColor(u64 appID) {
+  switch (appID)
+  {
+  case AppletID::AppletPhotoViewer:
+    return color_t{static_cast<u32>(RGBA8(0x13, 0x73, 0xFD, 0xFF))};
+  default:
+    return currTheme.textColor;
+  }
 }
