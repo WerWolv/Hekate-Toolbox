@@ -15,6 +15,8 @@ void setTheme(ColorSetId colorSetId) {
         .selectedButtonColor  =      RGBA8(0xFD, 0xFD, 0xFD, 0xFF),
         .submenuButtonColor   =      RGBA8(0xC0, 0xC0, 0xC0, 0xFF),
         .activatedColor       =      RGBA8(0xE4, 0x2D, 0x50, 0xFF),
+        .overlayColor         =      RGBA8(0xFF, 0xFF, 0xFF, 0xDD),
+        .highlightTextColor   =      RGBA8(0x00, 0xBF, 0xD0, 0xFF),
       };
       break;
     case ColorSetId_Dark:
@@ -28,6 +30,8 @@ void setTheme(ColorSetId colorSetId) {
         .selectedButtonColor  =      RGBA8(0x25, 0x26, 0x2A, 0xFF),
         .submenuButtonColor   =      RGBA8(0x50, 0x50, 0x50, 0xFF),
         .activatedColor       =      RGBA8(0xE4, 0x27, 0x59, 0xFF),
+        .overlayColor         =      RGBA8(0x55, 0x55, 0x55, 0xDD),
+        .highlightTextColor   =      RGBA8(0x0A, 0xBF, 0xFF, 0xFF),
       };
       break;
   }

@@ -13,6 +13,8 @@ typedef struct {
   color_t selectedButtonColor;
   color_t submenuButtonColor;
   color_t activatedColor;
+  color_t overlayColor;
+  color_t highlightTextColor;
 } theme_t;
 
 extern theme_t currTheme;

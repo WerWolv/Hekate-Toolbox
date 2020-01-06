@@ -15,9 +15,9 @@ public:
   static inline u16 targetOffsetX = 0;
   static inline u16 targetOffsetY = 0;
   static inline u16 pageLeftmostBoundary = 100;
-  static inline u16 pageTopmostBoundary = 64;
-  static inline u16 pageRightmostBoundary = 1280 - 100;
-  static inline u16 pageBottommostBoundary = 720 - 64;
+  static inline u16 pageTopmostBoundary = 160;
+  static inline u16 pageRightmostBoundary = SCREEN_WIDTH - 100;
+  static inline u16 pageBottommostBoundary = SCREEN_HEIGHT - 160;
 
   Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui*, u16, u16, bool*)> drawAction, std::function<void(u32, bool*)> inputAction, std::vector<s32> adjacentButton, bool activatable, std::function<bool()> usableCondition);
 
