@@ -92,17 +92,13 @@ void MessageBox::onTouch(touchPosition &touch) {
     if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < 250 + (Gui::g_framebuffer_width - 500) / 2 && touch.py < Gui::g_framebuffer_height - 180) {
       if (m_selectedOption != BUTTON_YES)
         m_selectedOption = BUTTON_YES;
-      else {
+      else
         m_selectionAction(BUTTON_YES);
-        this->hide();
-      }
     } else if (touch.px > 250 + (Gui::g_framebuffer_width - 500) / 2 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180) {
       if (m_selectedOption != BUTTON_NO)
         m_selectedOption = BUTTON_NO;
-      else {
+      else
         m_selectionAction(BUTTON_NO);
-        this->hide();
-      }
     }
   }
 }
