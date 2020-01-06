@@ -143,7 +143,10 @@ int main(int argc, char **argv){
           hidTouchRead(&touch, 0);
           if(Gui::g_currListSelector != nullptr)
             Gui::g_currListSelector->onTouch(touch);
-          else currGui->onTouch(touch);
+          else if(Gui::g_currMessageBox != nullptr)
+            Gui::g_currMessageBox->onTouch(touch);
+          else
+            currGui->onTouch(touch);
         }
 
         touchCntOld = touchCnt;

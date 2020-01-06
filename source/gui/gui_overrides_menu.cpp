@@ -73,7 +73,7 @@ void GuiOverridesMenu::onInput(u32 kdown) {
     auto keyType = std::get<1>(tuple);
     if (buttonType != OverrideButtonType::AddNew) {
       (new MessageBox("Are you sure you want to delete this setting?", MessageBox::YES_NO))->setSelectionAction([&, keyType](s8 selectedItem){
-        if (selectedItem == 1) {
+        if (selectedItem == MessageBox::BUTTON_YES) {
           //Parse INI file and remove any occurences of wanted options
           auto ini = simpleIniParser::Ini::parseFile(LOADER_INI);
           if (ini != nullptr) {
