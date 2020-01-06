@@ -51,6 +51,7 @@ void GuiOverridesMenu::draw() {
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Application override settings", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Delete     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Add key override options for each title. \n Opening that title while holding that key combination will override it with hbmenu.", ALIGNED_CENTER);
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
@@ -184,7 +185,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
   default:
     break;
   }
-  new Button((220*m_buttonCount)+150, 200, 200, 300, drawAction, inputAction,
+  new Button((220*m_buttonCount)+150, 250, 200, 300, drawAction, inputAction,
     { -1, -1, m_buttonCount-1, m_buttonCount+1 }, false, []() -> bool {return true;});
 
   if (buttonType != OverrideButtonType::AddNew)
