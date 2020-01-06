@@ -1,7 +1,6 @@
 #include "jpeg.hpp"
 #include "turbojpeg.h"
 #include "types.h"
-#include <memory>
 
 
 const u8* jpegdec(const u8 *buffer, size_t size, WidthHeight res) {
@@ -16,7 +15,7 @@ const u8* jpegdec(const u8 *buffer, size_t size, WidthHeight res) {
       return nullptr;
   }
 
-  u8 *img_data = static_cast<u8*>(malloc((res.width == 0 ? w : res.width) * (res.height == 0 ? h : res.height) * sizeof(color_t)));
+  u8 *img_data = tjAlloc((res.width == 0 ? w : res.width) * (res.height == 0 ? h : res.height) * sizeof(color_t));
 
   if (tjDecompress2(handle, buffer, size, img_data, res.width, 0, res.height, TJPF_RGBA, TJFLAG_ACCURATEDCT)) {
       tjFree(img_data);
