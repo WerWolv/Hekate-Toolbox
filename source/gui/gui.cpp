@@ -3,9 +3,6 @@
 #include <math.h>
 #include <functional>
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
-
 static float menuTimer = 0.0F;
 static u32 stride;
 

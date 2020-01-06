@@ -54,10 +54,12 @@ void Button::select(s16 buttonIndex) {
 
 void Button::draw(Gui *gui) {
   // Offset calculation
-  u16 resultX = m_x - targetOffsetX;
-  u16 resultY = m_y - targetOffsetY;
-  u16 borderX = resultX - 5;
-  u16 borderY = resultY - 5;
+  s32 resultX = m_x - targetOffsetX;
+  s32 resultY = m_y - targetOffsetY;
+  if (resultX + m_w < 0 || resultY + m_h < 0 || resultX > SCREEN_WIDTH || resultY > SCREEN_HEIGHT)
+    return;
+  s32 borderX = resultX - 5;
+  s32 borderY = resultY - 5;
   if(m_isSelected) {
     gui->drawRectangled(borderX, borderY, m_w + 10, m_h + 10, m_isActivated ? currTheme.activatedColor : currTheme.highlightColor);
     gui->drawShadow(borderX, borderY, m_w + 10, m_h + 10);
@@ -72,28 +74,27 @@ void Button::draw(Gui *gui) {
 }
 
 bool Button::onInput(u32 kdown) {
-  bool result = false;
+  if (!m_isSelected)
+    return false;
 
   if (!m_isActivated) {
     if ((kdown & KEY_A) && m_activatable) {
       m_isActivated = true;
       kdown = 0;
     } else {
-      result = kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT);
-
       if (kdown & KEY_UP)    Button::select(m_adjacentButton[0]);
       if (kdown & KEY_DOWN)  Button::select(m_adjacentButton[1]);
       if (kdown & KEY_LEFT)  Button::select(m_adjacentButton[2]);
       if (kdown & KEY_RIGHT) Button::select(m_adjacentButton[3]);
+      if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) return true;
     }
   }
 
   if(!m_usableCondition()) return false;
 
-  if (m_isSelected)
-    m_inputAction(kdown, &m_isActivated);
+  m_inputAction(kdown, &m_isActivated);
 
-  return result;
+  return false;
 }
 
 void Button::onTouch(touchPosition &touch) {

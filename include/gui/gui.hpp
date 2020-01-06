@@ -23,6 +23,9 @@ extern "C" {
 #define font20 2
 #define font14 1
 
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+
 enum gui_t {
   GUI_INVALID,
   GUI_MAIN,
