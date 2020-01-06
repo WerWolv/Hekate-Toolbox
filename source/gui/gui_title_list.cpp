@@ -22,6 +22,8 @@ GuiTitleList::GuiTitleList() : Gui() {
     [app, buttonIndex](Gui *gui, u16 x, u16 y, bool *isActivated){
       if (app.get() != nullptr && app->icon.get() != nullptr)
         gui->drawImage(x, y, 256, 256, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+      else
+        gui->drawTextAligned(fontHuge, x + 128, y + 164, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
       if (Button::getSelectedIndex() == buttonIndex) {
         gui->drawTextAligned(font20, x + 128, y - 32, currTheme.textColor, app->name, ALIGNED_CENTER);
       }

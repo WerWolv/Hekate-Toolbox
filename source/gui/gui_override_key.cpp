@@ -113,6 +113,8 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
         if(game->icon.get() != nullptr)
           gui->drawImage(x+22, y+22, 256, 256, game->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+        else
+          gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
       } else {
         gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.unselectedColor, "\uE06B", ALIGNED_CENTER);
         gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No game selected", ALIGNED_CENTER);
