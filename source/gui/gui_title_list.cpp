@@ -95,6 +95,8 @@ void GuiTitleList::draw() {
   Gui::beginDraw();
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 
+  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2 - Button::targetOffsetX, 160 - Button::targetOffsetY, currTheme.textColor, "Select the title you wish to override.", ALIGNED_CENTER);
+
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
 
@@ -105,9 +107,6 @@ void GuiTitleList::draw() {
   Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Application override settings", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
-
-  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 25, currTheme.textColor, "Select the title you wish to override.", ALIGNED_CENTER);
-
   Gui::endDraw();
 }
 
