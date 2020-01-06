@@ -1,4 +1,4 @@
-#include "gametitle.hpp"
+#include "titleinfo.hpp"
 #include "jpeg.hpp"
 #include <cstring>
 #include <thread>

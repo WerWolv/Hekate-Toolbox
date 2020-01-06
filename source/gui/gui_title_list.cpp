@@ -5,7 +5,7 @@
 #include <string>
 #include <cstring>
 #include "gui_override_key.hpp"
-#include "gametitle.hpp"
+#include "titleinfo.hpp"
 #include "SimpleIniParser.hpp"
 #include <cstdlib>
 

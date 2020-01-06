@@ -8,7 +8,7 @@
 #include "list_selector.hpp"
 #include "message_box.hpp"
 #include "override_key.hpp"
-#include "gametitle.hpp"
+#include "titleinfo.hpp"
 #include <algorithm>
 
 GuiOverridesMenu::GuiOverridesMenu() : Gui() {

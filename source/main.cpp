@@ -14,7 +14,7 @@
 #include "gui_override_key.hpp"
 #include "gui_title_list.hpp"
 #include "button.hpp"
-#include "gametitle.hpp"
+#include "titleinfo.hpp"
 
 #include "threads.hpp"
 

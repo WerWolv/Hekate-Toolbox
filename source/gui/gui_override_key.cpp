@@ -5,7 +5,7 @@
 
 #include "list_selector.hpp"
 #include "override_key.hpp"
-#include "gametitle.hpp"
+#include "titleinfo.hpp"
 #include "gui_title_list.hpp"
 
 GuiOverrideKey::GuiOverrideKey() : Gui() {
