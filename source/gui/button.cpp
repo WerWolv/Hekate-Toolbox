@@ -59,7 +59,7 @@ void Button::draw(Gui *gui) {
   u16 borderX = resultX - 5;
   u16 borderY = resultY - 5;
   if(m_isSelected) {
-    gui->drawRectangled(borderX, borderY, m_w + 10, m_h + 10, m_isActivated ? currTheme.selectedColor : currTheme.highlightColor);
+    gui->drawRectangled(borderX, borderY, m_w + 10, m_h + 10, m_isActivated ? currTheme.activatedColor : currTheme.highlightColor);
     gui->drawShadow(borderX, borderY, m_w + 10, m_h + 10);
   } else gui->drawShadow(resultX, resultY, m_w, m_h);
 
