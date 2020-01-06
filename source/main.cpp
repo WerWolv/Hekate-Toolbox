@@ -128,7 +128,10 @@ int main(int argc, char **argv){
             Gui::g_currListSelector->onInput(kdown);
           else if(Gui::g_currMessageBox != nullptr)
             Gui::g_currMessageBox->onInput(kdown);
-          else currGui->onInput(kdown);
+          else if ((kdown & KEY_PLUS) && !Gui::g_exitBlocked)
+            break;
+          else
+            currGui->onInput(kdown);
         }
 
         touchCnt = hidTouchCount();

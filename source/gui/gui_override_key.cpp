@@ -28,6 +28,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
         // For some reason, it doesn't work
         m_override.key.key = static_cast<HidControllerKeys>(0);
         m_inputBlocked = true;
+        Gui::g_exitBlocked = true;
         if(kdown && !(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
           m_override.key.key = static_cast<HidControllerKeys>(kdown);
           //Find or create a loader ini file with set override_key values, and write the result to the file.
@@ -38,6 +39,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
           ini->writeToFile(LOADER_INI);
           *isActivated = false;
           m_inputBlocked = false;
+          Gui::g_exitBlocked = false;
 
           delete ini;
         }
