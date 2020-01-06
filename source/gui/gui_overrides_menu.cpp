@@ -148,11 +148,11 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
     };
     break;
   case OverrideButtonType::Custom_Title:
-    drawAction = [&, game{DumpGame(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
+    drawAction = [&, title{DumpTitle(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
-      if(game != nullptr && game->icon.get() != nullptr) {
+      if(title != nullptr && title->icon.get() != nullptr) {
         gui->drawShadow(x+4, y+4, 192, 192);
-        gui->drawImage(x+4, y+4, 192, 192, game->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+        gui->drawImage(x+4, y+4, 192, 192, title->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
       }
       else
         gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);

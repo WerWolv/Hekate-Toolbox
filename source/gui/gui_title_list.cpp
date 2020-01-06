@@ -16,7 +16,7 @@
 #define GRIDPOS ( ( SCREEN_WIDTH - (COLUMNS * ICON_PADDING) ) /2)
 
 GuiTitleList::GuiTitleList() : Gui() {
-  auto apps = DumpAllGames(WidthHeight{ICON_SIZE, ICON_SIZE});
+  auto apps = DumpAllTitles(WidthHeight{ICON_SIZE, ICON_SIZE});
   int buttonIndex = 0;
   int buttonSelection = 0;
 
@@ -30,7 +30,7 @@ GuiTitleList::GuiTitleList() : Gui() {
       if (app.get() != nullptr && app->icon.get() != nullptr)
         gui->drawImage(x, y, ICON_SIZE, ICON_SIZE, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
       else
-        gui->drawTextAligned(fontHuge, x + ICON_SIZE/2, y + ICON_SIZE/2 + 36, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
+        gui->drawTextAligned(fontHuge, x + ICON_SIZE/2, y + ICON_SIZE/2 + 40, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
       if (Button::getSelectedIndex() == buttonIndex) {
         u32 textWidth, textHeight;
         gui->getTextDimensions(font20, app->name, &textWidth, &textHeight);

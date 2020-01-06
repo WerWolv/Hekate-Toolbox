@@ -105,19 +105,19 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
   default:
     //2
     new Button(220, 200, 300, 300,
-    [&, game{DumpGame(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated){
+    [&, title{DumpTitle(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
       gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
-      if (game.get() != nullptr && game->application_id != 0) {
-        gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, game->name, ALIGNED_LEFT);
+      if (title.get() != nullptr && title->application_id != 0) {
+        gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, title->name, ALIGNED_LEFT);
 
-        if(game->icon.get() != nullptr)
-          gui->drawImage(x+22, y+22, 256, 256, game->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+        if(title->icon.get() != nullptr)
+          gui->drawImage(x+22, y+22, 256, 256, title->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
         else
           gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
       } else {
         gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.unselectedColor, "\uE06B", ALIGNED_CENTER);
-        gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No game selected", ALIGNED_CENTER);
+        gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No title selected", ALIGNED_CENTER);
       }
     }, [&](u64 kdown, bool *isActivated){
       if (kdown & KEY_A) {

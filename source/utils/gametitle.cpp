@@ -71,7 +71,7 @@ void exitJpegThread() {
 /// END THREAD STUFF
 ///
 
-std::shared_ptr<TitleIcon> DumpGame(u64 appID, WidthHeight res) {
+std::shared_ptr<TitleIcon> DumpTitle(u64 appID, WidthHeight res) {
 
   auto appData = std::make_shared<TitleIcon>();
   
@@ -99,7 +99,7 @@ std::vector<u64> DumpAllAppIDs() {
   return titleIDs;
 }
 
-std::vector<std::shared_ptr<TitleIcon>> DumpAllGames(WidthHeight res) {
+std::vector<std::shared_ptr<TitleIcon>> DumpAllTitles(WidthHeight res) {
   auto appControlDatas = std::vector<std::shared_ptr<TitleIcon>>();
   appControlDatas.reserve(512);
 
@@ -107,7 +107,7 @@ std::vector<std::shared_ptr<TitleIcon>> DumpAllGames(WidthHeight res) {
   
   for (auto &&titleID : titleIDs)
   {
-    appControlDatas.push_back(std::move(DumpGame(titleID, res)));
+    appControlDatas.push_back(std::move(DumpTitle(titleID, res)));
   }
   return appControlDatas;
 }

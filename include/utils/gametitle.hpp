@@ -14,11 +14,11 @@ void initJpegThread();
 
 void exitJpegThread();
 
-//Dump a game's info based on the application ID. if width or height are specified, the icon will be set to that size.
-std::shared_ptr<TitleIcon> DumpGame(u64 appID, WidthHeight res = {});
+//Dump a title's info based on the application ID. if width or height are specified, the icon will be set to that size.
+std::shared_ptr<TitleIcon> DumpTitle(u64 appID, WidthHeight res = {});
 
-//Dump all games' application IDs.
+//Dump all titles' application IDs.
 std::vector<u64> DumpAllAppIDs();
 
-//Dump all games' info. if width or height are specified, the icons will be set to that size.
-std::vector<std::shared_ptr<TitleIcon>> DumpAllGames(WidthHeight res = {});
+//Dump all titles' info. if width or height are specified, the icons will be set to that size.
+std::vector<std::shared_ptr<TitleIcon>> DumpAllTitles(WidthHeight res = {});
