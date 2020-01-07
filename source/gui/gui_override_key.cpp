@@ -105,8 +105,11 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
       if (title.get() != nullptr && title->application_id != 0) {
 
         auto appletName = GetAppletName(title->application_id);
-        if (appletName == nullptr)
+        if (appletName == nullptr) {
           appletName = title->name;
+        } else {
+          gui->drawTextAligned(font20, Gui::g_framebuffer_width/2, y + 350, currTheme.activatedColor, "Opening hbmenu through an applet may not leave enough memory for homebrew applications. \n It's recommended to open hbmenu from a game to gain full RAM access.", ALIGNED_CENTER);
+        }
 
         gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, appletName, ALIGNED_LEFT);
 

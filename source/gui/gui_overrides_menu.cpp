@@ -163,15 +163,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
 
       if(title != nullptr && title->application_id != 0) {
 
-        const char* appletName = "";
-
-        if (keyType == OverrideKeyType::Override0)
-          appletName = "Default";
-        else {
-          appletName = GetAppletName(title->application_id);
-          if (appletName == nullptr)
-            appletName = "Custom title";
-        }
+        auto appletName = keyType == OverrideKeyType::Override0 ? "Default" : "Custom title";
 
         gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, appletName, ALIGNED_CENTER);
 
