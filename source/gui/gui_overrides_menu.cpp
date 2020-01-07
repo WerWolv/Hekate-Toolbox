@@ -96,12 +96,12 @@ void GuiOverridesMenu::onInput(u32 kdown) {
                 options.erase(std::remove(options.begin(), options.end(), option), options.end());
               }
               if (keyType == OverrideKeyType::Override0) {
-                option = section->findFirstOption("override_key");
+                option = section->findFirstOption(OVERRIDE_KEY);
                 if (option != nullptr) {
                   auto &options = section->options;
                   options.erase(std::remove(options.begin(), options.end(), option), options.end());
                 }
-                option = section->findFirstOption("program_id");
+                option = section->findFirstOption(PROGRAM_ID);
                 if (option != nullptr) {
                   auto &options = section->options;
                   options.erase(std::remove(options.begin(), options.end(), option), options.end());
@@ -246,11 +246,11 @@ void GuiOverridesMenu::loadConfigFile() {
 
   // Get the override key and program for un-numbered override
   // TODO: this may be removed in a future atmosphere release
-  auto option = section->findFirstOption("override_key");
+  auto option = section->findFirstOption(OVERRIDE_KEY);
   if (option != nullptr)
     m_overrides[0].key = OverrideKey::StringToKeyCombo(option->value);
 
-  option = section->findFirstOption("program_id");
+  option = section->findFirstOption(PROGRAM_ID);
   if (option != nullptr)
     m_overrides[0].programID = strtoul(option->value.c_str(), nullptr, 16);
   else

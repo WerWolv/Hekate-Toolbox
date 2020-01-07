@@ -2,6 +2,9 @@
 #include <string>
 #include <switch.h>
 
+#define OVERRIDE_KEY "override_key_0"
+#define PROGRAM_ID "program_id_0"
+
 enum class OverrideKeyType {
   Invalid = -1,
   Override0 = 0,  //default when un-numbered

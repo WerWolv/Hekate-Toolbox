@@ -115,7 +115,7 @@ const char* OverrideKey::getOverrideKeyString(OverrideKeyType type) {
   case OverrideKeyType::AnyAppOverride:
     return "override_any_app_key";
   case OverrideKeyType::Override0:
-    return "override_key_0";
+    return "override_key";
   case OverrideKeyType::Override1:
     return "override_key_1";
   case OverrideKeyType::Override2:
@@ -138,7 +138,7 @@ const char* OverrideKey::getOverrideKeyString(OverrideKeyType type) {
 const char* OverrideKey::getOverrideProgramString(OverrideKeyType type) {
   switch (type) {
   case OverrideKeyType::Override0:
-    return "program_id_0";
+    return "program_id";
   case OverrideKeyType::Override1:
     return "program_id_1";
   case OverrideKeyType::Override2:

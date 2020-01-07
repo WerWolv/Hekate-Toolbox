@@ -183,13 +183,13 @@ void GuiOverrideKey::loadConfigFile()  {
   // Get the override key and program for un-numbered override
   // TODO: this may be removed in a future atmosphere release
   if (g_keyType == OverrideKeyType::Override0) {
-    auto option = iniSection->findFirstOption("override_key");
+    auto option = iniSection->findFirstOption(OVERRIDE_KEY);
     if (option != nullptr)
       m_override.key = OverrideKey::StringToKeyCombo(option->value);
     else
       m_override.key = OverrideKey::StringToKeyCombo("!R");
 
-    option = iniSection->findFirstOption("program_id");
+    option = iniSection->findFirstOption(PROGRAM_ID);
     if (option != nullptr)
       m_override.programID = strtoul(option->value.c_str(), nullptr, 16);
     else

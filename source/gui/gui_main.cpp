@@ -24,7 +24,7 @@ GuiMain::GuiMain() : Gui() {
   {
     // Get the override keys, if any exist
     simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-    m_albumOverrideKey = OverrideKey::StringToKeyCombo(ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "!R")->value);
+    m_albumOverrideKey = OverrideKey::StringToKeyCombo(ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OVERRIDE_KEY, "!R")->value);
     delete ini;
   }
 
