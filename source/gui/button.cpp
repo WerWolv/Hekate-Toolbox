@@ -34,6 +34,9 @@ void Button::select(s16 buttonIndex) {
   auto button = Button::g_buttons[buttonIndex];
   button->m_isSelected = true;
 
+  if (scrollBlocked)
+    return;
+
   auto leftmostDiff = (button->m_x) - (pageOffsetX) - pageLeftmostBoundary;
   auto topmostDiff = (button->m_y) - (pageOffsetY) - pageTopmostBoundary;
   auto rightmostDiff = (button->m_x + button->m_w) - (pageOffsetX) - pageRightmostBoundary;

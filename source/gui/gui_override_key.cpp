@@ -9,6 +9,7 @@
 #include "gui_title_list.hpp"
 
 GuiOverrideKey::GuiOverrideKey() : Gui() {
+  Button::scrollBlocked = true;
   loadConfigFile();
 
   //0

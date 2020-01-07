@@ -89,6 +89,7 @@ int main(int argc, char **argv){
 
         Button::pageOffsetX = 0;
         Button::pageOffsetY = 0;
+        Button::scrollBlocked = false;
 
         switch(Gui::g_nextGui) {
           case GUI_MAIN:
