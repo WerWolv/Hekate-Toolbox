@@ -46,7 +46,7 @@ void MessageBox::draw(Gui *gui) {
     gui->drawRectangled(245 + ((Gui::g_framebuffer_width - 490) / 2) * m_selectedOption, Gui::g_framebuffer_height - 265, (Gui::g_framebuffer_width - 490) / 2, 90, currTheme.highlightColor);
     gui->drawRectangle(250, Gui::g_framebuffer_height - 260, (Gui::g_framebuffer_width - 500) / 2 - 6, 80, currTheme.selectedButtonColor);
     gui->drawRectangle(250 + ((Gui::g_framebuffer_width - 490) / 2), Gui::g_framebuffer_height - 260, (Gui::g_framebuffer_width - 500) / 2 - 6, 80, currTheme.selectedButtonColor);
-    gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 211, currTheme.selectedColor, "No                                            Yes", ALIGNED_CENTER);
+    gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 211, currTheme.selectedColor, "Yes                                           No", ALIGNED_CENTER);
   }
 
   if (m_progress >= 0) {
@@ -76,7 +76,7 @@ void MessageBox::onInput(u32 kdown) {
     }
 
     if (kdown & KEY_B) {
-      m_selectionAction(0);
+      m_selectionAction(BUTTON_NO);
       this->hide();
     }
   }
@@ -85,16 +85,20 @@ void MessageBox::onInput(u32 kdown) {
 void MessageBox::onTouch(touchPosition &touch) {
   if (m_options == MessageBox::OKAY) {
     if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180) {
-      m_selectionAction(0);
+      m_selectionAction(BUTTON_OKAY);
       this->hide();
     }
   } else if (m_options == MessageBox::YES_NO) {
     if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < 250 + (Gui::g_framebuffer_width - 500) / 2 && touch.py < Gui::g_framebuffer_height - 180) {
-      m_selectionAction(0);
-      this->hide();
+      if (m_selectedOption != BUTTON_YES)
+        m_selectedOption = BUTTON_YES;
+      else
+        m_selectionAction(BUTTON_YES);
     } else if (touch.px > 250 + (Gui::g_framebuffer_width - 500) / 2 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180) {
-      m_selectionAction(1);
-      this->hide();
+      if (m_selectedOption != BUTTON_NO)
+        m_selectedOption = BUTTON_NO;
+      else
+        m_selectionAction(BUTTON_NO);
     }
   }
 }

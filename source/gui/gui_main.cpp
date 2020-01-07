@@ -24,7 +24,7 @@ GuiMain::GuiMain() : Gui() {
   {
     // Get the override keys, if any exist
     simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-    m_albumOverrideKey = OverrideKey::StringToKeyCombo(ini->findOrCreateSection("hbl_config", true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_key", "!R")->value);
+    m_albumOverrideKey = OverrideKey::StringToKeyCombo(ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OVERRIDE_KEY, "!R")->value);
     delete ini;
   }
 
@@ -97,9 +97,12 @@ GuiMain::GuiMain() : Gui() {
       GuiHekate::m_currRebootConfig = m_currAutoBootConfig;
     }
   }, { 1, -1, 2, -1 }, false, []() -> bool {return true;});
+
+  Button::select(selection);
 }
 
 GuiMain::~GuiMain() {
+  selection = Button::getSelectedIndex();
   Button::g_buttons.clear();
 }
 

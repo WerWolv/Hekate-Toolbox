@@ -22,6 +22,7 @@ private:
   bool m_overrideAnyApp = false;
 
 public:
+  static inline int selection = 2;
   static inline ProgramOverrideKey g_overrideKey{};
   static inline OverrideKeyType g_keyType{};
 };

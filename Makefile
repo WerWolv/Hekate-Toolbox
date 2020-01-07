@@ -63,7 +63,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx `freetype-config --libs` \
+LIBS	:= -lnx `freetype-config --libs` -lturbojpeg \
 			$(foreach lib,$(CUSTOM_LIBS),-l$(lib))
 
 #---------------------------------------------------------------------------------

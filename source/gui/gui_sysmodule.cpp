@@ -15,6 +15,10 @@
 
 #define CONTENTS_PATH "/atmosphere/contents/"
 
+
+//Rows of buttons per column
+#define ROWS 3
+
 using json = nlohmann::json;
 
 extern "C" {
@@ -23,10 +27,6 @@ extern "C" {
 }
 
 static bool anyModulesPresent = false;
-u16 pagexoffset = 100;
-u16 pagextooffset = 500;
-int currentpage = 1;
-int pagescount = 3;
 
 GuiSysmodule::GuiSysmodule() : Gui() {
   pmshellInitialize();
@@ -81,7 +81,6 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
   u16 xOffset = 0, yOffset = 0;
   s32 cnt = 0;
-  s32 sysmoduleCnt = this->m_sysmodules.size();
 
   for (auto &sysmodule : this->m_sysmodules) {
     FILE *exefs = fopen(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
@@ -93,36 +92,10 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
     anyModulesPresent = true;
 
-   new Button(pagexoffset + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+   new Button(100 + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
       gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
       gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
     }, [&](u32 kdown, bool *isActivated){
-       if (kdown & KEY_L) 
-       {
-         currentpage--;
-         if(currentpage < 1)
-         {
-           pagexoffset = -(50 + (pagextooffset * (pagescount + 1) ));
-           currentpage = pagescount;
-         }
-         else
-         {
-           pagexoffset += 1100;
-         }
-         Gui::g_nextGui = GUI_SM_SELECT;
-       }
-
-       if (kdown & KEY_R){
-         currentpage++;
-         if(currentpage < pagescount + 1){
-           pagexoffset -= 1100;
-         }else{
-           pagexoffset = 100;
-           currentpage = 1;
-         }
-         Gui::g_nextGui = GUI_SM_SELECT;
-        }
-      
       if (kdown & KEY_A) {
         u64 pid;
         u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
@@ -173,23 +146,29 @@ GuiSysmodule::GuiSysmodule() : Gui() {
             this->m_runningSysmodules.erase(sysmodule.first);    
         }
       }
-    }, { (cnt % 3) > 0 ? cnt - 1 : -1, ((cnt % 3) < 3) && (cnt < (sysmoduleCnt - 1)) ? cnt + 1 : -1, cnt >= 3 ? cnt - 3 : -1, (cnt < 3) && (cnt + 3 < sysmoduleCnt) ? cnt + 3 : + (sysmoduleCnt -1) }, false, 
+    }, {
+        (cnt % ROWS) != 0    ? (cnt - 1) : -1, //UP
+        (cnt % ROWS) != ROWS-1    ? (cnt + 1) : -1, //DOWN
+        (cnt - ROWS), //LEFT
+        (cnt + ROWS)  //RIGHT
+      }, false, 
     [&]() -> bool { return true; });
   
 
     yOffset += 100;
 
-    if (yOffset == 3 * 100) {
+    if (yOffset == ROWS * 100) {
       xOffset += 550;
       yOffset = 0;
     }
 
     cnt++;
   }
-
+  Button::select(selection);
 }
 
 GuiSysmodule::~GuiSysmodule() {
+  selection = Button::getSelectedIndex();
   pmshellExit();
   pmdmntExit();
 
@@ -211,19 +190,12 @@ void GuiSysmodule::draw() {
   if (hidMitmInstalled())
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Key configuration     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
   else
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E4 Page left     \uE0E5 Page right     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
   if (anyModulesPresent)
-  {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
-    char pagebuffer[100];
-    sprintf(pagebuffer, "Page: %d / %d", currentpage, pagescount);
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 600, currTheme.textColor, pagebuffer, ALIGNED_CENTER);
-  }
   else
-  {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 550, currTheme.textColor, "You currently don't have any supported sysmodules installed. To use this \n feature, please install any supported sysmodule as an NSP.", ALIGNED_CENTER);
-  }
     
 
   for(Button *btn : Button::g_buttons)

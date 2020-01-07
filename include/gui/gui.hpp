@@ -23,6 +23,9 @@ extern "C" {
 #define font20 2
 #define font14 1
 
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+
 enum gui_t {
   GUI_INVALID,
   GUI_MAIN,
@@ -31,6 +34,7 @@ enum gui_t {
   GUI_HID_MITM,
   GUI_OVERRIDES_MENU,
   GUI_OVERRIDE_KEY,
+  GUI_TITLE_LIST,
 };
 
 class Gui {
@@ -41,6 +45,7 @@ public:
   static inline Framebuffer g_fb_obj;
   static inline u32 g_framebuffer_width = 1280;
   static inline u32 g_framebuffer_height = 720;
+  static inline bool g_exitBlocked = false;
 
   static inline ListSelector *g_currListSelector = nullptr;
   static inline MessageBox *g_currMessageBox = nullptr;

@@ -12,12 +12,18 @@
 #include "gui_hid_mitm.hpp"
 #include "gui_overrides_menu.hpp"
 #include "gui_override_key.hpp"
+#include "gui_title_list.hpp"
+#include "button.hpp"
+#include "titleinfo.hpp"
 
 #include "threads.hpp"
 
 extern "C" {
   #include "hid_extra.h"
 }
+
+#define KREPEAT_MIN_HOLD 10
+#define KREPEAT_INTERVAL 4
 
 static Gui *currGui = nullptr;
 static bool updateThreadRunning = false;
@@ -42,6 +48,9 @@ void update() {
 
 int main(int argc, char **argv){
     u64 kdown = 0;
+    u64 kheld = 0;
+    u64 lastkheld = 0;
+    u64 kheldTime = 0;
     touchPosition touch;
     u8 touchCntOld = 0, touchCnt = 0;
 
@@ -55,9 +64,12 @@ int main(int argc, char **argv){
     setsysGetColorSetId(&colorSetId);
     setTheme(colorSetId);
     setsysExit();
+    nsInitialize();
 
     framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
     framebufferMakeLinear(&Gui::g_fb_obj);
+
+    initJpegThread();
 
     Gui::g_nextGui = GUI_MAIN;
 
@@ -72,14 +84,27 @@ int main(int argc, char **argv){
     while(appletMainLoop()) {
       hidScanInput();
       kdown = 0;
+      kheld = 0;
       for (u8 controller = 0; controller < 10; controller++) {
         kdown |= hidKeysDown(static_cast<HidControllerID>(controller));
+        kheld |= hidKeysHeld(static_cast<HidControllerID>(controller));
       }
+
+      if ((kheld & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) && kheld == lastkheld)
+        kheldTime++;
+      else
+        kheldTime = 0;
+
+      lastkheld = kheld;
 
       if (Gui::g_nextGui != GUI_INVALID) {
         mutexLock(&mutexCurrGui);
 
         delete currGui;
+
+        Button::g_pageOffsetX = 0;
+        Button::g_pageOffsetY = 0;
+        Button::g_scrollBlocked = false;
 
         switch(Gui::g_nextGui) {
           case GUI_MAIN:
@@ -100,14 +125,21 @@ int main(int argc, char **argv){
           case GUI_OVERRIDE_KEY:
             currGui = new GuiOverrideKey();
             break;
+          case GUI_TITLE_LIST:
+            currGui = new GuiTitleList();
           default:
             break;
         }
+
+        Button::g_targetOffsetX = Button::g_pageOffsetX;
+        Button::g_targetOffsetY = Button::g_pageOffsetY;
         mutexUnlock(&mutexCurrGui);
         Gui::g_nextGui = GUI_INVALID;
       }
 
       if(currGui != nullptr) {
+        Button::g_targetOffsetX = Lerp(Button::g_targetOffsetX, Button::g_pageOffsetX, SCROLL_SPEED);
+        Button::g_targetOffsetY = Lerp(Button::g_targetOffsetY, Button::g_pageOffsetY, SCROLL_SPEED);
         currGui->draw();
 
         if (kdown) {
@@ -115,7 +147,19 @@ int main(int argc, char **argv){
             Gui::g_currListSelector->onInput(kdown);
           else if(Gui::g_currMessageBox != nullptr)
             Gui::g_currMessageBox->onInput(kdown);
-          else currGui->onInput(kdown);
+          else if ((kdown & KEY_PLUS) && !Gui::g_exitBlocked)
+            break;
+          else
+            currGui->onInput(kdown);
+        }
+
+        if (kheldTime >= KREPEAT_MIN_HOLD && (kheldTime % KREPEAT_INTERVAL == 0)) {
+          if(Gui::g_currListSelector != nullptr)
+            Gui::g_currListSelector->onInput(kheld);
+          else if(Gui::g_currMessageBox != nullptr)
+            Gui::g_currMessageBox->onInput(kheld);
+          else
+            currGui->onInput(kheld);
         }
 
         touchCnt = hidTouchCount();
@@ -124,7 +168,10 @@ int main(int argc, char **argv){
           hidTouchRead(&touch, 0);
           if(Gui::g_currListSelector != nullptr)
             Gui::g_currListSelector->onTouch(touch);
-          else currGui->onTouch(touch);
+          else if(Gui::g_currMessageBox != nullptr)
+            Gui::g_currMessageBox->onTouch(touch);
+          else
+            currGui->onTouch(touch);
         }
 
         touchCntOld = touchCnt;
@@ -140,6 +187,10 @@ int main(int argc, char **argv){
 
     updateThreadRunning = false;
     updateThread.join();
+
+    exitJpegThread();
+
+    nsExit();
     socketExit();
     hidExtraExit();
     framebufferClose(&Gui::g_fb_obj);
