@@ -34,31 +34,31 @@ void Button::select(s16 buttonIndex) {
   auto button = Button::g_buttons[buttonIndex];
   button->m_isSelected = true;
 
-  if (scrollBlocked)
+  if (g_scrollBlocked)
     return;
 
-  auto leftmostDiff = (button->m_x) - (pageOffsetX) - pageLeftmostBoundary;
-  auto topmostDiff = (button->m_y) - (pageOffsetY) - pageTopmostBoundary;
-  auto rightmostDiff = (button->m_x + button->m_w) - (pageOffsetX) - pageRightmostBoundary;
-  auto bottommostDiff = (button->m_y + button->m_h) - (pageOffsetY) - pageBottommostBoundary;
+  auto leftmostDiff = (button->m_x) - (g_pageOffsetX) - g_pageLeftmostBoundary;
+  auto topmostDiff = (button->m_y) - (g_pageOffsetY) - g_pageTopmostBoundary;
+  auto rightmostDiff = (button->m_x + button->m_w) - (g_pageOffsetX) - g_pageRightmostBoundary;
+  auto bottommostDiff = (button->m_y + button->m_h) - (g_pageOffsetY) - g_pageBottommostBoundary;
 
   if (leftmostDiff < 0)
-    pageOffsetX += leftmostDiff;
+    g_pageOffsetX += leftmostDiff;
 
   if (rightmostDiff > 0)
-    pageOffsetX += rightmostDiff;
+    g_pageOffsetX += rightmostDiff;
 
   if (topmostDiff < 0)
-    pageOffsetY += topmostDiff;
+    g_pageOffsetY += topmostDiff;
 
   if (bottommostDiff > 0)
-    pageOffsetY += bottommostDiff;
+    g_pageOffsetY += bottommostDiff;
 }
 
 void Button::draw(Gui *gui) {
   // Offset calculation
-  s32 resultX = m_x - targetOffsetX;
-  s32 resultY = m_y - targetOffsetY;
+  s32 resultX = m_x - g_targetOffsetX;
+  s32 resultY = m_y - g_targetOffsetY;
   if (resultX + m_w < 0 || resultY + m_h < 0 || resultX > SCREEN_WIDTH || resultY > SCREEN_HEIGHT)
     return;
   s32 borderX = resultX - 5;
@@ -103,8 +103,8 @@ bool Button::onInput(u32 kdown) {
 void Button::onTouch(touchPosition &touch) {
   if (!m_usableCondition()) return;
 
-  u16 resultX = m_x > targetOffsetX ? m_x - targetOffsetX : 0;
-  u16 resultY = m_y > targetOffsetY ? m_y - targetOffsetY : 0;
+  u16 resultX = m_x > g_targetOffsetX ? m_x - g_targetOffsetX : 0;
+  u16 resultY = m_y > g_targetOffsetY ? m_y - g_targetOffsetY : 0;
 
   if (touch.px >= resultX && touch.px <= (resultX + m_w) && touch.py >= resultY && touch.py <= (resultY + m_h)) {
     if (m_isSelected) {

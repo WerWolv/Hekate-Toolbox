@@ -118,7 +118,7 @@ void GuiTitleList::draw() {
   Gui::beginDraw();
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 
-  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2 - Button::targetOffsetX, 150 - Button::targetOffsetY, currTheme.textColor, "Select the title you wish to override.", ALIGNED_CENTER);
+  Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2 - Button::g_targetOffsetX, 150 - Button::g_targetOffsetY, currTheme.textColor, "Select the title you wish to override.", ALIGNED_CENTER);
 
   for(Button *btn : Button::g_buttons)
     btn->draw(this);
