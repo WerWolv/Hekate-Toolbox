@@ -20,6 +20,7 @@ public:
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
 private:
+  static inline int selection = 0;
   OverrideKey m_albumOverrideKey;
 
   BootEntry m_currAutoBootConfig;

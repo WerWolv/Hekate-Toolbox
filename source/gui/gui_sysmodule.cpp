@@ -164,10 +164,11 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
     cnt++;
   }
-
+  Button::select(selection);
 }
 
 GuiSysmodule::~GuiSysmodule() {
+  selection = Button::getSelectedIndex();
   pmshellExit();
   pmdmntExit();
 

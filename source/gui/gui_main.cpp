@@ -97,9 +97,12 @@ GuiMain::GuiMain() : Gui() {
       GuiHekate::m_currRebootConfig = m_currAutoBootConfig;
     }
   }, { 1, -1, 2, -1 }, false, []() -> bool {return true;});
+
+  Button::select(selection);
 }
 
 GuiMain::~GuiMain() {
+  selection = Button::getSelectedIndex();
   Button::g_buttons.clear();
 }
 
