@@ -22,12 +22,8 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
     addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
 
   for (int i=0; i!=8; ++i) {
-    if (i == static_cast<int>(OverrideKeyType::Override0)
-    && m_overrides[i].programID == AppletID::AppletPhotoViewer) {
-        if (m_overrides[i].key.key != static_cast<HidControllerKeys>(0))
-          addButton(OverrideButtonType::Custom_Title, static_cast<OverrideKeyType>(i), m_overrides[i]);
-
-    } else if (m_overrides[i].programID != AppletID::Invalid) {
+    if (m_overrides[i].programID != AppletID::Invalid 
+    || (m_overrides[i].key.key != static_cast<HidControllerKeys>(0))) {
       addButton(OverrideButtonType::Custom_Title, static_cast<OverrideKeyType>(i), m_overrides[i]);
     }
   }
@@ -161,11 +157,10 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
   case OverrideButtonType::Custom_Title:
     drawAction = [&, keyType, title{DumpTitle(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
+      if(title != nullptr && title->application_id == 0 && keyType == OverrideKeyType::Override0)
+        title->application_id = AppletID::AppletPhotoViewer;
+
       if(title != nullptr && title->application_id != 0) {
-
-        auto appletName = keyType == OverrideKeyType::Override0 ? "Default" : "Custom title";
-
-        gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, appletName, ALIGNED_CENTER);
 
         if(title->icon.get() != nullptr) {
           gui->drawShadow(x+4, y+4, 192, 192);
@@ -176,8 +171,8 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
 
       } else {
         gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
-        gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, "Error", ALIGNED_CENTER);
       }
+      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, keyType == OverrideKeyType::Override0 ? "Default" : "Custom title", ALIGNED_CENTER);
     };
     break;
   case OverrideButtonType::AddNew:
@@ -253,8 +248,6 @@ void GuiOverridesMenu::loadConfigFile() {
   option = section->findFirstOption(PROGRAM_ID);
   if (option != nullptr)
     m_overrides[0].programID = strtoul(option->value.c_str(), nullptr, 16);
-  else
-    m_overrides[0].programID = AppletID::AppletPhotoViewer;
 
   // Get the override key if config is set to override any app
   option = section->findFirstOption("override_any_app");
