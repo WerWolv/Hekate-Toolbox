@@ -19,7 +19,7 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   displayAnyTitleOption = true;
 
   if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
-    addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
+    addButton(OverrideButtonType::Any_Title, OverrideKeyType::Any_App_Override, m_anyAppOverride);
 
   for (int i=0; i!=8; ++i) {
     if (m_overrides[i].programID != AppletID::Invalid 
@@ -103,7 +103,7 @@ void GuiOverridesMenu::onInput(u32 kdown) {
                   options.erase(std::remove(options.begin(), options.end(), option), options.end());
                 }
               }
-              if (keyType == OverrideKeyType::AnyAppOverride) {
+              if (keyType == OverrideKeyType::Any_App_Override) {
                 option = section->findFirstOption("override_any_app");
                 if (option != nullptr) {
                   auto &options = section->options;
@@ -137,7 +137,7 @@ void GuiOverridesMenu::onGesture(touchPosition &startPosition, touchPosition &en
 
 void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType keyType, const ProgramOverrideKey &key) {
   static std::vector<std::string> configNames;
-  configNames.reserve(OVERRIDEKEY_TYPES);
+  configNames.reserve(static_cast<int>(OverrideKeyType::Num_OverrideKey_Types));
   std::function<void(Gui*, u16, u16, bool*)> drawAction;
   std::function<void(u32, bool*)> inputAction = [&, keyType, key](u64 kdown, bool *isActivated){
     if (kdown & KEY_A) {
@@ -200,7 +200,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
             auto newKeyType = m_addConfigs[0];
 
             if (displayAnyTitleOption && selectedItem == 0)
-              newKeyType = OverrideKeyType::AnyAppOverride;
+              newKeyType = OverrideKeyType::Any_App_Override;
             if (displayDefaultOption && selectedItem == displayAnyTitleOption)
               newKeyType = OverrideKeyType::Default;
 
@@ -219,7 +219,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
 
   if (keyType == OverrideKeyType::Default)
     displayDefaultOption = false;
-  else if (keyType == OverrideKeyType::AnyAppOverride)
+  else if (keyType == OverrideKeyType::Any_App_Override)
     displayAnyTitleOption = false;
   else
     removeFromList(keyType);
