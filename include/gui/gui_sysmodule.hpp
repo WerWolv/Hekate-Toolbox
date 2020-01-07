@@ -25,6 +25,7 @@ public:
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
 private:
+  static inline int selection = 0;
   std::unordered_map<std::string, sysModule_t> m_sysmodules;
   std::set<std::string> m_runningSysmodules;
   std::set<std::string> m_presentSysmodules;

@@ -55,7 +55,7 @@ color_t Gui::makeColor(u8 r, u8 g, u8 b, u8 a) {
 }
 
 inline void Gui::drawPixel(s16 x, s16 y, color_t clr) {
-    if (x >= 1280 || y >= 720 || x < 0 || y < 0)
+    if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT || x < 0 || y < 0)
         return;
 
     u32 off = y * stride + x * 4;
@@ -66,7 +66,7 @@ inline void Gui::drawPixel(s16 x, s16 y, color_t clr) {
 }
 
 inline void Gui::draw4PixelsRaw(s16 x, s16 y, color_t clr) {   
-    if (x >= 1280 || y >= 720 || x > 1280-4 || x < 0 || y < 0)
+    if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT || x > SCREEN_WIDTH-4 || x < 0 || y < 0)
         return;
 
     u32 color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
@@ -399,7 +399,9 @@ void Gui::getTextDimensions(u32 font, const char* text, u32* width_out, u32* hei
   *height_out = height;
 }
 
-void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode) {   
+void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode) {
+    if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT || x + width < 0 || y + height < 0)
+        return;
     s32 tmpx, tmpy;
     s32 pos;
     color_t current_color;

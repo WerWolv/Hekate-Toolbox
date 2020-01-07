@@ -105,8 +105,12 @@ void ListSelector::onTouch(touchPosition &touch) {
     if(touch.py > 325 && touch.py < (325 + 60 * 5)) {
       s8 touchPos = ((touch.py - 325) / 60.0F); //325 + 60 * (currItem + 2)
 
-      if((m_selectedItem + touchPos - 2) >= 0 && (m_selectedItem + touchPos - 2) <= (static_cast<s16>(m_listItems.size() - 1)))
-        m_selectedItem += (touchPos - 2);
+      if((m_selectedItem + touchPos - 2) >= 0 && (m_selectedItem + touchPos - 2) <= (static_cast<s16>(m_listItems.size() - 1))) {
+        if((touchPos-2) == 0)
+          m_inputActions(KEY_A, m_selectedItem);
+        else
+          m_selectedItem += (touchPos - 2);
+      }
     }
   }
 }

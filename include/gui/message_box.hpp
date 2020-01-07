@@ -14,6 +14,12 @@ public:
     YES_NO = 2
   } MessageBoxOptions;
 
+  enum MessageBoxOption {
+    BUTTON_OKAY = 0,
+    BUTTON_YES = 0,
+    BUTTON_NO = 1,
+  };
+
   MessageBox(std::string message, MessageBox::MessageBoxOptions options);
   ~MessageBox();
 
