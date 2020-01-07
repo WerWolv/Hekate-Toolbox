@@ -85,8 +85,9 @@ GuiHekate::GuiHekate() : Gui() {
        for(auto const& autoBootEntry : m_rebootConfigs)
          rebootNames.push_back(autoBootEntry.name);
 
-       (new ListSelector("Hekate profile to reboot to", "\uE0E1 Back     \uE0E0 OK", rebootNames, 0))->setInputAction([&](u32 k, u16 selectedItem){
+       (new ListSelector("Hekate profile to reboot to", "\uE0E1 Back     \uE0E0 OK", rebootNames, currRebootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
          if(k & KEY_A) {
+           currRebootEntryIndex = selectedItem;
            m_currRebootConfig = m_rebootConfigs[selectedItem];
 
            Gui::g_currListSelector->hide();

@@ -35,17 +35,12 @@ GuiSysmodule::GuiSysmodule() : Gui() {
   anyModulesPresent = false;
 
   std::ifstream configFile("sdmc:/switch/KosmosToolbox/config.json");
-
-  if (configFile.fail()) {
-    Gui::g_nextGui = GUI_MAIN;
-    return;
-  }
-
   json configJson;
-  try {
-    configFile >> configJson;
-  } catch(json::parse_error& e) {
-    return;
+
+  if (!configFile.fail()) {
+    try {
+      configFile >> configJson;
+    } catch(json::parse_error& e) {}
   }
 
   DIR *contents_dir = opendir(CONTENTS_PATH);
