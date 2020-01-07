@@ -68,6 +68,12 @@ BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoB
 const char *GetAppletName(u64 appID) {
   switch (appID)
   {
+  case AppletID::AppletController:
+    return "Controller";
+  case AppletID::AppletMyPage:
+    return "User Profile";
+  case AppletID::AppletShop:
+    return "Nintendo eShop";
   case AppletID::AppletPhotoViewer:
     return "Album";
   default:
@@ -78,6 +84,12 @@ const char *GetAppletName(u64 appID) {
 const char *GetAppletIcon(u64 appID) {
   switch (appID)
   {
+  case AppletID::AppletController:
+    return "\uE136";
+  case AppletID::AppletMyPage:
+    return "\uE131";
+  case AppletID::AppletShop:
+    return "\uE133";
   case AppletID::AppletPhotoViewer:
     return "\uE134";
   default:
@@ -88,6 +100,10 @@ const char *GetAppletIcon(u64 appID) {
 color_t GetAppletColor(u64 appID) {
   switch (appID)
   {
+  case AppletID::AppletController:
+    return color_t{static_cast<u32>(RGBA8(0x77, 0x77, 0x77, 0xFF))};
+  case AppletID::AppletShop:
+    return color_t{static_cast<u32>(RGBA8(0xFF, 0xA0, 0x00, 0xFF))};
   case AppletID::AppletPhotoViewer:
     return color_t{static_cast<u32>(RGBA8(0x13, 0x73, 0xFD, 0xFF))};
   default:

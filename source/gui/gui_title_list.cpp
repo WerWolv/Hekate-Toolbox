@@ -16,6 +16,9 @@
 #define GRIDPOS ( ( SCREEN_WIDTH - (COLUMNS * ICON_PADDING) ) /2)
 
 static constexpr u64 availableApplets[] {
+  AppletID::AppletController,
+  AppletID::AppletMyPage,
+  AppletID::AppletShop,
   AppletID::AppletPhotoViewer,
 };
 
@@ -44,14 +47,14 @@ GuiTitleList::GuiTitleList() : Gui() {
         if(app->icon.get() != nullptr) {
           gui->drawImage(x, y, ICON_SIZE, ICON_SIZE, app->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
         } else {
-          gui->drawTextAligned(fontHuge, x + ICON_SIZE/2, y + ICON_SIZE/2 + 48, GetAppletColor(app->application_id), GetAppletIcon(app->application_id), ALIGNED_CENTER);
+          gui->drawTextAligned(fontIcons, x + ICON_SIZE/2, y + ICON_SIZE/2 + 24, GetAppletColor(app->application_id), GetAppletIcon(app->application_id), ALIGNED_CENTER);
         }
 
         if (Button::getSelectedIndex() == buttonIndex) {
           u32 textWidth, textHeight;
           gui->getTextDimensions(font20, appletName, &textWidth, &textHeight);
           gui->drawRectangled((x + ICON_SIZE/2 - textWidth/2) - TEXT_BORDER*2, (y - 32 - textHeight) - TEXT_BORDER, textWidth+ TEXT_BORDER*4, textHeight+ TEXT_BORDER*2, currTheme.overlayColor);
-          gui->drawTextAligned(font20, x + ICON_SIZE/2, y - 32, currTheme.highlightTextColor, appletName, ALIGNED_CENTER);
+          gui->drawTextAligned(font20, x + ICON_SIZE/2, y - 36, currTheme.highlightTextColor, appletName, ALIGNED_CENTER);
         }
 
       } else {
