@@ -103,18 +103,21 @@ bool Button::onInput(u32 kdown) {
 void Button::onTouch(touchPosition &touch) {
   if (!m_usableCondition()) return;
 
-  if (touch.px >= m_x && touch.px <= (m_x + m_w) && touch.py >= m_y && touch.py <= (m_y + m_h)) {
+  u16 resultX = m_x > targetOffsetX ? m_x - targetOffsetX : 0;
+  u16 resultY = m_y > targetOffsetY ? m_y - targetOffsetY : 0;
+
+  if (touch.px >= resultX && touch.px <= (resultX + m_w) && touch.py >= resultY && touch.py <= (resultY + m_h)) {
     if (m_isSelected) {
       if (m_activatable) m_isActivated = true;
       else m_inputAction(KEY_A, &m_isActivated);
       return;
     }
 
-    for(Button *btn : Button::g_buttons) {
-      btn->m_isSelected = false;
-      btn->m_isActivated = false;
+    for(size_t i=0; i != g_buttons.size(); ++i) {
+      if (g_buttons[i] == this) {
+        select(i);
+        break;
+      }
     }
-
-    m_isSelected = true;
   }
 }
