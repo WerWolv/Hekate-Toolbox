@@ -8,18 +8,16 @@
 enum class OverrideKeyType {
   Invalid = -1,
   Default = 0,  // alias for Override0
-  Override1,
-  Override2,
-  Override3,
-  Override4,
-  Override5,
-  Override6,
-  Override7,
-  AnyAppOverride,
-  NUM_OVERRIDEKEY_TYPES,
+  Override_1,
+  Override_2,
+  Override_3,
+  Override_4,
+  Override_5,
+  Override_6,
+  Override_7,
+  Any_App_Override,
+  Num_OverrideKey_Types,
 };
-
-#define OVERRIDEKEY_TYPES static_cast<int>(OverrideKeyType::NUM_OVERRIDEKEY_TYPES)
 
 struct OverrideKey {
   HidControllerKeys key;

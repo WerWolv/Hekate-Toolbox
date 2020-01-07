@@ -65,12 +65,12 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
         ini->writeToFile(LOADER_INI);
         delete ini;
       }
-   }, { 0, (g_keyType == OverrideKeyType::AnyAppOverride ? 3 : -1), 2, -1 }, false, []() -> bool {return true;});
+   }, { 0, (g_keyType == OverrideKeyType::Any_App_Override ? 3 : -1), 2, -1 }, false, []() -> bool {return true;});
 
 
   switch (g_keyType)
   {
-  case OverrideKeyType::AnyAppOverride:
+  case OverrideKeyType::Any_App_Override:
     //2
     new Button(220, 200, 300, 300, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
     gui->drawTextAligned(fontHuge, x + 150, y + 190, currTheme.textColor, "\uE135", ALIGNED_CENTER);
@@ -199,7 +199,7 @@ void GuiOverrideKey::loadConfigFile()  {
   auto option = iniSection->findFirstOption(OverrideKey::getOverrideKeyString(g_keyType));
   if (option != nullptr)
     m_override.key = OverrideKey::StringToKeyCombo(option->value);
-  else if (g_keyType == OverrideKeyType::AnyAppOverride)
+  else if (g_keyType == OverrideKeyType::Any_App_Override)
     m_override.key = OverrideKey::StringToKeyCombo("R");
   
   option = iniSection->findFirstOption(OverrideKey::getOverrideProgramString(g_keyType));

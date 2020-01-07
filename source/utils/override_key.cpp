@@ -112,23 +112,23 @@ const char* OverrideKey::KeyToUnicode(HidControllerKeys key) {
 
 const char* OverrideKey::getOverrideKeyString(OverrideKeyType type) {
   switch (type) {
-  case OverrideKeyType::AnyAppOverride:
+  case OverrideKeyType::Any_App_Override:
     return "override_any_app_key";
   case OverrideKeyType::Default:
     return "override_key";
-  case OverrideKeyType::Override1:
+  case OverrideKeyType::Override_1:
     return "override_key_1";
-  case OverrideKeyType::Override2:
+  case OverrideKeyType::Override_2:
     return "override_key_2";
-  case OverrideKeyType::Override3:
+  case OverrideKeyType::Override_3:
     return "override_key_3";
-  case OverrideKeyType::Override4:
+  case OverrideKeyType::Override_4:
     return "override_key_4";
-  case OverrideKeyType::Override5:
+  case OverrideKeyType::Override_5:
     return "override_key_5";
-  case OverrideKeyType::Override6:
+  case OverrideKeyType::Override_6:
     return "override_key_6";
-  case OverrideKeyType::Override7:
+  case OverrideKeyType::Override_7:
     return "override_key_7";
   default:
     return "";
@@ -139,19 +139,19 @@ const char* OverrideKey::getOverrideProgramString(OverrideKeyType type) {
   switch (type) {
   case OverrideKeyType::Default:
     return "program_id";
-  case OverrideKeyType::Override1:
+  case OverrideKeyType::Override_1:
     return "program_id_1";
-  case OverrideKeyType::Override2:
+  case OverrideKeyType::Override_2:
     return "program_id_2";
-  case OverrideKeyType::Override3:
+  case OverrideKeyType::Override_3:
     return "program_id_3";
-  case OverrideKeyType::Override4:
+  case OverrideKeyType::Override_4:
     return "program_id_4";
-  case OverrideKeyType::Override5:
+  case OverrideKeyType::Override_5:
     return "program_id_5";
-  case OverrideKeyType::Override6:
+  case OverrideKeyType::Override_6:
     return "program_id_6";
-  case OverrideKeyType::Override7:
+  case OverrideKeyType::Override_7:
     return "program_id_7";
   default:
     return "";
