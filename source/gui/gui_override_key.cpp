@@ -70,7 +70,6 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
   switch (g_keyType)
   {
-    //TODO: add a different render method for album/applets
   case OverrideKeyType::AnyAppOverride:
     //2
     new Button(220, 200, 300, 300, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
