@@ -22,6 +22,9 @@ extern "C" {
   #include "hid_extra.h"
 }
 
+#define KREPEAT_MIN_HOLD 10
+#define KREPEAT_INTERVAL 4
+
 static Gui *currGui = nullptr;
 static bool updateThreadRunning = false;
 static Mutex mutexCurrGui;
@@ -45,6 +48,9 @@ void update() {
 
 int main(int argc, char **argv){
     u64 kdown = 0;
+    u64 kheld = 0;
+    u64 lastkheld = 0;
+    u64 kheldTime = 0;
     touchPosition touch;
     u8 touchCntOld = 0, touchCnt = 0;
 
@@ -78,9 +84,18 @@ int main(int argc, char **argv){
     while(appletMainLoop()) {
       hidScanInput();
       kdown = 0;
+      kheld = 0;
       for (u8 controller = 0; controller < 10; controller++) {
         kdown |= hidKeysDown(static_cast<HidControllerID>(controller));
+        kheld |= hidKeysHeld(static_cast<HidControllerID>(controller));
       }
+
+      if ((kheld & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) && kheld == lastkheld)
+        kheldTime++;
+      else
+        kheldTime = 0;
+
+      lastkheld = kheld;
 
       if (Gui::g_nextGui != GUI_INVALID) {
         mutexLock(&mutexCurrGui);
@@ -136,6 +151,15 @@ int main(int argc, char **argv){
             break;
           else
             currGui->onInput(kdown);
+        }
+
+        if (kheldTime >= KREPEAT_MIN_HOLD && (kheldTime % KREPEAT_INTERVAL == 0)) {
+          if(Gui::g_currListSelector != nullptr)
+            Gui::g_currListSelector->onInput(kheld);
+          else if(Gui::g_currMessageBox != nullptr)
+            Gui::g_currMessageBox->onInput(kheld);
+          else
+            currGui->onInput(kheld);
         }
 
         touchCnt = hidTouchCount();
