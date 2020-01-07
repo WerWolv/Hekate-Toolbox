@@ -30,7 +30,7 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
 
 
   if (m_addConfigs.size() != 0 || displayDefaultOption || displayAnyTitleOption)
-    addButton(OverrideButtonType::AddNew);
+    addButton(OverrideButtonType::Add_New);
 
   Button::select(selection);
 }
@@ -73,7 +73,7 @@ void GuiOverridesMenu::onInput(u32 kdown) {
     auto tuple = m_buttons[Button::getSelectedIndex()];
     auto buttonType = std::get<0>(tuple);
     auto keyType = std::get<1>(tuple);
-    if (buttonType != OverrideButtonType::AddNew) {
+    if (buttonType != OverrideButtonType::Add_New) {
       (new MessageBox("Are you sure you want to delete this setting?", MessageBox::YES_NO))->setSelectionAction([&, keyType](s8 selectedItem){
         if (selectedItem == MessageBox::BUTTON_YES) {
           //Parse INI file and remove any occurences of wanted options
@@ -175,7 +175,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
       gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, keyType == OverrideKeyType::Default ? "Default" : "Custom title", ALIGNED_CENTER);
     };
     break;
-  case OverrideButtonType::AddNew:
+  case OverrideButtonType::Add_New:
     drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated){
       gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.unselectedColor, "\uE0F1", ALIGNED_CENTER);
       gui->drawTextAligned(font24, x + 100, y + 285, currTheme.unselectedColor, "Add...", ALIGNED_CENTER);

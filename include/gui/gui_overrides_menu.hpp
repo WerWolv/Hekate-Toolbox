@@ -6,7 +6,7 @@
 enum class OverrideButtonType {
   Any_Title,
   Custom_Title,
-  AddNew,
+  Add_New,
 };
 
 class GuiOverridesMenu : public Gui {
