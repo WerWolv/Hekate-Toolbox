@@ -199,6 +199,8 @@ void GuiOverrideKey::loadConfigFile()  {
   auto option = iniSection->findFirstOption(OverrideKey::getOverrideKeyString(g_keyType));
   if (option != nullptr)
     m_override.key = OverrideKey::StringToKeyCombo(option->value);
+  else if (g_keyType == OverrideKeyType::AnyAppOverride)
+    m_override.key = OverrideKey::StringToKeyCombo("R");
   
   option = iniSection->findFirstOption(OverrideKey::getOverrideProgramString(g_keyType));
   if (option != nullptr)
