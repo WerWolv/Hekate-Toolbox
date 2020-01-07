@@ -182,7 +182,7 @@ void GuiOverrideKey::loadConfigFile()  {
 
   // Get the override key and program for un-numbered override
   // TODO: this may be removed in a future atmosphere release
-  if (g_keyType == OverrideKeyType::Override0) {
+  if (g_keyType == OverrideKeyType::Default) {
     auto option = iniSection->findFirstOption(OVERRIDE_KEY);
     if (option != nullptr)
       m_override.key = OverrideKey::StringToKeyCombo(option->value);

@@ -91,7 +91,7 @@ void GuiOverridesMenu::onInput(u32 kdown) {
                 auto &options = section->options;
                 options.erase(std::remove(options.begin(), options.end(), option), options.end());
               }
-              if (keyType == OverrideKeyType::Override0) {
+              if (keyType == OverrideKeyType::Default) {
                 option = section->findFirstOption(OVERRIDE_KEY);
                 if (option != nullptr) {
                   auto &options = section->options;
@@ -157,7 +157,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
   case OverrideButtonType::Custom_Title:
     drawAction = [&, keyType, title{DumpTitle(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
-      if(title != nullptr && title->application_id == 0 && keyType == OverrideKeyType::Override0)
+      if(title != nullptr && title->application_id == 0 && keyType == OverrideKeyType::Default)
         title->application_id = AppletID::AppletPhotoViewer;
 
       if(title != nullptr && title->application_id != 0) {
@@ -172,7 +172,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
       } else {
         gui->drawTextAligned(fontHuge, x + 100, y + 150, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
       }
-      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, keyType == OverrideKeyType::Override0 ? "Default" : "Custom title", ALIGNED_CENTER);
+      gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, keyType == OverrideKeyType::Default ? "Default" : "Custom title", ALIGNED_CENTER);
     };
     break;
   case OverrideButtonType::AddNew:
@@ -202,7 +202,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
             if (displayAnyTitleOption && selectedItem == 0)
               newKeyType = OverrideKeyType::AnyAppOverride;
             if (displayDefaultOption && selectedItem == displayAnyTitleOption)
-              newKeyType = OverrideKeyType::Override0;
+              newKeyType = OverrideKeyType::Default;
 
             GuiOverrideKey::g_keyType = newKeyType;
             Gui::g_currListSelector->hide();
@@ -217,7 +217,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
   new Button((220*m_buttonCount)+150, 250, 200, 300, drawAction, inputAction,
     { -1, -1, m_buttonCount-1, m_buttonCount+1 }, false, []() -> bool {return true;});
 
-  if (keyType == OverrideKeyType::Override0)
+  if (keyType == OverrideKeyType::Default)
     displayDefaultOption = false;
   else if (keyType == OverrideKeyType::AnyAppOverride)
     displayAnyTitleOption = false;

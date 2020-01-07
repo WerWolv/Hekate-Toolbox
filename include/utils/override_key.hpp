@@ -7,7 +7,7 @@
 
 enum class OverrideKeyType {
   Invalid = -1,
-  Override0 = 0,  //default when un-numbered
+  Default = 0,  // alias for Override0
   Override1,
   Override2,
   Override3,
