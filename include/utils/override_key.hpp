@@ -3,6 +3,7 @@
 #include <switch.h>
 
 enum class OverrideKeyType {
+  Invalid = -1,
   Override0 = 0,  //default when un-numbered
   Override1,
   Override2,

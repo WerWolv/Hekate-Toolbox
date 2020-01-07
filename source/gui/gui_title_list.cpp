@@ -15,7 +15,7 @@
 #define TEXT_BORDER 10
 #define GRIDPOS ( ( SCREEN_WIDTH - (COLUMNS * ICON_PADDING) ) /2)
 
-static u64 availableApplets[] {
+static constexpr u64 availableApplets[] {
   AppletID::AppletPhotoViewer,
 };
 

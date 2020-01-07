@@ -15,6 +15,9 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   Button::g_buttons.clear();
   loadConfigFile();
 
+  displayDefaultOption = true;
+  displayAnyTitleOption = true;
+
   if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
     addButton(OverrideButtonType::Any_Title, OverrideKeyType::AnyAppOverride, m_anyAppOverride);
 
@@ -30,7 +33,7 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
   }
 
 
-  if (m_addConfigs.size() != 0)
+  if (m_addConfigs.size() != 0 || displayDefaultOption || displayAnyTitleOption)
     addButton(OverrideButtonType::AddNew);
 
   Button::select(selection);
@@ -156,13 +159,19 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
     };
     break;
   case OverrideButtonType::Custom_Title:
-    drawAction = [&, title{DumpTitle(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
+    drawAction = [&, keyType, title{DumpTitle(key.programID, WidthHeight{192, 192})}](Gui *gui, u16 x, u16 y, bool *isActivated){
 
       if(title != nullptr && title->application_id != 0) {
 
-        auto appletName = GetAppletName(title->application_id);
-        if (appletName == nullptr)
-          appletName = "Custom title";
+        const char* appletName = "";
+
+        if (keyType == OverrideKeyType::Override0)
+          appletName = "Default";
+        else {
+          appletName = GetAppletName(title->application_id);
+          if (appletName == nullptr)
+            appletName = "Custom title";
+        }
 
         gui->drawTextAligned(font24, x + 100, y + 285, currTheme.textColor, appletName, ALIGNED_CENTER);
 
@@ -189,12 +198,26 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
       if (kdown & KEY_A) {
         configNames.clear();
 
-        for(auto const &config : m_addConfigs)
-          configNames.push_back(std::string(buttonNames[static_cast<int>(config)]));
+        if (displayAnyTitleOption)
+          configNames.push_back("Any Title");
+
+        if (displayDefaultOption)
+          configNames.push_back("Change default");
+
+        if (m_addConfigs.size() != 0)
+          configNames.push_back("Custom title");
 
         (new ListSelector("Add new key override for:", "\uE0E1 Back     \uE0E0 OK", configNames, 0))->setInputAction([&](u32 k, u16 selectedItem){
           if(k & KEY_A) {
-            GuiOverrideKey::g_keyType = m_addConfigs[selectedItem];
+
+            auto newKeyType = m_addConfigs[0];
+
+            if (displayAnyTitleOption && selectedItem == 0)
+              newKeyType = OverrideKeyType::AnyAppOverride;
+            if (displayDefaultOption && selectedItem == displayAnyTitleOption)
+              newKeyType = OverrideKeyType::Override0;
+
+            GuiOverrideKey::g_keyType = newKeyType;
             Gui::g_currListSelector->hide();
             Gui::g_nextGui = GUI_OVERRIDE_KEY;
           }
@@ -207,14 +230,19 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
   new Button((220*m_buttonCount)+150, 250, 200, 300, drawAction, inputAction,
     { -1, -1, m_buttonCount-1, m_buttonCount+1 }, false, []() -> bool {return true;});
 
-  if (buttonType != OverrideButtonType::AddNew)
+  if (keyType == OverrideKeyType::Override0)
+    displayDefaultOption = false;
+  else if (keyType == OverrideKeyType::AnyAppOverride)
+    displayAnyTitleOption = false;
+  else
     removeFromList(keyType);
+
   m_buttons.push_back(std::tuple(buttonType,keyType));
   m_buttonCount++;
 }
 
 void GuiOverridesMenu::loadConfigFile() {
-  for (int i=0; i!= OVERRIDEKEY_TYPES; ++i) {
+  for (int i=1; i!= 8; ++i) {
     m_addConfigs.push_back(static_cast<OverrideKeyType>(i));
   }
   // If it doesn't find the config with a section [hbl_config], it stops, as there is nothing more to read.
