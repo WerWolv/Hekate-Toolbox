@@ -19,7 +19,7 @@
 #include "threads.hpp"
 
 extern "C" {
-  #include "hid_extra.h"
+#include "hid_extra.h"
 }
 
 #define KREPEAT_MIN_HOLD 10
@@ -33,20 +33,20 @@ u32 __nx_applet_type = AppletType_Default;
 bool g_exitApplet = false;
 
 void update() {
-  while (updateThreadRunning) {
-    auto begin = std::chrono::steady_clock::now();
+    while (updateThreadRunning) {
+        auto begin = std::chrono::steady_clock::now();
 
-    mutexLock(&mutexCurrGui);
-    if (currGui != nullptr)
-      currGui->update();
+        mutexLock(&mutexCurrGui);
+        if (currGui != nullptr)
+            currGui->update();
 
-    mutexUnlock(&mutexCurrGui);
+        mutexUnlock(&mutexCurrGui);
 
-    svcSleepThread(1.0E6 - std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - begin).count());
-  }
+        svcSleepThread(1.0E6 - std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - begin).count());
+    }
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
     u64 kdown = 0;
     u64 kheld = 0;
     u64 lastkheld = 0;
@@ -77,113 +77,111 @@ int main(int argc, char **argv){
 
     updateThreadRunning = true;
     std::thread updateThread(update);
-    
 
     touchCntOld = hidTouchCount();
 
-    while(appletMainLoop()) {
-      hidScanInput();
-      kdown = 0;
-      kheld = 0;
-      for (u8 controller = 0; controller < 10; controller++) {
-        kdown |= hidKeysDown(static_cast<HidControllerID>(controller));
-        kheld |= hidKeysHeld(static_cast<HidControllerID>(controller));
-      }
-
-      if ((kheld & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) && kheld == lastkheld)
-        kheldTime++;
-      else
-        kheldTime = 0;
-
-      lastkheld = kheld;
-
-      if (Gui::g_nextGui != GUI_INVALID) {
-        mutexLock(&mutexCurrGui);
-
-        delete currGui;
-
-        Button::g_pageOffsetX = 0;
-        Button::g_pageOffsetY = 0;
-        Button::g_scrollBlocked = false;
-
-        switch(Gui::g_nextGui) {
-          case GUI_MAIN:
-            currGui = new GuiMain();
-            break;
-          case GUI_SM_SELECT:
-            currGui = new GuiSysmodule();
-            break;
-          case GUI_HEKATE:
-            currGui = new GuiHekate();
-            break;
-          case GUI_HID_MITM:
-            currGui = new GuiHIDMitm();
-            break;
-          case GUI_OVERRIDES_MENU:
-            currGui = new GuiOverridesMenu();
-            break;
-          case GUI_OVERRIDE_KEY:
-            currGui = new GuiOverrideKey();
-            break;
-          case GUI_TITLE_LIST:
-            currGui = new GuiTitleList();
-          default:
-            break;
+    while (appletMainLoop()) {
+        hidScanInput();
+        kdown = 0;
+        kheld = 0;
+        for (u8 controller = 0; controller < 10; controller++) {
+            kdown |= hidKeysDown(static_cast<HidControllerID>(controller));
+            kheld |= hidKeysHeld(static_cast<HidControllerID>(controller));
         }
 
-        Button::g_targetOffsetX = Button::g_pageOffsetX;
-        Button::g_targetOffsetY = Button::g_pageOffsetY;
-        mutexUnlock(&mutexCurrGui);
-        Gui::g_nextGui = GUI_INVALID;
-      }
+        if ((kheld & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) && kheld == lastkheld)
+            kheldTime++;
+        else
+            kheldTime = 0;
 
-      if(currGui != nullptr) {
-        Button::g_targetOffsetX = Lerp(Button::g_targetOffsetX, Button::g_pageOffsetX, SCROLL_SPEED);
-        Button::g_targetOffsetY = Lerp(Button::g_targetOffsetY, Button::g_pageOffsetY, SCROLL_SPEED);
-        currGui->draw();
+        lastkheld = kheld;
 
-        if (kdown) {
-          if(Gui::g_currListSelector != nullptr)
-            Gui::g_currListSelector->onInput(kdown);
-          else if(Gui::g_currMessageBox != nullptr)
-            Gui::g_currMessageBox->onInput(kdown);
-          else if ((kdown & KEY_PLUS) && !Gui::g_exitBlocked)
-            break;
-          else
-            currGui->onInput(kdown);
+        if (Gui::g_nextGui != GUI_INVALID) {
+            mutexLock(&mutexCurrGui);
+
+            delete currGui;
+
+            Button::g_pageOffsetX = 0;
+            Button::g_pageOffsetY = 0;
+            Button::g_scrollBlocked = false;
+
+            switch (Gui::g_nextGui) {
+                case GUI_MAIN:
+                    currGui = new GuiMain();
+                    break;
+                case GUI_SM_SELECT:
+                    currGui = new GuiSysmodule();
+                    break;
+                case GUI_HEKATE:
+                    currGui = new GuiHekate();
+                    break;
+                case GUI_HID_MITM:
+                    currGui = new GuiHIDMitm();
+                    break;
+                case GUI_OVERRIDES_MENU:
+                    currGui = new GuiOverridesMenu();
+                    break;
+                case GUI_OVERRIDE_KEY:
+                    currGui = new GuiOverrideKey();
+                    break;
+                case GUI_TITLE_LIST:
+                    currGui = new GuiTitleList();
+                default:
+                    break;
+            }
+
+            Button::g_targetOffsetX = Button::g_pageOffsetX;
+            Button::g_targetOffsetY = Button::g_pageOffsetY;
+            mutexUnlock(&mutexCurrGui);
+            Gui::g_nextGui = GUI_INVALID;
         }
 
-        if (kheldTime >= KREPEAT_MIN_HOLD && (kheldTime % KREPEAT_INTERVAL == 0)) {
-          if(Gui::g_currListSelector != nullptr)
-            Gui::g_currListSelector->onInput(kheld);
-          else if(Gui::g_currMessageBox != nullptr)
-            Gui::g_currMessageBox->onInput(kheld);
-          else
-            currGui->onInput(kheld);
+        if (currGui != nullptr) {
+            Button::g_targetOffsetX = Lerp(Button::g_targetOffsetX, Button::g_pageOffsetX, SCROLL_SPEED);
+            Button::g_targetOffsetY = Lerp(Button::g_targetOffsetY, Button::g_pageOffsetY, SCROLL_SPEED);
+            currGui->draw();
+
+            if (kdown) {
+                if (Gui::g_currListSelector != nullptr)
+                    Gui::g_currListSelector->onInput(kdown);
+                else if (Gui::g_currMessageBox != nullptr)
+                    Gui::g_currMessageBox->onInput(kdown);
+                else if ((kdown & KEY_PLUS) && !Gui::g_exitBlocked)
+                    break;
+                else
+                    currGui->onInput(kdown);
+            }
+
+            if (kheldTime >= KREPEAT_MIN_HOLD && (kheldTime % KREPEAT_INTERVAL == 0)) {
+                if (Gui::g_currListSelector != nullptr)
+                    Gui::g_currListSelector->onInput(kheld);
+                else if (Gui::g_currMessageBox != nullptr)
+                    Gui::g_currMessageBox->onInput(kheld);
+                else
+                    currGui->onInput(kheld);
+            }
+
+            touchCnt = hidTouchCount();
+
+            if (touchCnt > touchCntOld) {
+                hidTouchRead(&touch, 0);
+                if (Gui::g_currListSelector != nullptr)
+                    Gui::g_currListSelector->onTouch(touch);
+                else if (Gui::g_currMessageBox != nullptr)
+                    Gui::g_currMessageBox->onTouch(touch);
+                else
+                    currGui->onTouch(touch);
+            }
+
+            touchCntOld = touchCnt;
+
+            if (g_exitApplet)
+                break;
         }
-
-        touchCnt = hidTouchCount();
-
-        if (touchCnt > touchCntOld) {
-          hidTouchRead(&touch, 0);
-          if(Gui::g_currListSelector != nullptr)
-            Gui::g_currListSelector->onTouch(touch);
-          else if(Gui::g_currMessageBox != nullptr)
-            Gui::g_currMessageBox->onTouch(touch);
-          else
-            currGui->onTouch(touch);
-        }
-
-        touchCntOld = touchCnt;
-
-        if (g_exitApplet)
-          break;
-
-      }
     }
 
     if (currGui != nullptr)
-      delete currGui;
+        delete currGui;
 
     updateThreadRunning = false;
     updateThread.join();

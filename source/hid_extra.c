@@ -3,27 +3,23 @@
 
 static Service hid_service;
 
-
 static bool hidExtraPaused = false;
 
-Result hidExtraReloadConfig()
-{
+Result hidExtraReloadConfig() {
     Result rc = serviceDispatch(&hid_service, 65000);
     hidExtraPaused = false;
-    svcSleepThread(1e9L/50); // Need to wait for hid to be polled again
+    svcSleepThread(1e9L / 50); // Need to wait for hid to be polled again
 
     return rc;
 }
 
-
-Result hidExtraPause()
-{
+Result hidExtraPause() {
     // we don't want to spam hid-mitm unnecessarily
-    if(hidExtraPaused)
+    if (hidExtraPaused)
         return 0;
 
     Result rc = serviceDispatch(&hid_service, 65001);
-    svcSleepThread(1e9L/50); // Need to wait for hid to be polled again
+    svcSleepThread(1e9L / 50); // Need to wait for hid to be polled again
 
     hidExtraPaused = true;
 
@@ -31,13 +27,11 @@ Result hidExtraPause()
 }
 
 static bool hidExtraActive = false;
-bool hidMitmInstalled()
-{
+bool hidMitmInstalled() {
     return hidExtraActive;
 }
 
-Result hidExtraInitialize()
-{
+Result hidExtraInitialize() {
     Result rc = smGetService(&hid_service, "hid");
     if (R_SUCCEEDED(rc))
         rc = hidExtraReloadConfig();
@@ -49,8 +43,7 @@ Result hidExtraInitialize()
     return rc;
 }
 
-void hidExtraExit()
-{
+void hidExtraExit() {
     if (hidExtraActive)
         serviceClose(&hid_service);
     hidExtraActive = false;

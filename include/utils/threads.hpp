@@ -4,7 +4,7 @@
 
 namespace Threads {
 
-  Result create(ThreadFunc func);
-  void joinAll();
+    Result create(ThreadFunc func);
+    void joinAll();
 
 }

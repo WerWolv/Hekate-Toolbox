@@ -12,9 +12,7 @@
 
 #include "json.hpp"
 
-
 #define CONTENTS_PATH "/atmosphere/contents/"
-
 
 //Rows of buttons per column
 #define ROWS 3
@@ -22,80 +20,80 @@
 using json = nlohmann::json;
 
 extern "C" {
-  #include "pm_dmnt.h"
-  #include "hid_extra.h"
+#include "pm_dmnt.h"
+#include "hid_extra.h"
 }
 
 static bool anyModulesPresent = false;
 
 GuiSysmodule::GuiSysmodule() : Gui() {
-  pmshellInitialize();
-  pmdmntInitialize();
+    pmshellInitialize();
+    pmdmntInitialize();
 
-  anyModulesPresent = false;
+    anyModulesPresent = false;
 
-  std::ifstream configFile("sdmc:/switch/KosmosToolbox/config.json");
-  json configJson;
+    std::ifstream configFile("sdmc:/switch/KosmosToolbox/config.json");
+    json configJson;
 
-  if (!configFile.fail()) {
-    try {
-      configFile >> configJson;
-    } catch(json::parse_error& e) {}
-  }
-
-  DIR *contents_dir = opendir(CONTENTS_PATH);
-  if (contents_dir != nullptr) {
-    json toolboxJson;
-    struct dirent *ent;
-    while ((ent = readdir(contents_dir)) != nullptr) {
-      std::ifstream sysconfig(CONTENTS_PATH + std::string(ent->d_name) + "/toolbox.json");
-      if (!sysconfig.fail()) {
+    if (!configFile.fail()) {
         try {
-          sysconfig >> toolboxJson;
-          configJson["sysmodules"].push_back(toolboxJson);
-        } catch(json::parse_error& e) {}
-      }
+            configFile >> configJson;
+        } catch (json::parse_error &e) {}
     }
-  }
-  closedir(contents_dir);
 
-  for (auto sysmodule : configJson["sysmodules"]) {
-    try {
-      std::stringstream path;
-      path << CONTENTS_PATH << sysmodule["tid"].get<std::string>() << "/exefs.nsp";
-
-      if (access(path.str().c_str(), F_OK) == -1) continue;
-      
-      this->m_sysmodules.insert(std::make_pair(sysmodule["tid"].get<std::string>(), (sysModule_t){ sysmodule["name"].get<std::string>(), sysmodule["tid"].get<std::string>(), sysmodule["requires_reboot"].get<bool>() }));
-      
-      u64 sysmodulePid = 0;
-      pmdmntGetProcessId(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
-
-      if (sysmodulePid > 0)
-        this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
-      
-    } catch(json::parse_error &e) {
-      continue;
+    DIR *contents_dir = opendir(CONTENTS_PATH);
+    if (contents_dir != nullptr) {
+        json toolboxJson;
+        struct dirent *ent;
+        while ((ent = readdir(contents_dir)) != nullptr) {
+            std::ifstream sysconfig(CONTENTS_PATH + std::string(ent->d_name) + "/toolbox.json");
+            if (!sysconfig.fail()) {
+                try {
+                    sysconfig >> toolboxJson;
+                    configJson["sysmodules"].push_back(toolboxJson);
+                } catch (json::parse_error &e) {}
+            }
+        }
     }
-  }
+    closedir(contents_dir);
 
-  u16 xOffset = 0, yOffset = 0;
-  s32 cnt = 0;
+    for (auto sysmodule : configJson["sysmodules"]) {
+        try {
+            std::stringstream path;
+            path << CONTENTS_PATH << sysmodule["tid"].get<std::string>() << "/exefs.nsp";
 
-  for (auto &sysmodule : this->m_sysmodules) {
-    FILE *exefs = fopen(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
+            if (access(path.str().c_str(), F_OK) == -1) continue;
 
-    if (exefs == nullptr)
-      continue;
+            this->m_sysmodules.insert(std::make_pair(sysmodule["tid"].get<std::string>(), (sysModule_t){sysmodule["name"].get<std::string>(), sysmodule["tid"].get<std::string>(), sysmodule["requires_reboot"].get<bool>()}));
 
-    fclose(exefs);
+            u64 sysmodulePid = 0;
+            pmdmntGetProcessId(&sysmodulePid, std::stoul(sysmodule["tid"].get<std::string>(), nullptr, 16));
 
-    anyModulesPresent = true;
+            if (sysmodulePid > 0)
+                this->m_runningSysmodules.insert(sysmodule["tid"].get<std::string>());
 
-   new Button(100 + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated){
+        } catch (json::parse_error &e) {
+            continue;
+        }
+    }
+
+    u16 xOffset = 0, yOffset = 0;
+    s32 cnt = 0;
+
+    for (auto &sysmodule : this->m_sysmodules) {
+        FILE *exefs = fopen(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/exefs.nsp").c_str(), "r");
+
+        if (exefs == nullptr)
+            continue;
+
+        fclose(exefs);
+
+        anyModulesPresent = true;
+
+        new Button(
+            100 + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
       gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
-      gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
-    }, [&](u32 kdown, bool *isActivated){
+      gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT); }, [&](u32 kdown, bool *isActivated) {
       if (kdown & KEY_A) {
         u64 pid;
         u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
@@ -145,85 +143,82 @@ GuiSysmodule::GuiSysmodule() : Gui() {
           else
             this->m_runningSysmodules.erase(sysmodule.first);    
         }
-      }
-    }, {
-        (cnt % ROWS) != 0    ? (cnt - 1) : -1, //UP
-        (cnt % ROWS) != ROWS-1    ? (cnt + 1) : -1, //DOWN
-        (cnt - ROWS), //LEFT
-        (cnt + ROWS)  //RIGHT
-      }, false, 
-    [&]() -> bool { return true; });
-  
+      } },
+            {
+                (cnt % ROWS) != 0 ? (cnt - 1) : -1,        //UP
+                (cnt % ROWS) != ROWS - 1 ? (cnt + 1) : -1, //DOWN
+                (cnt - ROWS),                              //LEFT
+                (cnt + ROWS)                               //RIGHT
+            },
+            false,
+            [&]() -> bool { return true; });
 
-    yOffset += 100;
+        yOffset += 100;
 
-    if (yOffset == ROWS * 100) {
-      xOffset += 550;
-      yOffset = 0;
+        if (yOffset == ROWS * 100) {
+            xOffset += 550;
+            yOffset = 0;
+        }
+
+        cnt++;
     }
-
-    cnt++;
-  }
-  Button::select(selection);
+    Button::select(selection);
 }
 
 GuiSysmodule::~GuiSysmodule() {
-  selection = Button::getSelectedIndex();
-  pmshellExit();
-  pmdmntExit();
+    selection = Button::getSelectedIndex();
+    pmshellExit();
+    pmdmntExit();
 
-  Button::g_buttons.clear();
+    Button::g_buttons.clear();
 }
 
 void GuiSysmodule::update() {
-  Gui::update();
+    Gui::update();
 }
 
 void GuiSysmodule::draw() {
-  Gui::beginDraw();
-  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
-  Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 87, 1220, 1, currTheme.textColor);
-  Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
-  Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
-  Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Kosmos Toolbox", ALIGNED_LEFT);
+    Gui::beginDraw();
+    Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
+    Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 87, 1220, 1, currTheme.textColor);
+    Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
+    Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
+    Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Kosmos Toolbox", ALIGNED_LEFT);
 
-  if (hidMitmInstalled())
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Key configuration     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
-  else
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+    if (hidMitmInstalled())
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Key configuration     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+    else
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
-  if (anyModulesPresent)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
-  else
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 550, currTheme.textColor, "You currently don't have any supported sysmodules installed. To use this \n feature, please install any supported sysmodule as an NSP.", ALIGNED_CENTER);
-    
+    if (anyModulesPresent)
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
+    else
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 550, currTheme.textColor, "You currently don't have any supported sysmodules installed. To use this \n feature, please install any supported sysmodule as an NSP.", ALIGNED_CENTER);
 
-  for(Button *btn : Button::g_buttons)
-    btn->draw(this);
+    for (Button *btn : Button::g_buttons)
+        btn->draw(this);
 
-  Gui::endDraw();
+    Gui::endDraw();
 }
 
 void GuiSysmodule::onInput(u32 kdown) {
-  for(Button *btn : Button::g_buttons) {
-    if (btn->isSelected())
-      if (btn->onInput(kdown)) break;
-  }
-  
-  if (kdown & KEY_B)
-    Gui::g_nextGui = GUI_MAIN;
+    for (Button *btn : Button::g_buttons) {
+        if (btn->isSelected())
+            if (btn->onInput(kdown)) break;
+    }
 
-  if (hidMitmInstalled() && kdown & KEY_X)
-    Gui::g_nextGui = GUI_HID_MITM;
+    if (kdown & KEY_B)
+        Gui::g_nextGui = GUI_MAIN;
 
+    if (hidMitmInstalled() && kdown & KEY_X)
+        Gui::g_nextGui = GUI_HID_MITM;
 }
 
 void GuiSysmodule::onTouch(touchPosition &touch) {
-  for(Button *btn : Button::g_buttons) {
-    btn->onTouch(touch);
-  }
+    for (Button *btn : Button::g_buttons) {
+        btn->onTouch(touch);
+    }
 }
 
 void GuiSysmodule::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
-
 }

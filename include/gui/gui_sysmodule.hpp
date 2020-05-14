@@ -8,25 +8,25 @@
 #include <set>
 
 typedef struct {
-  std::string name;
-  std::string titleID;
-  bool requiresReboot;
+    std::string name;
+    std::string titleID;
+    bool requiresReboot;
 } sysModule_t;
 
 class GuiSysmodule : public Gui {
 public:
-  GuiSysmodule();
-  ~GuiSysmodule();
+    GuiSysmodule();
+    ~GuiSysmodule();
 
-  void update();
-  void draw();
-  void onInput(u32 kdown);
-  void onTouch(touchPosition &touch);
-  void onGesture(touchPosition &startPosition, touchPosition &endPosition);
+    void update();
+    void draw();
+    void onInput(u32 kdown);
+    void onTouch(touchPosition &touch);
+    void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
 private:
-  static inline int selection = 0;
-  std::unordered_map<std::string, sysModule_t> m_sysmodules;
-  std::set<std::string> m_runningSysmodules;
-  std::set<std::string> m_presentSysmodules;
+    static inline int selection = 0;
+    std::unordered_map<std::string, sysModule_t> m_sysmodules;
+    std::set<std::string> m_runningSysmodules;
+    std::set<std::string> m_presentSysmodules;
 };

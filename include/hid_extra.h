@@ -17,4 +17,4 @@ Result hidExtraPause();
 
 bool hidMitmInstalled();
 
-Result hidSysAcquireHomeButtonEventHandle(Event* event, bool autoclear);
+Result hidSysAcquireHomeButtonEventHandle(Event *event, bool autoclear);

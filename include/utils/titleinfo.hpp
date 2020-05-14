@@ -5,9 +5,9 @@
 #include "jpeg.hpp"
 
 struct TitleIcon {
-  u64 application_id;
-  char name[0x200];
-  std::unique_ptr<const u8> icon;
+    u64 application_id;
+    char name[0x200];
+    std::unique_ptr<const u8> icon;
 };
 
 void initJpegThread();

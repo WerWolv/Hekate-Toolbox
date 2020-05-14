@@ -3,11 +3,11 @@
 #include <switch.h>
 
 typedef union {
-  u32 color_abgr;
+    u32 color_abgr;
 
-  struct {
-    u8 r, g, b, a;
-  };
+    struct {
+        u8 r, g, b, a;
+    };
 
 } color_t;
 
@@ -19,9 +19,9 @@ typedef enum {
 } ImageMode;
 
 typedef enum {
-  ALIGNED_LEFT,
-  ALIGNED_CENTER,
-  ALIGNED_RIGHT
+    ALIGNED_LEFT,
+    ALIGNED_CENTER,
+    ALIGNED_RIGHT
 } TextAlignment;
 
 typedef struct {
@@ -51,7 +51,7 @@ typedef struct {
 } ffnt_page_t;
 
 typedef struct {
-  u8 width, height;
-  s8 posX, posY, advance, pitch;
-  const u8* data;
+    u8 width, height;
+    s8 posX, posY, advance, pitch;
+    const u8 *data;
 } glyph_t;

@@ -1,3 +1,4 @@
+// clang-format off
 /*
     __ _____ _____ _____
  __|  |   __|     |   | |  JSON for Modern C++
