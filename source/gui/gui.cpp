@@ -149,7 +149,7 @@ inline bool Gui::fontLoadGlyph(glyph_t *glyph, u32 font, u32 codepoint) {
     FT_UInt glyphIndex;
     FT_Bitmap *bitmap;
 
-    if (m_fontFacesTotal == 0) return false;
+    if (m_fontFacesTotal <= 0) return false;
 
     for (s32 i = 0; i < m_fontFacesTotal; i++) {
         face = m_fontFaces[i];
