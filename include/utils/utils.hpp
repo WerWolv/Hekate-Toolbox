@@ -20,7 +20,7 @@ typedef struct {
     bool autoBootList;
 } BootEntry;
 
-BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex);
+void getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex);
 
 namespace AppletID {
 

@@ -28,8 +28,8 @@ GuiMain::GuiMain() : Gui() {
         delete ini;
     }
 
-    m_autoBootConfigs.push_back({"Hekate menu", 0, false});
-    m_currAutoBootConfig = getBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
+    getBootConfigs(m_autoBootConfigs, currAutoBootEntryIndex);
+    m_currAutoBootConfig = m_autoBootConfigs[currAutoBootEntryIndex];
 
     //0
     new Button(
@@ -47,34 +47,38 @@ GuiMain::GuiMain() : Gui() {
      std::string autoBootName = m_currAutoBootConfig.name;
 
      if(autoBootName.length() >= 25) {
-       autoBootName = autoBootName.substr(0, 24);
-       autoBootName += "...";
+        autoBootName = autoBootName.substr(0, 24);
+        autoBootName += "...";
      }
 
      gui->drawTextAligned(font20, x + 660, y + 50, currTheme.selectedColor, autoBootName.c_str(), ALIGNED_RIGHT); }, [&](u32 kdown, bool *isActivated) {
-     if (kdown & KEY_A) {
-       autobootNames.clear();
+    if (kdown & KEY_A) {
+        autobootNames.clear();
 
-       for(auto const& autoBootEntry : m_autoBootConfigs)
-         autobootNames.push_back(autoBootEntry.name);
+        for (auto const &autoBootEntry : m_autoBootConfigs)
+            autobootNames.push_back(autoBootEntry.name);
 
-       (new ListSelector("Hekate autoboot profile", "\uE0E1 Back     \uE0E0 OK", autobootNames, currAutoBootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
-         if(k & KEY_A) {
-           simpleIniParser::Ini *hekateIni = simpleIniParser::Ini::parseFile(HEKATE_INI);
-           currAutoBootEntryIndex = selectedItem;
-           m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
+        (new ListSelector("Hekate autoboot profile", "\uE0E1 Back     \uE0E0 OK", autobootNames, currAutoBootEntryIndex))
+            ->setInputAction([&](u32 k, u16 selectedItem) {
+                if (k & KEY_A) {
+                    simpleIniParser::Ini *hekateIni = simpleIniParser::Ini::parseOrCreateFile(HEKATE_INI);
+                    currAutoBootEntryIndex = selectedItem;
+                    m_currAutoBootConfig = m_autoBootConfigs[selectedItem];
 
-           auto ini_autoboot = hekateIni->findSection("config")->findFirstOption("autoboot");
-           auto ini_autoboot_list = hekateIni->findSection("config")->findFirstOption("autoboot_list");
+                    auto configSection = hekateIni->findOrCreateSection("config");
 
-           ini_autoboot->value = std::to_string(m_currAutoBootConfig.id);
-           ini_autoboot_list->value = std::to_string(m_currAutoBootConfig.autoBootList);
+                    auto ini_autoboot = configSection->findOrCreateFirstOption("autoboot", "0");
+                    auto ini_autoboot_list = configSection->findOrCreateFirstOption("autoboot_list", "0");
 
-           hekateIni->writeToFile(HEKATE_INI);
-           Gui::g_currListSelector->hide();
-         }
-       })->show();
-     } }, {-1, 2, 0, -1}, false, []() -> bool { return true; });
+                    ini_autoboot->value = std::to_string(m_currAutoBootConfig.id);
+                    ini_autoboot_list->value = std::to_string(m_currAutoBootConfig.autoBootList);
+
+                    hekateIni->writeToFile(HEKATE_INI);
+                    Gui::g_currListSelector->hide();
+                }
+            })
+            ->show();
+    } }, {-1, 2, 0, -1}, false, []() -> bool { return true; });
 
     //2
     new Button(

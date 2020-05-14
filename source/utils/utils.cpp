@@ -3,31 +3,43 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <algorithm>
+#include <string.h>
 #include "theme.h"
 
-BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
-    simpleIniParser::Ini *hekateIni = simpleIniParser::Ini::parseFile(HEKATE_INI);
-
-    u16 id = 0;
-    BootEntry currEntry;
-
+void getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex) {
+    out_bootEntries.clear();
+    out_bootEntries.push_back({"Hekate menu", 0, false});
     currAutoBootEntryIndex = 0;
 
-    u16 currAutoboot = std::stoi(hekateIni->findSection("config")->findFirstOption("autoboot")->value);
-    bool currAutoboot_list = std::stoi(hekateIni->findSection("config")->findFirstOption("autoboot_list")->value);
+    u16 id;
+    u16 currAutoboot = 0;           // autoboot entry index
+    bool currAutoboot_list = false; // if autoboot index is for hekate_ipl.ini or ini folder
 
-    currEntry = out_bootEntries.back();
+    //Process main hekate_ipl.ini file for boot entries
+    auto fileIni = simpleIniParser::Ini::parseFile(HEKATE_INI);
+    if (fileIni) {
 
-    for (auto const &it : hekateIni->sections) {
-        if (std::string(it->value) == "config" || it->type != simpleIniParser::IniSectionType::Section) continue;
-        out_bootEntries.push_back({it->value, ++id, false});
-
-        if (!currAutoboot_list && id == currAutoboot) {
-            currEntry = out_bootEntries.back();
-            currAutoBootEntryIndex = out_bootEntries.size() - 1;
+        // get autoboot options from config file
+        auto configSection = fileIni->findSection("config");
+        if (configSection) {
+            currAutoboot = std::stoi(configSection->findOrCreateFirstOption("autoboot", "0")->value);
+            currAutoboot_list = std::stoi(configSection->findOrCreateFirstOption("autoboot_list", "0")->value);
         }
+
+        // get boot entries from config file
+        id = 0;
+        for (auto const &it : fileIni->sections) {
+            if (it->type != simpleIniParser::IniSectionType::Section || !strcmp("config", it->value.c_str())) continue;
+            out_bootEntries.push_back({it->value, ++id, false});
+
+            if (currAutoboot_list == false && id == currAutoboot) {
+                currAutoBootEntryIndex = out_bootEntries.size() - 1;
+            }
+        }
+        delete fileIni;
     }
 
+    //Process any file-based boot entries from ini folder
     DIR *dr = opendir(INI_PATH);
     struct dirent *de;
     std::vector<std::string> iniFiles;
@@ -38,31 +50,27 @@ BootEntry getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoB
 
     std::sort(iniFiles.begin(), iniFiles.end());
 
-    id = 0;
+    if (!iniFiles.empty()) {
 
-    delete hekateIni;
-    hekateIni = nullptr;
+        // get boot entries from ini folder files
+        id = 0;
+        for (auto const &iniFile : iniFiles) {
+            std::string file = std::string(INI_PATH) + iniFile;
+            fileIni = simpleIniParser::Ini::parseFile(file);
 
-    if (iniFiles.empty()) return currEntry;
+            if (fileIni) {
+                for (auto const &it : fileIni->sections) {
+                    if (it->type != simpleIniParser::IniSectionType::Section) continue;
+                    out_bootEntries.push_back({it->value, ++id, true});
 
-    for (auto const &iniFile : iniFiles) {
-        std::string file = std::string(INI_PATH) + iniFile;
-        hekateIni = simpleIniParser::Ini::parseFile(file);
-
-        for (auto const &it : hekateIni->sections) {
-            if (it->type != simpleIniParser::IniSectionType::Section) continue;
-            out_bootEntries.push_back({it->value, ++id, true});
-
-            if (currAutoboot_list && id == currAutoboot) {
-                currEntry = out_bootEntries.back();
-                currAutoBootEntryIndex = out_bootEntries.size() - 1;
+                    if (currAutoboot_list == true && id == currAutoboot) {
+                        currAutoBootEntryIndex = out_bootEntries.size() - 1;
+                    }
+                }
             }
+            delete fileIni;
         }
-
-        delete hekateIni;
     }
-
-    return currEntry;
 }
 
 const char *GetAppletName(u64 appID) {
