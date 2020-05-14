@@ -97,19 +97,21 @@ GuiHekate::GuiHekate() : Gui() {
     new Button(
         400, 450, Gui::g_framebuffer_width - 800, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
             gui->drawRectangled(x, y, Gui::g_framebuffer_width - 800, 80, currTheme.submenuButtonColor);
-            gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Reboot now!", ALIGNED_CENTER);
-        },
+            gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Reboot now!", ALIGNED_CENTER); },
         [&](u32 kdown, bool *isActivated) {
             if (kdown & KEY_A) {
                 FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
-                fread(g_reboot_payload, 1, sizeof(g_reboot_payload), f);
-                fclose(f);
+                if (f) {
+                    fread(g_reboot_payload, 1, sizeof(g_reboot_payload), f);
+                    fclose(f);
 
-                g_reboot_payload[0x94] = 1;
-                g_reboot_payload[0x95] = m_currRebootConfig.id;
-                g_reboot_payload[0x96] = m_currRebootConfig.autoBootList;
+                    g_reboot_payload[0x94] = 1;
+                    g_reboot_payload[0x95] = m_currRebootConfig.id;
+                    g_reboot_payload[0x96] = m_currRebootConfig.autoBootList;
 
-                reboot_to_payload();
+                    reboot_to_payload();
+                } else
+                    (new MessageBox("Can't find \"bootloader/update.bin\"!", MessageBox::OKAY))->show();
             }
         },
         {0, -1, -1, -1}, false, []() -> bool { return true; });
