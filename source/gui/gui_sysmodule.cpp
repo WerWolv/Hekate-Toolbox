@@ -90,68 +90,70 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
         anyModulesPresent = true;
 
-        new Button(
-            100 + xOffset, 250 + yOffset, 500, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
-      gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT); }, [&](u32 kdown, bool *isActivated) {
-      if (kdown & KEY_A) {
-        u64 pid;
-        u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
+        auto sysmoduleButton = Button();
+        sysmoduleButton.position = {100 + xOffset, 250 + yOffset};
+        sysmoduleButton.volume = {500, 80};
+        sysmoduleButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+            gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
+            gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
+        };
+        sysmoduleButton.inputAction = [&](u32 kdown, bool *isActivated) {
+            if (kdown & KEY_A) {
+                u64 pid;
+                u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
 
-        mkdir(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/flags").c_str(), 777);
-        std::stringstream path;
-        path << CONTENTS_PATH << sysmodule.first << "/flags/boot2.flag";
+                mkdir(std::string(CONTENTS_PATH + sysmodule.second.titleID + "/flags").c_str(), 777);
+                std::stringstream path;
+                path << CONTENTS_PATH << sysmodule.first << "/flags/boot2.flag";
 
+                if (this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end()) {
+                    if (!sysmodule.second.requiresReboot) {
+                        pmshellTerminateProgram(tid);
+                    } else {
+                        (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use it.", MessageBox::OKAY))->show();
+                    }
 
-        if (this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end()) {
-          if (!sysmodule.second.requiresReboot) {
-            pmshellTerminateProgram(tid);
-          } else {
-            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use it.", MessageBox::OKAY))->show();
-          }
+                    remove(path.str().c_str());
+                } else {
+                    if (sysmodule.second.requiresReboot) {
+                        (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use it.", MessageBox::OKAY))->show();
+                        FILE *fptr = fopen(path.str().c_str(), "wb+");
+                        if (fptr != nullptr) fclose(fptr);
+                    } else {
+                        NcmProgramLocation programLocation{
+                            .program_id = tid,
+                            .storageID = NcmStorageId_None,
+                        };
+                        if (R_SUCCEEDED(pmshellLaunchProgram(0, &programLocation, &pid))) {
+                            FILE *fptr = fopen(path.str().c_str(), "wb+");
+                            if (fptr != nullptr) fclose(fptr);
+                        }
+                    }
+                }
 
-          remove(path.str().c_str());
-        }
-        else {
-          if (sysmodule.second.requiresReboot) {
-            (new MessageBox("This sysmodule requires a reboot to fully work. \n Please restart your console in order use it.", MessageBox::OKAY))->show();
-            FILE *fptr = fopen(path.str().c_str(), "wb+");
-            if (fptr != nullptr) fclose(fptr);
-          } else {
-            NcmProgramLocation programLocation{
-              .program_id = tid,
-              .storageID = NcmStorageId_None,
-            };
-            if (R_SUCCEEDED(pmshellLaunchProgram(0, &programLocation, &pid))) {
-              FILE *fptr = fopen(path.str().c_str(), "wb+");
-              if (fptr != nullptr) fclose(fptr);
+                pid = 0;
+                pmdmntGetProcessId(&pid, tid);
+
+                if (!sysmodule.second.requiresReboot) {
+                    if (pid != 0)
+                        this->m_runningSysmodules.insert(sysmodule.first);
+                    else
+                        this->m_runningSysmodules.erase(sysmodule.first);
+                } else {
+                    if (access(path.str().c_str(), F_OK) == 0)
+                        this->m_runningSysmodules.insert(sysmodule.first);
+                    else
+                        this->m_runningSysmodules.erase(sysmodule.first);
+                }
             }
-          }
-        }
-
-        pid = 0;
-        pmdmntGetProcessId(&pid, tid);
-
-        if (!sysmodule.second.requiresReboot) {
-          if (pid != 0)
-            this->m_runningSysmodules.insert(sysmodule.first);
-          else
-            this->m_runningSysmodules.erase(sysmodule.first);     
-        } else {
-          if (access(path.str().c_str(), F_OK) == 0)
-            this->m_runningSysmodules.insert(sysmodule.first);
-          else
-            this->m_runningSysmodules.erase(sysmodule.first);    
-        }
-      } },
-            {
-                (cnt % ROWS) != 0 ? (cnt - 1) : -1,        //UP
-                (cnt % ROWS) != ROWS - 1 ? (cnt + 1) : -1, //DOWN
-                (cnt - ROWS),                              //LEFT
-                (cnt + ROWS)                               //RIGHT
-            },
-            false,
-            [&]() -> bool { return true; });
+        };
+        sysmoduleButton.adjacentButton = {
+            (cnt % ROWS) != 0 ? (cnt - 1) : -1,        //UP
+            (cnt % ROWS) != ROWS - 1 ? (cnt + 1) : -1, //DOWN
+            (cnt - ROWS),                              //LEFT
+            (cnt + ROWS)                               //RIGHT
+        };
+        add(sysmoduleButton);
 
         yOffset += 100;
 
@@ -162,19 +164,14 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
         cnt++;
     }
-    Button::select(selection);
+    selectButton(selection);
+    endInit();
 }
 
 GuiSysmodule::~GuiSysmodule() {
-    selection = Button::getSelectedIndex();
+    selection = getSelectedButtonIndex();
     pmshellExit();
     pmdmntExit();
-
-    Button::g_buttons.clear();
-}
-
-void GuiSysmodule::update() {
-    Gui::update();
 }
 
 void GuiSysmodule::draw() {
@@ -195,30 +192,16 @@ void GuiSysmodule::draw() {
     else
         Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 550, currTheme.textColor, "You currently don't have any supported sysmodules installed. To use this \n feature, please install any supported sysmodule as an NSP.", ALIGNED_CENTER);
 
-    for (Button *btn : Button::g_buttons)
-        btn->draw(this);
-
+    drawButtons();
     Gui::endDraw();
 }
 
 void GuiSysmodule::onInput(u32 kdown) {
-    for (Button *btn : Button::g_buttons) {
-        if (btn->isSelected())
-            if (btn->onInput(kdown)) break;
-    }
+    inputButtons(kdown);
 
     if (kdown & KEY_B)
         Gui::g_nextGui = GUI_MAIN;
 
     if (hidMitmInstalled() && kdown & KEY_X)
         Gui::g_nextGui = GUI_HID_MITM;
-}
-
-void GuiSysmodule::onTouch(touchPosition &touch) {
-    for (Button *btn : Button::g_buttons) {
-        btn->onTouch(touch);
-    }
-}
-
-void GuiSysmodule::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
 }

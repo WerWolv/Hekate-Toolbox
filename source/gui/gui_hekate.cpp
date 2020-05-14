@@ -66,64 +66,72 @@ GuiHekate::GuiHekate() : Gui() {
     getBootConfigs(m_rebootConfigs, currRebootEntryIndex);
     //m_currRebootConfig = m_rebootConfigs[0];
 
-    new Button(
-        200, 250, Gui::g_framebuffer_width - 400, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-    
-      gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate profile", ALIGNED_LEFT);
-      std::string autoBootName = m_currRebootConfig.name;
+    auto profileButton = Button();
+    profileButton.position = {200, 250};
+    profileButton.adjacentButton[ADJ_DOWN] = 1;
+    profileButton.volume = {Gui::g_framebuffer_width - 400, 80};
+    profileButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate profile", ALIGNED_LEFT);
+        std::string autoBootName = m_currRebootConfig.name;
 
-      if(autoBootName.length() >= 25) {
-        autoBootName = autoBootName.substr(0, 24);
-        autoBootName += "...";
-      }
+        if (autoBootName.length() >= 25) {
+            autoBootName = autoBootName.substr(0, 24);
+            autoBootName += "...";
+        }
 
-      gui->drawTextAligned(font20, x + 830, y + 50, currTheme.selectedColor, autoBootName.c_str(), ALIGNED_RIGHT); }, [&](u32 kdown, bool *isActivated) {
-     if (kdown & KEY_A) {
-       rebootNames.clear();
+        gui->drawTextAligned(font20, x + 830, y + 50, currTheme.selectedColor, autoBootName.c_str(), ALIGNED_RIGHT);
+    };
+    profileButton.inputAction = [&](u32 kdown, bool *isActivated) {
+        if (kdown & KEY_A) {
+            rebootNames.clear();
 
-       for(auto const& autoBootEntry : m_rebootConfigs)
-         rebootNames.push_back(autoBootEntry.name);
+            for (auto const &autoBootEntry : m_rebootConfigs)
+                rebootNames.push_back(autoBootEntry.name);
 
-       (new ListSelector("Hekate profile to reboot to", "\uE0E1 Back     \uE0E0 OK", rebootNames, currRebootEntryIndex))->setInputAction([&](u32 k, u16 selectedItem){
-         if(k & KEY_A) {
-           currRebootEntryIndex = selectedItem;
-           m_currRebootConfig = m_rebootConfigs[selectedItem];
+            (new ListSelector("Hekate profile to reboot to", "\uE0E1 Back     \uE0E0 OK", rebootNames, currRebootEntryIndex))
+                ->setInputAction([&](u32 k, u16 selectedItem) {
+                    if (k & KEY_A) {
+                        currRebootEntryIndex = selectedItem;
+                        m_currRebootConfig = m_rebootConfigs[selectedItem];
 
-           Gui::g_currListSelector->hide();
-         }
-       })->show();
-     } }, {-1, 1, -1, -1}, false, []() -> bool { return true; });
+                        Gui::g_currListSelector->hide();
+                    }
+                })
+                ->show();
+        }
+    };
+    add(profileButton);
 
-    new Button(
-        400, 450, Gui::g_framebuffer_width - 800, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-            gui->drawRectangled(x, y, Gui::g_framebuffer_width - 800, 80, currTheme.submenuButtonColor);
-            gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Reboot now!", ALIGNED_CENTER); },
-        [&](u32 kdown, bool *isActivated) {
-            if (kdown & KEY_A) {
-                FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
-                if (f) {
-                    fread(g_reboot_payload, 1, sizeof(g_reboot_payload), f);
-                    fclose(f);
+    auto rebootButton = Button();
+    rebootButton.position = {400, 450};
+    rebootButton.volume = {Gui::g_framebuffer_width - 800, 80};
+    rebootButton.adjacentButton[ADJ_UP] = 0;
+    rebootButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        gui->drawRectangled(x, y, Gui::g_framebuffer_width - 800, 80, currTheme.submenuButtonColor);
+        gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Reboot now!", ALIGNED_CENTER);
+    };
+    rebootButton.inputAction = [&](u32 kdown, bool *isActivated) {
+        if (kdown & KEY_A) {
+            FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
+            if (f) {
+                fread(g_reboot_payload, 1, sizeof(g_reboot_payload), f);
+                fclose(f);
 
-                    g_reboot_payload[0x94] = 1;
-                    g_reboot_payload[0x95] = m_currRebootConfig.id;
-                    g_reboot_payload[0x96] = m_currRebootConfig.autoBootList;
+                g_reboot_payload[0x94] = 1;
+                g_reboot_payload[0x95] = m_currRebootConfig.id;
+                g_reboot_payload[0x96] = m_currRebootConfig.autoBootList;
 
-                    reboot_to_payload();
-                } else
-                    (new MessageBox("Can't find \"bootloader/update.bin\"!", MessageBox::OKAY))->show();
-            }
-        },
-        {0, -1, -1, -1}, false, []() -> bool { return true; });
+                reboot_to_payload();
+            } else
+                (new MessageBox("Can't find \"bootloader/update.bin\"!", MessageBox::OKAY))->show();
+        }
+    };
+    add(rebootButton);
+    endInit();
 }
 
 GuiHekate::~GuiHekate() {
     splExit();
-    Button::g_buttons.clear();
-}
-
-void GuiHekate::update() {
-    Gui::update();
 }
 
 void GuiHekate::draw() {
@@ -138,27 +146,14 @@ void GuiHekate::draw() {
 
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the Hekate profile you want to reboot your Nintendo Switch into. \n Make sure to close all open titles beforehand as this will reboot your device immediately.", ALIGNED_CENTER);
 
-    for (Button *btn : Button::g_buttons)
-        btn->draw(this);
+    drawButtons();
 
     Gui::endDraw();
 }
 
 void GuiHekate::onInput(u32 kdown) {
-    for (Button *btn : Button::g_buttons) {
-        if (btn->isSelected())
-            if (btn->onInput(kdown)) break;
-    }
+    inputButtons(kdown);
 
     if (kdown & KEY_B)
         Gui::g_nextGui = GUI_MAIN;
-}
-
-void GuiHekate::onTouch(touchPosition &touch) {
-    for (Button *btn : Button::g_buttons) {
-        btn->onTouch(touch);
-    }
-}
-
-void GuiHekate::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
 }

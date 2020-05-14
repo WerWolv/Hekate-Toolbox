@@ -6,6 +6,7 @@
 
 #include "list_selector.hpp"
 #include "message_box.hpp"
+#include "button.hpp"
 
 extern "C" {
 #include "theme.h"
@@ -38,6 +39,20 @@ enum gui_t {
 };
 
 class Gui {
+protected:
+    u16 m_pageOffsetX = 0;
+    u16 m_pageOffsetY = 0;
+    u16 m_targetOffsetX = 0;
+    u16 m_targetOffsetY = 0;
+    const u16 m_pageLeftmostBoundary = 100;
+    const u16 m_pageTopmostBoundary = 160;
+    const u16 m_pageRightmostBoundary = SCREEN_WIDTH - 100;
+    const u16 m_pageBottommostBoundary = SCREEN_HEIGHT - 160;
+    bool m_scrollBlocked = false;
+
+    std::vector<Button> m_buttons;
+    friend class Button;
+
 public:
     static inline enum gui_t g_nextGui = GUI_INVALID;
 
@@ -50,14 +65,27 @@ public:
     static inline ListSelector *g_currListSelector = nullptr;
     static inline MessageBox *g_currMessageBox = nullptr;
 
+public:
     Gui();
     virtual ~Gui();
 
     virtual void update();
-    virtual void draw() = 0;
-    virtual void onInput(u32 kdown) = 0;
-    virtual void onTouch(touchPosition &touch) = 0;
-    virtual void onGesture(touchPosition &startPosition, touchPosition &endPosition) = 0;
+    virtual void draw() {
+        beginDraw();
+        drawButtons();
+        endDraw();
+    }
+    virtual void onInput(u32 kdown) {
+        inputButtons(kdown);
+    }
+    virtual void onTouch(touchPosition &touch) {
+        touchButtons(touch);
+    }
+    virtual void onGesture(touchPosition &startPosition, touchPosition &endPosition){};
+    s16 getSelectedButtonIndex();
+    void selectButton(s16 buttonIndex);
+    void selectButtonByRef(const Button *button);
+    void add(const Button &button);
 
     static void resizeImage(u8 *in, u8 *out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
     static std::vector<std::string> split(const std::string &s, const char &c);
@@ -79,8 +107,30 @@ public:
     void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
 protected:
+    void endInit() {
+        m_targetOffsetX = m_pageOffsetX;
+        m_targetOffsetY = m_pageOffsetY;
+    }
     void beginDraw();
     void endDraw();
+    void drawButtons() {
+        for (Button &btn : m_buttons)
+            btn.draw();
+    };
+
+    bool inputButtons(u32 kdown) {
+        for (Button &btn : m_buttons) {
+            if (btn.isSelected())
+                if (btn.onInput(kdown)) return true;
+        }
+        return false;
+    };
+
+    void touchButtons(touchPosition &touch) {
+        for (Button &btn : m_buttons) {
+            btn.onTouch(touch);
+        }
+    };
 
 private:
     FT_Error m_fontLibret, m_fontFacesRet[FONT_FACES_MAX];

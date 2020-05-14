@@ -16,13 +16,10 @@ typedef struct {
 class GuiSysmodule : public Gui {
 public:
     GuiSysmodule();
-    ~GuiSysmodule();
+    ~GuiSysmodule() override;
 
-    void update();
-    void draw();
-    void onInput(u32 kdown);
-    void onTouch(touchPosition &touch);
-    void onGesture(touchPosition &startPosition, touchPosition &endPosition);
+    void draw() override;
+    void onInput(u32 kdown) override;
 
 private:
     static inline int selection = 0;

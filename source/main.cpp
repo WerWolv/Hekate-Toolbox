@@ -101,10 +101,6 @@ int main(int argc, char **argv) {
 
             delete currGui;
 
-            Button::g_pageOffsetX = 0;
-            Button::g_pageOffsetY = 0;
-            Button::g_scrollBlocked = false;
-
             switch (Gui::g_nextGui) {
                 case GUI_MAIN:
                     currGui = new GuiMain();
@@ -130,15 +126,11 @@ int main(int argc, char **argv) {
                     break;
             }
 
-            Button::g_targetOffsetX = Button::g_pageOffsetX;
-            Button::g_targetOffsetY = Button::g_pageOffsetY;
             mutexUnlock(&mutexCurrGui);
             Gui::g_nextGui = GUI_INVALID;
         }
 
         if (currGui != nullptr) {
-            Button::g_targetOffsetX = Lerp(Button::g_targetOffsetX, Button::g_pageOffsetX, SCROLL_SPEED);
-            Button::g_targetOffsetY = Lerp(Button::g_targetOffsetY, Button::g_pageOffsetY, SCROLL_SPEED);
             currGui->draw();
 
             if (kdown) {

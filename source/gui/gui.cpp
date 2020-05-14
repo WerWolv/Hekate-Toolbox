@@ -2,11 +2,13 @@
 
 #include <math.h>
 #include <functional>
+#include "utils.hpp"
 
 static float menuTimer = 0.0F;
 static u32 stride;
 
 Gui::Gui() {
+    m_buttons.reserve(4);
     Gui::g_currListSelector = nullptr;
     Gui::g_currMessageBox = nullptr;
 
@@ -532,6 +534,9 @@ void Gui::resizeImage(u8 *in, u8 *out, size_t src_width, size_t src_height, size
 }
 
 void Gui::beginDraw() {
+    //TODO: maybe move this to update()?
+    m_targetOffsetX = Lerp(m_targetOffsetX, m_pageOffsetX, SCROLL_SPEED);
+    m_targetOffsetY = Lerp(m_targetOffsetY, m_pageOffsetY, SCROLL_SPEED);
     this->framebuffer = (u8 *)framebufferBegin(&Gui::g_fb_obj, &stride);
 }
 
@@ -543,4 +548,59 @@ void Gui::endDraw() {
         Gui::g_currMessageBox->draw(this);
 
     framebufferEnd(&Gui::g_fb_obj);
+}
+
+s16 Gui::getSelectedButtonIndex() {
+    for (size_t i = 0; i != m_buttons.size(); ++i) {
+        if (m_buttons[i].m_isSelected)
+            return i;
+    }
+    return -1;
+}
+
+void Gui::selectButtonByRef(const Button *button) {
+    for (size_t i = 0; i != m_buttons.size(); ++i) {
+        if (&m_buttons[i] == button) {
+            selectButton(i);
+            break;
+        }
+    }
+}
+
+void Gui::selectButton(s16 buttonIndex) {
+    if (buttonIndex < 0) return;
+    if (m_buttons.size() <= static_cast<u16>(buttonIndex)) return;
+
+    for (Button &btn : m_buttons) {
+        btn.m_isSelected = false;
+        btn.m_isActivated = false;
+    }
+
+    auto &button = m_buttons[buttonIndex];
+    button.m_isSelected = true;
+
+    if (m_scrollBlocked)
+        return;
+
+    auto leftmostDiff = (button.position.first) - (m_pageOffsetX)-m_pageLeftmostBoundary;
+    auto topmostDiff = (button.position.second) - (m_pageOffsetY)-m_pageTopmostBoundary;
+    auto rightmostDiff = (button.position.first + button.volume.first) - (m_pageOffsetX)-m_pageRightmostBoundary;
+    auto bottommostDiff = (button.position.second + button.volume.second) - (m_pageOffsetY)-m_pageBottommostBoundary;
+
+    if (leftmostDiff < 0)
+        m_pageOffsetX += leftmostDiff;
+
+    if (rightmostDiff > 0)
+        m_pageOffsetX += rightmostDiff;
+
+    if (topmostDiff < 0)
+        m_pageOffsetY += topmostDiff;
+
+    if (bottommostDiff > 0)
+        m_pageOffsetY += bottommostDiff;
+}
+
+void Gui::add(const Button &button) {
+    m_buttons.emplace_back(button).m_gui = this;
+    selectButton(0);
 }

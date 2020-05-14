@@ -19,6 +19,7 @@ const char *const keyNames[16] = {"KEY_A", "KEY_B", "KEY_X", "KEY_Y", "KEY_LSTIC
 
 GuiHIDMitm::GuiHIDMitm() : Gui() {
     hidExtraPause();
+    //TODO: fix the whole iniparser thing if hid-mitm ever comes back
 
     m_configFile = simpleIniParser::Ini::parseFile(HID_MITM_INI);
 
@@ -28,25 +29,28 @@ GuiHIDMitm::GuiHIDMitm() : Gui() {
         }
     }
 
-    new Button(
-        400, 400, Gui::g_framebuffer_width - 800, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-            gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Touch to save config", ALIGNED_CENTER);
-        },
-        [&](u32 kdown, bool *isActivated) {
-            if (kdown & KEY_A) {
-                Gui::g_nextGui = GUI_SM_SELECT;
+    auto configButton = Button();
+    configButton.position = {400, 400};
+    configButton.volume = {Gui::g_framebuffer_width - 800, 80};
+    configButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Touch to save config", ALIGNED_CENTER);
+    };
+    configButton.inputAction = [&](u32 kdown, bool *isActivated) {
+        if (kdown & KEY_A) {
+            Gui::g_nextGui = GUI_SM_SELECT;
 
-                for (u16 i = 0; i < m_hidConfig.size(); i++)
-                    m_configFile->findSection("player1")->options[i]->value = m_hidConfig[m_configFile->findSection("player1")->options[i]->key];
-            }
-        },
-        {-1, -1, -1, -1}, false, []() -> bool { return true; });
+            for (u16 i = 0; i < m_hidConfig.size(); i++)
+                m_configFile->findSection("player1")->options[i]->value = m_hidConfig[m_configFile->findSection("player1")->options[i]->key];
+        }
+    };
+    add(configButton);
+    endInit();
 }
 
 GuiHIDMitm::~GuiHIDMitm() {
     m_configFile->writeToFile(HID_MITM_INI);
+    delete m_configFile;
     hidExtraReloadConfig();
-    Button::g_buttons.clear();
 }
 
 static std::string configToButtonName(std::string configName) {
@@ -69,10 +73,6 @@ static std::string configToButtonName(std::string configName) {
   else if (configName == "KEY_DDOWN") return "\uE0EC";
   else return "\uE0E0";
     // clang-format on
-}
-
-void GuiHIDMitm::update() {
-    Gui::update();
 }
 
 void GuiHIDMitm::draw() {
@@ -106,10 +106,7 @@ void GuiHIDMitm::draw() {
   Gui::drawTextAligned(font20, 253, 379,  m_selectedButton == 14 ? currTheme.selectedColor : COLOR_WHITE,         configToButtonName(m_hidConfig["KEY_DRIGHT"]).c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, 218, 414,  m_selectedButton == 15 ? currTheme.selectedColor : COLOR_WHITE,         configToButtonName(m_hidConfig["KEY_DDOWN"]).c_str(), ALIGNED_CENTER);
     // clang-format on
-
-    for (Button *btn : Button::g_buttons)
-        btn->draw(this);
-
+    drawButtons();
     Gui::endDraw();
 }
 
@@ -123,13 +120,4 @@ void GuiHIDMitm::onInput(u32 kdown) {
             m_selectedButton = -1;
         }
     }
-}
-
-void GuiHIDMitm::onTouch(touchPosition &touch) {
-    for (Button *btn : Button::g_buttons) {
-        btn->onTouch(touch);
-    }
-}
-
-void GuiHIDMitm::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
 }

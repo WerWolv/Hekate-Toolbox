@@ -9,133 +9,164 @@
 #include "gui_title_list.hpp"
 
 GuiOverrideKey::GuiOverrideKey() : Gui() {
-    Button::g_scrollBlocked = true;
+    m_scrollBlocked = true;
     loadConfigFile();
 
     //0
-    new Button(
-        640, 200, 380, 200, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-    if (m_inputBlocked)
-      gui->drawTextAligned(font20, x + 190, y + 100, currTheme.textColor, "Press any key...", ALIGNED_CENTER);
-    else
-      if (m_override.key.key == 0)
-        gui->drawTextAligned(font24, x + 190, y + 100, currTheme.unselectedColor, "No key selected", ALIGNED_CENTER);
-      else
-        gui->drawTextAligned(fontHuge, x + 190, y + 136, currTheme.textColor, OverrideKey::KeyToUnicode(m_override.key.key), ALIGNED_CENTER);
-    gui->drawTextAligned(font14, x + 190, y + 185, currTheme.textColor, "Override key", ALIGNED_CENTER); }, [&](u64 kdown, bool *isActivated) {
-      if(*isActivated) {
+    auto keySelectButton = Button();
+    keySelectButton.position = {640, 200};
+    keySelectButton.volume = {380, 200};
+    keySelectButton.activatable = true;
+    keySelectButton.adjacentButton[ADJ_DOWN] = 1;
+    keySelectButton.adjacentButton[ADJ_LEFT] = 2;
+    keySelectButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        if (m_inputBlocked)
+            gui->drawTextAligned(font20, x + 190, y + 100, currTheme.textColor, "Press any key...", ALIGNED_CENTER);
+        else if (m_override.key.key == 0)
+            gui->drawTextAligned(font24, x + 190, y + 100, currTheme.unselectedColor, "No key selected", ALIGNED_CENTER);
+        else
+            gui->drawTextAligned(fontHuge, x + 190, y + 136, currTheme.textColor, OverrideKey::KeyToUnicode(m_override.key.key), ALIGNED_CENTER);
+        gui->drawTextAligned(font14, x + 190, y + 185, currTheme.textColor, "Override key", ALIGNED_CENTER);
+    };
+    keySelectButton.inputAction = [&](u64 kdown, bool *isActivated) {
+        if (*isActivated) {
 
-        // This is supposed to clear the key display, and block exit until a button is pressed.
-        // For some reason, it doesn't work
-        m_override.key.key = static_cast<HidControllerKeys>(0);
-        m_inputBlocked = true;
-        Gui::g_exitBlocked = true;
-        if(kdown && !(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
-          m_override.key.key = static_cast<HidControllerKeys>(kdown);
-          //Find or create a loader ini file with set override_key values, and write the result to the file.
-          simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-          auto keyValue = m_override.key.ToString();
-          ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
+            // This is supposed to clear the key display, and block exit until a button is pressed.
+            // For some reason, it doesn't work
+            m_override.key.key = static_cast<HidControllerKeys>(0);
+            m_inputBlocked = true;
+            Gui::g_exitBlocked = true;
+            if (kdown && !(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
+                m_override.key.key = static_cast<HidControllerKeys>(kdown);
+                //Find or create a loader ini file with set override_key values, and write the result to the file.
+                simpleIniParser::Ini *ini = parseOrCreateFileFixed(LOADER_INI);
+                auto keyValue = m_override.key.ToString();
+                ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
 
-          ini->writeToFile(LOADER_INI);
-          *isActivated = false;
-          m_inputBlocked = false;
-          Gui::g_exitBlocked = false;
+                ini->writeToFile(LOADER_INI);
+                *isActivated = false;
+                m_inputBlocked = false;
+                Gui::g_exitBlocked = false;
 
-          delete ini;
+                delete ini;
+            }
         }
-      } }, {-1, 1, 2, -1}, true, []() -> bool { return true; });
+    };
+    add(keySelectButton);
 
     //1
-    new Button(
-        640, 420, 380, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-     gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Key must be:", ALIGNED_LEFT);
-     gui->drawTextAligned(font20, x + 360, y + 50, currTheme.selectedColor, m_override.key.overrideByDefault ? "Unpressed" : "Pressed", ALIGNED_RIGHT); }, [&](u32 kdown, bool *isActivated) {
-     if (kdown & KEY_A) {
-        m_override.key.overrideByDefault = !m_override.key.overrideByDefault;
-        if (m_override.key.key == static_cast<HidControllerKeys>(0))
-          return;
+    auto comboPressedButton = Button();
+    comboPressedButton.position = {640, 420};
+    comboPressedButton.volume = {380, 80};
+    comboPressedButton.adjacentButton[ADJ_UP] = 0;
+    comboPressedButton.adjacentButton[ADJ_DOWN] = g_keyType == OverrideKeyType::Any_App_Override ? 3 : -1;
+    comboPressedButton.adjacentButton[ADJ_LEFT] = 2;
+    comboPressedButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Key must be:", ALIGNED_LEFT);
+        gui->drawTextAligned(font20, x + 360, y + 50, currTheme.selectedColor, m_override.key.overrideByDefault ? "Unpressed" : "Pressed", ALIGNED_RIGHT);
+    };
+    comboPressedButton.inputAction = [&](u32 kdown, bool *isActivated) {
+        if (kdown & KEY_A) {
+            m_override.key.overrideByDefault = !m_override.key.overrideByDefault;
+            if (m_override.key.key == static_cast<HidControllerKeys>(0))
+                return;
 
-        //Find or create a loader ini file with set override_key values, and write the result to the file.
-        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        auto keyValue = m_override.key.ToString();
-        ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
+            //Find or create a loader ini file with set override_key values, and write the result to the file.
+            simpleIniParser::Ini *ini = parseOrCreateFileFixed(LOADER_INI);
+            auto keyValue = m_override.key.ToString();
+            ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption(OverrideKey::getOverrideKeyString(g_keyType), "")->value = keyValue;
 
-        ini->writeToFile(LOADER_INI);
-        delete ini;
-      } }, {0, (g_keyType == OverrideKeyType::Any_App_Override ? 3 : -1), 2, -1}, false, []() -> bool { return true; });
+            ini->writeToFile(LOADER_INI);
+            delete ini;
+        }
+    };
+    add(comboPressedButton);
 
     switch (g_keyType) {
-        case OverrideKeyType::Any_App_Override:
+        case OverrideKeyType::Any_App_Override: {
             //2
-            new Button(
-                220, 200, 300, 300, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-    gui->drawTextAligned(fontHuge, x + 150, y + 190, currTheme.textColor, "\uE135", ALIGNED_CENTER);
-    gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
-    gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, "Any title", ALIGNED_LEFT); }, [&](u64 kdown, bool *isActivated) {}, {-1, -1, -1, 0}, false, []() -> bool { return false; });
+            auto anyTitleIconButton = Button();
+            anyTitleIconButton.position = {220, 200};
+            anyTitleIconButton.volume = {300, 300};
+            anyTitleIconButton.adjacentButton[ADJ_RIGHT] = 0;
+            anyTitleIconButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+                gui->drawTextAligned(fontHuge, x + 150, y + 190, currTheme.textColor, "\uE135", ALIGNED_CENTER);
+                gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
+                gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, "Any title", ALIGNED_LEFT);
+            };
+            anyTitleIconButton.usableCondition = []() -> bool { return false; };
+            add(anyTitleIconButton);
 
             //3
-            new Button(
-                640, 520, 380, 80, [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
-    gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Enabled", ALIGNED_LEFT);
-    gui->drawTextAligned(font20, x + 360, y + 50, m_overrideAnyApp ? currTheme.selectedColor : currTheme.unselectedColor, m_overrideAnyApp ? "On" : "Off", ALIGNED_RIGHT); }, [&](u64 kdown, bool *isActivated) {
-     if (kdown & KEY_A) {
-        m_overrideAnyApp = !m_overrideAnyApp;
+            auto overrideEnabledButton = Button();
+            overrideEnabledButton.position = {640, 520};
+            overrideEnabledButton.volume = {380, 80};
+            overrideEnabledButton.adjacentButton[ADJ_UP] = 1;
+            overrideEnabledButton.adjacentButton[ADJ_LEFT] = 2;
+            overrideEnabledButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+                gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Enabled", ALIGNED_LEFT);
+                gui->drawTextAligned(font20, x + 360, y + 50, m_overrideAnyApp ? currTheme.selectedColor : currTheme.unselectedColor, m_overrideAnyApp ? "On" : "Off", ALIGNED_RIGHT);
+            };
+            overrideEnabledButton.inputAction = [&](u64 kdown, bool *isActivated) {
+                if (kdown & KEY_A) {
+                    m_overrideAnyApp = !m_overrideAnyApp;
 
-        //Find or create a loader ini file with set override_key values, and write the result to the file.
-        simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
-        ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_any_app", "")->value = m_overrideAnyApp ? "true" : "false";
+                    //Find or create a loader ini file with set override_key values, and write the result to the file.
+                    simpleIniParser::Ini *ini = parseOrCreateFileFixed(LOADER_INI);
+                    ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section)->findOrCreateFirstOption("override_any_app", "")->value = m_overrideAnyApp ? "true" : "false";
 
-        ini->writeToFile(LOADER_INI);
-        delete ini;
-      } }, {1, -1, 2, -1}, false, []() -> bool { return true; });
+                    ini->writeToFile(LOADER_INI);
+                    delete ini;
+                }
+            };
+            add(overrideEnabledButton);
             break;
-        default:
+        }
+        default: {
             //2
-            new Button(
-                220, 200, 300, 300,
-                [&, title{DumpTitle(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated) {
-                    gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
-                    if (title.get() != nullptr && title->application_id != 0) {
+            auto appIconButton = Button();
+            appIconButton.position = {220, 200};
+            appIconButton.volume = {300, 300};
+            appIconButton.adjacentButton[ADJ_DOWN] = 1;
+            appIconButton.adjacentButton[ADJ_RIGHT] = 0;
+            appIconButton.drawAction = [&, title{DumpTitle(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated) {
+                gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
+                if (title.get() != nullptr && title->application_id != 0) {
 
-                        auto appletName = GetAppletName(title->application_id);
-                        if (appletName == nullptr) {
-                            appletName = title->name;
-                        } else {
-                            gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 350, currTheme.activatedColor, "Opening hbmenu through an applet may not leave enough memory for homebrew applications. \n It's recommended to open hbmenu from a game to gain full RAM access.", ALIGNED_CENTER);
-                        }
-
-                        gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, appletName, ALIGNED_LEFT);
-
-                        if (title->icon.get() != nullptr)
-                            gui->drawImage(x + 22, y + 22, 256, 256, title->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
-                        else
-                            gui->drawTextAligned(fontHuge, x + 150, y + 186, GetAppletColor(title->application_id), GetAppletIcon(title->application_id), ALIGNED_CENTER);
+                    auto appletName = GetAppletName(title->application_id);
+                    if (appletName == nullptr) {
+                        appletName = title->name;
                     } else {
-                        gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.unselectedColor, "\uE06B", ALIGNED_CENTER);
-                        gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No title selected", ALIGNED_CENTER);
+                        gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 350, currTheme.activatedColor, "Opening hbmenu through an applet may not leave enough memory for homebrew applications. \n It's recommended to open hbmenu from a game to gain full RAM access.", ALIGNED_CENTER);
                     }
-                },
-                [&](u64 kdown, bool *isActivated) {
-                    if (kdown & KEY_A) {
-                        GuiTitleList::selectedAppID = m_override.programID;
-                        Gui::g_nextGui = GUI_TITLE_LIST;
-                    }
-                },
-                {-1, 1, -1, 0}, false, []() -> bool { return true; });
-            break;
-    }
 
-    Button::select(selection);
+                    gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, appletName, ALIGNED_LEFT);
+
+                    if (title->icon.get() != nullptr)
+                        gui->drawImage(x + 22, y + 22, 256, 256, title->icon.get(), ImageMode::IMAGE_MODE_RGBA32);
+                    else
+                        gui->drawTextAligned(fontHuge, x + 150, y + 186, GetAppletColor(title->application_id), GetAppletIcon(title->application_id), ALIGNED_CENTER);
+                } else {
+                    gui->drawTextAligned(fontHuge, x + 150, y + 186, currTheme.unselectedColor, "\uE06B", ALIGNED_CENTER);
+                    gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No title selected", ALIGNED_CENTER);
+                }
+            };
+            appIconButton.inputAction = [&](u64 kdown, bool *isActivated) {
+                if (kdown & KEY_A) {
+                    GuiTitleList::selectedAppID = m_override.programID;
+                    Gui::g_nextGui = GUI_TITLE_LIST;
+                }
+            };
+            add(appIconButton);
+            break;
+        }
+    }
+    selectButton(selection);
+    endInit();
 }
 
 GuiOverrideKey::~GuiOverrideKey() {
-    selection = Button::getSelectedIndex();
-    Button::g_buttons.clear();
-}
-
-void GuiOverrideKey::update() {
-    Gui::update();
+    selection = getSelectedButtonIndex();
 }
 
 void GuiOverrideKey::draw() {
@@ -147,8 +178,7 @@ void GuiOverrideKey::draw() {
     Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Application override settings", ALIGNED_LEFT);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
-    for (Button *btn : Button::g_buttons)
-        btn->draw(this);
+    drawButtons();
     Gui::endDraw();
 }
 
@@ -156,24 +186,12 @@ void GuiOverrideKey::onInput(u32 kdown) {
     if (!m_inputBlocked && kdown & KEY_B)
         Gui::g_nextGui = GUI_OVERRIDES_MENU;
 
-    for (Button *btn : Button::g_buttons) {
-        if (btn->isSelected())
-            if (btn->onInput(kdown)) return;
-    }
-}
-
-void GuiOverrideKey::onTouch(touchPosition &touch) {
-    for (Button *btn : Button::g_buttons) {
-        btn->onTouch(touch);
-    }
-}
-
-void GuiOverrideKey::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
+    inputButtons(kdown);
 }
 
 void GuiOverrideKey::loadConfigFile() {
     // Get the override keys, if any exist
-    auto ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+    auto ini = parseOrCreateFileFixed(LOADER_INI);
     auto iniSection = ini->findOrCreateSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section);
 
     // Get the override key and program for un-numbered override

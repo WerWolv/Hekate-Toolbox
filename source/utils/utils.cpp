@@ -115,3 +115,9 @@ color_t GetAppletColor(u64 appID) {
             return currTheme.textColor;
     }
 }
+
+simpleIniParser::Ini *parseOrCreateFileFixed(const std::string &path) {
+    auto file = simpleIniParser::Ini::parseFile(path);
+    if (!file) file = new simpleIniParser::Ini;
+    return file;
+}

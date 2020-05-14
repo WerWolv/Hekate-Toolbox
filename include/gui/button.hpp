@@ -5,24 +5,20 @@
 #include <functional>
 #include <vector>
 
-#include "gui.hpp"
+class Gui;
+
+enum AdjacentButtonDirection {
+    ADJ_UP,
+    ADJ_DOWN,
+    ADJ_LEFT,
+    ADJ_RIGHT,
+};
 
 class Button {
 public:
-    static inline std::vector<Button *> g_buttons;
-    static inline u16 g_pageOffsetX = 0;
-    static inline u16 g_pageOffsetY = 0;
-    static inline u16 g_targetOffsetX = 0;
-    static inline u16 g_targetOffsetY = 0;
-    static inline u16 g_pageLeftmostBoundary = 100;
-    static inline u16 g_pageTopmostBoundary = 160;
-    static inline u16 g_pageRightmostBoundary = SCREEN_WIDTH - 100;
-    static inline u16 g_pageBottommostBoundary = SCREEN_HEIGHT - 160;
-    static inline bool g_scrollBlocked = false;
+    Button();
 
-    Button(u16 x, u16 y, u16 w, u16 h, std::function<void(Gui *, u16, u16, bool *)> drawAction, std::function<void(u32, bool *)> inputAction, std::vector<s32> adjacentButton, bool activatable, std::function<bool()> usableCondition);
-
-    void draw(Gui *gui);
+    void draw();
     bool onInput(u32 kdown);
     void onTouch(touchPosition &touch);
 
@@ -34,20 +30,26 @@ public:
         return m_isSelected;
     }
 
-    static s16 getSelectedIndex();
+private:
+    static void _defaultDrawAction(Gui *, u16, u16, bool *) {}
+    static void _defaultInputAction(u32, bool *) {}
+    static bool _defaultUsableCondition() { return true; }
 
-    static void select(s16 buttonIndex);
+public:
+    std::pair<u16, u16> position{};
+    std::pair<u16, u16> volume{};
+
+    std::function<void(Gui *, u16, u16, bool *)> drawAction = _defaultDrawAction;
+    std::function<void(u32, bool *)> inputAction = _defaultInputAction;
+    std::function<bool()> usableCondition = _defaultUsableCondition;
+
+    std::array<s32, 4> adjacentButton = {-1, -1, -1, -1};
+
+    bool activatable = false;
 
 private:
-    u16 m_x, m_y, m_w, m_h;
-
-    std::function<void(Gui *, u16, u16, bool *)> m_drawAction;
-    std::function<void(u32, bool *)> m_inputAction;
-    std::function<bool()> m_usableCondition;
-
     bool m_isActivated;
     bool m_isSelected;
-    bool m_activatable;
-
-    std::vector<s32> m_adjacentButton;
+    Gui *m_gui;
+    friend class Gui;
 };

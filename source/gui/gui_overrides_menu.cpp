@@ -12,7 +12,6 @@
 #include <algorithm>
 
 GuiOverridesMenu::GuiOverridesMenu() : Gui() {
-    Button::g_buttons.clear();
     loadConfigFile();
 
     displayDefaultOption = true;
@@ -30,16 +29,12 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
     if (m_addConfigs.size() != 0 || displayDefaultOption || displayAnyTitleOption)
         addButton(OverrideButtonType::Add_New);
 
-    Button::select(selection);
+    selectButton(selection);
+    endInit();
 }
 
 GuiOverridesMenu::~GuiOverridesMenu() {
-    selection = Button::getSelectedIndex();
-    Button::g_buttons.clear();
-}
-
-void GuiOverridesMenu::update() {
-    Gui::update();
+    selection = getSelectedButtonIndex();
 }
 
 void GuiOverridesMenu::draw() {
@@ -52,23 +47,19 @@ void GuiOverridesMenu::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Delete     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Add key override options for each title. \n Opening that title while holding that key combination will override it with hbmenu.", ALIGNED_CENTER);
 
-    for (Button *btn : Button::g_buttons)
-        btn->draw(this);
+    drawButtons();
     Gui::endDraw();
 }
 
 void GuiOverridesMenu::onInput(u32 kdown) {
-    for (Button *btn : Button::g_buttons) {
-        if (btn->isSelected())
-            if (btn->onInput(kdown)) return;
-    }
+    if (inputButtons(kdown)) return;
 
     if (kdown & KEY_B)
         Gui::g_nextGui = GUI_MAIN;
 
     if (kdown & KEY_X) {
         //Get the button options based on selection
-        auto tuple = m_buttons[Button::getSelectedIndex()];
+        auto tuple = m_buttons[getSelectedButtonIndex()];
         auto buttonType = std::get<0>(tuple);
         auto keyType = std::get<1>(tuple);
         if (buttonType != OverrideButtonType::Add_New) {
@@ -123,15 +114,6 @@ void GuiOverridesMenu::onInput(u32 kdown) {
                 ->show();
         }
     }
-}
-
-void GuiOverridesMenu::onTouch(touchPosition &touch) {
-    for (Button *btn : Button::g_buttons) {
-        btn->onTouch(touch);
-    }
-}
-
-void GuiOverridesMenu::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
 }
 
 void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType keyType, const ProgramOverrideKey &key) {
@@ -213,8 +195,14 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
         default:
             break;
     }
-    new Button((220 * m_buttonCount) + 150, 250, 200, 300, drawAction, inputAction,
-               {-1, -1, m_buttonCount - 1, m_buttonCount + 1}, false, []() -> bool { return true; });
+    auto resultButton = Button();
+    resultButton.position = {(220 * m_buttonCount) + 150, 250};
+    resultButton.volume = {200, 300};
+    resultButton.drawAction = drawAction;
+    resultButton.inputAction = inputAction;
+    resultButton.adjacentButton[ADJ_LEFT] = m_buttonCount - 1;
+    resultButton.adjacentButton[ADJ_RIGHT] = m_buttonCount + 1;
+    add(resultButton);
 
     if (keyType == OverrideKeyType::Default)
         displayDefaultOption = false;
@@ -232,7 +220,7 @@ void GuiOverridesMenu::loadConfigFile() {
         m_addConfigs.push_back(static_cast<OverrideKeyType>(i));
     }
     // If it doesn't find the config with a section [hbl_config], it stops, as there is nothing more to read.
-    simpleIniParser::Ini *ini = simpleIniParser::Ini::parseOrCreateFile(LOADER_INI);
+    simpleIniParser::Ini *ini = parseOrCreateFileFixed(LOADER_INI);
     auto section = ini->findSection(HBL_CONFIG, true, simpleIniParser::IniSectionType::Section);
 
     if (section == nullptr)

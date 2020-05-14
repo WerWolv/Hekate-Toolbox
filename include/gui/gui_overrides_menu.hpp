@@ -12,13 +12,10 @@ enum class OverrideButtonType {
 class GuiOverridesMenu : public Gui {
 public:
     GuiOverridesMenu();
-    ~GuiOverridesMenu();
+    ~GuiOverridesMenu() override;
 
-    void update();
-    void draw();
-    void onInput(u32 kdown);
-    void onTouch(touchPosition &touch);
-    void onGesture(touchPosition &startPosition, touchPosition &endPosition);
+    void draw() override;
+    void onInput(u32 kdown) override;
 
     void addButton(OverrideButtonType buttonType, OverrideKeyType keyType = OverrideKeyType::Invalid, const ProgramOverrideKey &key = ProgramOverrideKey{});
     void loadConfigFile();

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "types.h"
+#include "SimpleIniParser.hpp"
 
 #define LOADER_INI   "sdmc:/atmosphere/config/override_config.ini"
 #define HEKATE_INI   "sdmc:/bootloader/hekate_ipl.ini"
@@ -64,3 +65,6 @@ template <class T>
 constexpr static T Lerp(T first, T second, float percent) {
     return (first + (second - first) * percent);
 }
+
+// the version of simpleIniParser::Ini::parseOrCreateFile has a bug where it destroys the entire file if it doesn't start with a newline
+simpleIniParser::Ini *parseOrCreateFileFixed(const std::string &path);
