@@ -34,11 +34,11 @@ VERSION_MAJOR := 4
 VERSION_MINOR := 0
 VERSION_MICRO := 0
 
-APP_TITLE	:=	Kosmos Toolbox
+APP_TITLE	:=	Hekate Toolbox
 APP_AUTHOR	:=	WerWolv, cathery
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
-TARGET		:=	KosmosToolbox
+TARGET		:=	HekateToolbox
 OUTDIR		:=	out
 BUILD		:=	build
 SOURCES		:=	source source/gui source/utils

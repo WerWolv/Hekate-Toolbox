@@ -1,6 +1,6 @@
-# Kosmos Toolbox
+# Hekate Toolbox
 
-A toolbox that allows the user to change settings of the loader (requires a modified version of loader). It's aimed for the use with tomGER's SDFiles.
+A toolbox that allows the user to change settings of the loader (requires a modified version of loader). It was originally developed for the use with tomGER's SDFiles (Later AtlasNX's Kosmos), but fully works with Hekate-based CFW configurations.
 
 ## Current Features
 - Reading and modifying of the hbmenu launch button combination 
