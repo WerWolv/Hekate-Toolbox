@@ -195,13 +195,13 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
         default:
             break;
     }
-    auto resultButton = Button();
-    resultButton.position = {(220 * m_buttonCount) + 150, 250};
-    resultButton.volume = {200, 300};
-    resultButton.drawAction = drawAction;
-    resultButton.inputAction = inputAction;
-    resultButton.adjacentButton[ADJ_LEFT] = m_buttonCount - 1;
-    resultButton.adjacentButton[ADJ_RIGHT] = m_buttonCount + 1;
+    auto resultButton = new Button();
+    resultButton->position = {(220 * m_buttonCount) + 150, 250};
+    resultButton->volume = {200, 300};
+    resultButton->drawAction = drawAction;
+    resultButton->inputAction = inputAction;
+    resultButton->adjacentButton[ADJ_LEFT] = m_buttonCount - 1;
+    resultButton->adjacentButton[ADJ_RIGHT] = m_buttonCount + 1;
     add(resultButton);
 
     if (keyType == OverrideKeyType::Default)

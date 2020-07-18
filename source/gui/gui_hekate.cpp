@@ -66,11 +66,11 @@ GuiHekate::GuiHekate() : Gui() {
     getBootConfigs(m_rebootConfigs, currRebootEntryIndex);
     //m_currRebootConfig = m_rebootConfigs[0];
 
-    auto profileButton = Button();
-    profileButton.position = {200, 250};
-    profileButton.adjacentButton[ADJ_DOWN] = 1;
-    profileButton.volume = {Gui::g_framebuffer_width - 400, 80};
-    profileButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto profileButton = new Button();
+    profileButton->position = {200, 250};
+    profileButton->adjacentButton[ADJ_DOWN] = 1;
+    profileButton->volume = {Gui::g_framebuffer_width - 400, 80};
+    profileButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate profile", ALIGNED_LEFT);
         std::string autoBootName = m_currRebootConfig.name;
 
@@ -81,7 +81,7 @@ GuiHekate::GuiHekate() : Gui() {
 
         gui->drawTextAligned(font20, x + 830, y + 50, currTheme.selectedColor, autoBootName.c_str(), ALIGNED_RIGHT);
     };
-    profileButton.inputAction = [&](u32 kdown, bool *isActivated) {
+    profileButton->inputAction = [&](u32 kdown, bool *isActivated) {
         if (kdown & KEY_A) {
             rebootNames.clear();
 
@@ -102,15 +102,15 @@ GuiHekate::GuiHekate() : Gui() {
     };
     add(profileButton);
 
-    auto rebootButton = Button();
-    rebootButton.position = {400, 450};
-    rebootButton.volume = {Gui::g_framebuffer_width - 800, 80};
-    rebootButton.adjacentButton[ADJ_UP] = 0;
-    rebootButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto rebootButton = new Button();
+    rebootButton->position = {400, 450};
+    rebootButton->volume = {Gui::g_framebuffer_width - 800, 80};
+    rebootButton->adjacentButton[ADJ_UP] = 0;
+    rebootButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawRectangled(x, y, Gui::g_framebuffer_width - 800, 80, currTheme.submenuButtonColor);
         gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Reboot now!", ALIGNED_CENTER);
     };
-    rebootButton.inputAction = [&](u32 kdown, bool *isActivated) {
+    rebootButton->inputAction = [&](u32 kdown, bool *isActivated) {
         if (kdown & KEY_A) {
             FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
             if (f) {

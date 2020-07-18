@@ -32,28 +32,28 @@ GuiMain::GuiMain() : Gui() {
     m_currAutoBootConfig = m_autoBootConfigs[currAutoBootEntryIndex];
 
     //0
-    auto overrideKeysMenuButton = Button();
-    overrideKeysMenuButton.position = {150, 230};
-    overrideKeysMenuButton.volume = {200, 200};
-    overrideKeysMenuButton.adjacentButton[ADJ_DOWN] = 2;
-    overrideKeysMenuButton.adjacentButton[ADJ_RIGHT] = 1;
-    overrideKeysMenuButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto overrideKeysMenuButton = new Button();
+    overrideKeysMenuButton->position = {150, 230};
+    overrideKeysMenuButton->volume = {200, 200};
+    overrideKeysMenuButton->adjacentButton[ADJ_DOWN] = 2;
+    overrideKeysMenuButton->adjacentButton[ADJ_RIGHT] = 1;
+    overrideKeysMenuButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawTextAligned(fontHuge, x + 100, y + 100, currTheme.textColor, "...", ALIGNED_CENTER);
         gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "Change override keys", ALIGNED_CENTER);
     };
-    overrideKeysMenuButton.inputAction = [&](u64 kdown, bool *isActivated) {
+    overrideKeysMenuButton->inputAction = [&](u64 kdown, bool *isActivated) {
         if (kdown & KEY_A)
             Gui::g_nextGui = GUI_OVERRIDES_MENU;
     };
     add(overrideKeysMenuButton);
 
     //1
-    auto autobootSelectorButton = Button();
-    autobootSelectorButton.position = {370, 240};
-    autobootSelectorButton.volume = {700, 80};
-    autobootSelectorButton.adjacentButton[ADJ_DOWN] = 2;
-    autobootSelectorButton.adjacentButton[ADJ_LEFT] = 0;
-    autobootSelectorButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto autobootSelectorButton = new Button();
+    autobootSelectorButton->position = {370, 240};
+    autobootSelectorButton->volume = {700, 80};
+    autobootSelectorButton->adjacentButton[ADJ_DOWN] = 2;
+    autobootSelectorButton->adjacentButton[ADJ_LEFT] = 0;
+    autobootSelectorButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Hekate autoboot profile", ALIGNED_LEFT);
 
         std::string autoBootName = m_currAutoBootConfig.name;
@@ -65,7 +65,7 @@ GuiMain::GuiMain() : Gui() {
 
         gui->drawTextAligned(font20, x + 660, y + 50, currTheme.selectedColor, autoBootName.c_str(), ALIGNED_RIGHT);
     };
-    autobootSelectorButton.inputAction = [&](u32 kdown, bool *isActivated) {
+    autobootSelectorButton->inputAction = [&](u32 kdown, bool *isActivated) {
         if (kdown & KEY_A) {
             autobootNames.clear();
 
@@ -99,33 +99,33 @@ GuiMain::GuiMain() : Gui() {
     add(autobootSelectorButton);
 
     //2
-    auto backgroundServicesButton = Button();
-    backgroundServicesButton.position = {370, 340};
-    backgroundServicesButton.volume = {340, 80};
-    backgroundServicesButton.adjacentButton[ADJ_UP] = 1;
-    backgroundServicesButton.adjacentButton[ADJ_LEFT] = 0;
-    backgroundServicesButton.adjacentButton[ADJ_RIGHT] = 3;
-    backgroundServicesButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto backgroundServicesButton = new Button();
+    backgroundServicesButton->position = {370, 340};
+    backgroundServicesButton->volume = {340, 80};
+    backgroundServicesButton->adjacentButton[ADJ_UP] = 1;
+    backgroundServicesButton->adjacentButton[ADJ_LEFT] = 0;
+    backgroundServicesButton->adjacentButton[ADJ_RIGHT] = 3;
+    backgroundServicesButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawRectangled(x, y, 340, 80, currTheme.submenuButtonColor);
         gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Background services", ALIGNED_LEFT);
     };
-    backgroundServicesButton.inputAction = [&](u32 kdown, bool *isActivated) {
+    backgroundServicesButton->inputAction = [&](u32 kdown, bool *isActivated) {
         if (kdown & KEY_A)
             Gui::g_nextGui = GUI_SM_SELECT;
     };
     add(backgroundServicesButton);
 
     //3
-    auto rebootButton = Button();
-    rebootButton.position = {735, 340};
-    rebootButton.volume = {335, 80};
-    rebootButton.adjacentButton[ADJ_UP] = 1;
-    rebootButton.adjacentButton[ADJ_LEFT] = 2;
-    rebootButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto rebootButton = new Button();
+    rebootButton->position = {735, 340};
+    rebootButton->volume = {335, 80};
+    rebootButton->adjacentButton[ADJ_UP] = 1;
+    rebootButton->adjacentButton[ADJ_LEFT] = 2;
+    rebootButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawRectangled(x, y, 335, 80, currTheme.submenuButtonColor);
         gui->drawTextAligned(font20, x + 55, y + 50, currTheme.textColor, "Reboot to Hekate", ALIGNED_LEFT);
     };
-    rebootButton.inputAction = [&](u32 kdown, bool *isActivated) {
+    rebootButton->inputAction = [&](u32 kdown, bool *isActivated) {
         if (kdown & KEY_A) {
             Gui::g_nextGui = GUI_HEKATE;
             GuiHekate::m_currRebootConfig = m_currAutoBootConfig;

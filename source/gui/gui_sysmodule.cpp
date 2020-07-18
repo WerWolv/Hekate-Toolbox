@@ -90,14 +90,14 @@ GuiSysmodule::GuiSysmodule() : Gui() {
 
         anyModulesPresent = true;
 
-        auto sysmoduleButton = Button();
-        sysmoduleButton.position = {100 + xOffset, 250 + yOffset};
-        sysmoduleButton.volume = {500, 80};
-        sysmoduleButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        auto sysmoduleButton = new Button();
+        sysmoduleButton->position = {100 + xOffset, 250 + yOffset};
+        sysmoduleButton->volume = {500, 80};
+        sysmoduleButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
             gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, sysmodule.second.name.c_str(), ALIGNED_LEFT);
             gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
         };
-        sysmoduleButton.inputAction = [&](u32 kdown, bool *isActivated) {
+        sysmoduleButton->inputAction = [&](u32 kdown, bool *isActivated) {
             if (kdown & KEY_A) {
                 u64 pid;
                 u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
@@ -147,7 +147,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
                 }
             }
         };
-        sysmoduleButton.adjacentButton = {
+        sysmoduleButton->adjacentButton = {
             (cnt % ROWS) != 0 ? (cnt - 1) : -1,        //UP
             (cnt % ROWS) != ROWS - 1 ? (cnt + 1) : -1, //DOWN
             (cnt - ROWS),                              //LEFT

@@ -29,13 +29,13 @@ GuiHIDMitm::GuiHIDMitm() : Gui() {
         }
     }
 
-    auto configButton = Button();
-    configButton.position = {400, 400};
-    configButton.volume = {Gui::g_framebuffer_width - 800, 80};
-    configButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto configButton = new Button();
+    configButton->position = {400, 400};
+    configButton->volume = {Gui::g_framebuffer_width - 800, 80};
+    configButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Touch to save config", ALIGNED_CENTER);
     };
-    configButton.inputAction = [&](u32 kdown, bool *isActivated) {
+    configButton->inputAction = [&](u32 kdown, bool *isActivated) {
         if (kdown & KEY_A) {
             Gui::g_nextGui = GUI_SM_SELECT;
 

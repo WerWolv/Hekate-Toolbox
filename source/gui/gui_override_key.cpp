@@ -13,13 +13,13 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
     loadConfigFile();
 
     //0
-    auto keySelectButton = Button();
-    keySelectButton.position = {640, 200};
-    keySelectButton.volume = {380, 200};
-    keySelectButton.activatable = true;
-    keySelectButton.adjacentButton[ADJ_DOWN] = 1;
-    keySelectButton.adjacentButton[ADJ_LEFT] = 2;
-    keySelectButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto keySelectButton = new Button();
+    keySelectButton->position = {640, 200};
+    keySelectButton->volume = {380, 200};
+    keySelectButton->activatable = true;
+    keySelectButton->adjacentButton[ADJ_DOWN] = 1;
+    keySelectButton->adjacentButton[ADJ_LEFT] = 2;
+    keySelectButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         if (m_inputBlocked)
             gui->drawTextAligned(font20, x + 190, y + 100, currTheme.textColor, "Press any key...", ALIGNED_CENTER);
         else if (m_override.key.key == 0)
@@ -28,7 +28,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
             gui->drawTextAligned(fontHuge, x + 190, y + 136, currTheme.textColor, OverrideKey::KeyToUnicode(m_override.key.key), ALIGNED_CENTER);
         gui->drawTextAligned(font14, x + 190, y + 185, currTheme.textColor, "Override key", ALIGNED_CENTER);
     };
-    keySelectButton.inputAction = [&](u64 kdown, bool *isActivated) {
+    keySelectButton->inputAction = [&](u64 kdown, bool *isActivated) {
         if (*isActivated) {
 
             // This is supposed to clear the key display, and block exit until a button is pressed.
@@ -55,17 +55,17 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
     add(keySelectButton);
 
     //1
-    auto comboPressedButton = Button();
-    comboPressedButton.position = {640, 420};
-    comboPressedButton.volume = {380, 80};
-    comboPressedButton.adjacentButton[ADJ_UP] = 0;
-    comboPressedButton.adjacentButton[ADJ_DOWN] = g_keyType == OverrideKeyType::Any_App_Override ? 3 : -1;
-    comboPressedButton.adjacentButton[ADJ_LEFT] = 2;
-    comboPressedButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+    auto comboPressedButton = new Button();
+    comboPressedButton->position = {640, 420};
+    comboPressedButton->volume = {380, 80};
+    comboPressedButton->adjacentButton[ADJ_UP] = 0;
+    comboPressedButton->adjacentButton[ADJ_DOWN] = g_keyType == OverrideKeyType::Any_App_Override ? 3 : -1;
+    comboPressedButton->adjacentButton[ADJ_LEFT] = 2;
+    comboPressedButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Key must be:", ALIGNED_LEFT);
         gui->drawTextAligned(font20, x + 360, y + 50, currTheme.selectedColor, m_override.key.overrideByDefault ? "Unpressed" : "Pressed", ALIGNED_RIGHT);
     };
-    comboPressedButton.inputAction = [&](u32 kdown, bool *isActivated) {
+    comboPressedButton->inputAction = [&](u32 kdown, bool *isActivated) {
         if (kdown & KEY_A) {
             m_override.key.overrideByDefault = !m_override.key.overrideByDefault;
             if (m_override.key.key == static_cast<HidControllerKeys>(0))
@@ -85,29 +85,29 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
     switch (g_keyType) {
         case OverrideKeyType::Any_App_Override: {
             //2
-            auto anyTitleIconButton = Button();
-            anyTitleIconButton.position = {220, 200};
-            anyTitleIconButton.volume = {300, 300};
-            anyTitleIconButton.adjacentButton[ADJ_RIGHT] = 0;
-            anyTitleIconButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+            auto anyTitleIconButton = new Button();
+            anyTitleIconButton->position = {220, 200};
+            anyTitleIconButton->volume = {300, 300};
+            anyTitleIconButton->adjacentButton[ADJ_RIGHT] = 0;
+            anyTitleIconButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
                 gui->drawTextAligned(fontHuge, x + 150, y + 190, currTheme.textColor, "\uE135", ALIGNED_CENTER);
                 gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
                 gui->drawTextAligned(font24, x, y - 20, currTheme.textColor, "Any title", ALIGNED_LEFT);
             };
-            anyTitleIconButton.usableCondition = []() -> bool { return false; };
+            anyTitleIconButton->usableCondition = []() -> bool { return false; };
             add(anyTitleIconButton);
 
             //3
-            auto overrideEnabledButton = Button();
-            overrideEnabledButton.position = {640, 520};
-            overrideEnabledButton.volume = {380, 80};
-            overrideEnabledButton.adjacentButton[ADJ_UP] = 1;
-            overrideEnabledButton.adjacentButton[ADJ_LEFT] = 2;
-            overrideEnabledButton.drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
+            auto overrideEnabledButton = new Button();
+            overrideEnabledButton->position = {640, 520};
+            overrideEnabledButton->volume = {380, 80};
+            overrideEnabledButton->adjacentButton[ADJ_UP] = 1;
+            overrideEnabledButton->adjacentButton[ADJ_LEFT] = 2;
+            overrideEnabledButton->drawAction = [&](Gui *gui, u16 x, u16 y, bool *isActivated) {
                 gui->drawTextAligned(font20, x + 20, y + 50, currTheme.textColor, "Enabled", ALIGNED_LEFT);
                 gui->drawTextAligned(font20, x + 360, y + 50, m_overrideAnyApp ? currTheme.selectedColor : currTheme.unselectedColor, m_overrideAnyApp ? "On" : "Off", ALIGNED_RIGHT);
             };
-            overrideEnabledButton.inputAction = [&](u64 kdown, bool *isActivated) {
+            overrideEnabledButton->inputAction = [&](u64 kdown, bool *isActivated) {
                 if (kdown & KEY_A) {
                     m_overrideAnyApp = !m_overrideAnyApp;
 
@@ -124,12 +124,12 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
         }
         default: {
             //2
-            auto appIconButton = Button();
-            appIconButton.position = {220, 200};
-            appIconButton.volume = {300, 300};
-            appIconButton.adjacentButton[ADJ_DOWN] = 1;
-            appIconButton.adjacentButton[ADJ_RIGHT] = 0;
-            appIconButton.drawAction = [&, title{DumpTitle(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated) {
+            auto appIconButton = new Button();
+            appIconButton->position = {220, 200};
+            appIconButton->volume = {300, 300};
+            appIconButton->adjacentButton[ADJ_DOWN] = 1;
+            appIconButton->adjacentButton[ADJ_RIGHT] = 0;
+            appIconButton->drawAction = [&, title{DumpTitle(m_override.programID)}](Gui *gui, u16 x, u16 y, bool *isActivated) {
                 gui->drawTextAligned(font24, x, y - 60, currTheme.textColor, "Override when entering:", ALIGNED_LEFT);
                 if (title.get() != nullptr && title->application_id != 0) {
 
@@ -151,7 +151,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
                     gui->drawTextAligned(font24, x + 150, y + 280, currTheme.unselectedColor, "No title selected", ALIGNED_CENTER);
                 }
             };
-            appIconButton.inputAction = [&](u64 kdown, bool *isActivated) {
+            appIconButton->inputAction = [&](u64 kdown, bool *isActivated) {
                 if (kdown & KEY_A) {
                     GuiTitleList::selectedAppID = m_override.programID;
                     Gui::g_nextGui = GUI_TITLE_LIST;

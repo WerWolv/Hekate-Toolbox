@@ -35,10 +35,10 @@ GuiTitleList::GuiTitleList() : Gui() {
 
     for (auto &&app : apps) {
 
-        auto appButton = Button();
-        appButton.position = {GRIDPOS + xOffset, 194 + yOffset};
-        appButton.volume = {ICON_SIZE, ICON_SIZE};
-        appButton.drawAction = [app, buttonIndex](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        auto appButton = new Button();
+        appButton->position = {GRIDPOS + xOffset, 194 + yOffset};
+        appButton->volume = {ICON_SIZE, ICON_SIZE};
+        appButton->drawAction = [app, buttonIndex](Gui *gui, u16 x, u16 y, bool *isActivated) {
             if (app != nullptr && app->application_id != 0) {
 
                 auto appletName = GetAppletName(app->application_id);
@@ -62,7 +62,7 @@ GuiTitleList::GuiTitleList() : Gui() {
                 gui->drawTextAligned(fontHuge, x + ICON_SIZE / 2, y + ICON_SIZE / 2 + 48, currTheme.textColor, "\uE06B", ALIGNED_CENTER);
             }
         };
-        appButton.inputAction = [&, app](u64 kdown, bool *isActivated) {
+        appButton->inputAction = [&, app](u64 kdown, bool *isActivated) {
             if (kdown & KEY_A) {
 
                 //convert title id to a hex string
@@ -80,7 +80,7 @@ GuiTitleList::GuiTitleList() : Gui() {
                 Gui::g_nextGui = GUI_OVERRIDE_KEY;
             }
         };
-        appButton.adjacentButton = {
+        appButton->adjacentButton = {
             (buttonIndex - COLUMNS),                                         //UP
             (buttonIndex + COLUMNS),                                         //DOWN
             (buttonIndex % COLUMNS) != 0 ? (buttonIndex - 1) : -1,           //LEFT

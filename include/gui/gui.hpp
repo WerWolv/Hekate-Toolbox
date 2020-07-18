@@ -3,6 +3,7 @@
 #include <switch.h>
 #include <cstring>
 #include <unordered_map>
+#include <memory>
 
 #include "list_selector.hpp"
 #include "message_box.hpp"
@@ -50,7 +51,7 @@ protected:
     const u16 m_pageBottommostBoundary = SCREEN_HEIGHT - 160;
     bool m_scrollBlocked = false;
 
-    std::vector<Button> m_buttons;
+    std::vector<std::unique_ptr<Button>> m_buttons;
     friend class Button;
 
 public:
@@ -85,7 +86,7 @@ public:
     s16 getSelectedButtonIndex();
     void selectButton(s16 buttonIndex);
     void selectButtonByRef(const Button *button);
-    void add(const Button &button);
+    void add(Button *button);
 
     static void resizeImage(u8 *in, u8 *out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
     static std::vector<std::string> split(const std::string &s, const char &c);
@@ -114,21 +115,21 @@ protected:
     void beginDraw();
     void endDraw();
     void drawButtons() {
-        for (Button &btn : m_buttons)
-            btn.draw();
+        for (auto &btn : m_buttons)
+            btn->draw();
     };
 
     bool inputButtons(u32 kdown) {
-        for (Button &btn : m_buttons) {
-            if (btn.isSelected())
-                if (btn.onInput(kdown)) return true;
+        for (auto &btn : m_buttons) {
+            if (btn->isSelected())
+                if (btn->onInput(kdown)) return true;
         }
         return false;
     };
 
     void touchButtons(touchPosition &touch) {
-        for (Button &btn : m_buttons) {
-            btn.onTouch(touch);
+        for (auto &btn : m_buttons) {
+            btn->onTouch(touch);
         }
     };
 
