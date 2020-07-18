@@ -13,6 +13,16 @@
 #define IRAM_PAYLOAD_MAX_SIZE 0x2F000
 #define IRAM_PAYLOAD_BASE     0x40010000
 
+enum NyxUMSType {
+    NYX_UMS_SD_CARD = 0,
+    NYX_UMS_EMMC_BOOT0,
+    NYX_UMS_EMMC_BOOT1,
+    NYX_UMS_EMMC_GPP,
+    NYX_UMS_EMUMMC_BOOT0,
+    NYX_UMS_EMUMMC_BOOT1,
+    NYX_UMS_EMUMMC_GPP
+};
+
 static __attribute__((aligned(0x1000))) u8 g_reboot_payload[IRAM_PAYLOAD_MAX_SIZE];
 static __attribute__((aligned(0x1000))) u8 g_ff_page[0x1000];
 static __attribute__((aligned(0x1000))) u8 g_work_page[0x1000];
@@ -62,8 +72,8 @@ GuiHekate::GuiHekate() : Gui() {
 
     splInitialize();
 
-    m_rebootConfigs.push_back({"Hekate menu", 0, false});
     getBootConfigs(m_rebootConfigs, currRebootEntryIndex);
+    m_rebootConfigs.push_back({"Boot to UMS (SD Card)", 0, false, true});
     //m_currRebootConfig = m_rebootConfigs[0];
 
     auto profileButton = new Button();
@@ -117,9 +127,16 @@ GuiHekate::GuiHekate() : Gui() {
                 fread(g_reboot_payload, 1, sizeof(g_reboot_payload), f);
                 fclose(f);
 
-                g_reboot_payload[0x94] = 1;
-                g_reboot_payload[0x95] = m_currRebootConfig.id;
-                g_reboot_payload[0x96] = m_currRebootConfig.autoBootList;
+                if (m_currRebootConfig.ums) {
+                    // sets the UMS bit
+                    g_reboot_payload[0x97] = 1 << 5;
+                    // selects the UMS type
+                    g_reboot_payload[0x98] = NyxUMSType::NYX_UMS_SD_CARD;
+                } else {
+                    g_reboot_payload[0x94] = 1;
+                    g_reboot_payload[0x95] = m_currRebootConfig.id;
+                    g_reboot_payload[0x96] = m_currRebootConfig.autoBootList;
+                }
 
                 reboot_to_payload();
             } else

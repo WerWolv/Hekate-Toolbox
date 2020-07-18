@@ -19,6 +19,7 @@ typedef struct {
     std::string name;
     u16 id;
     bool autoBootList;
+    bool ums;
 } BootEntry;
 
 void getBootConfigs(std::vector<BootEntry> &out_bootEntries, u16 &currAutoBootEntryIndex);
