@@ -128,6 +128,10 @@ GuiHekate::GuiHekate() : Gui() {
                 fclose(f);
 
                 if (m_currRebootConfig.ums) {
+                    // CTCaer told me to add that (Force go to menu)
+                    g_reboot_payload[0x94] = 1;
+                    g_reboot_payload[0x95] = 0;
+                    g_reboot_payload[0x96] = 0;
                     // sets the UMS bit
                     g_reboot_payload[0x97] = 1 << 5;
                     // selects the UMS type
