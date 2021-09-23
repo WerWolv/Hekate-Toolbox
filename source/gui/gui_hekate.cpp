@@ -92,7 +92,7 @@ GuiHekate::GuiHekate() : Gui() {
         gui->drawTextAligned(font20, x + 830, y + 50, currTheme.selectedColor, autoBootName.c_str(), ALIGNED_RIGHT);
     };
     profileButton->inputAction = [&](u32 kdown, bool *isActivated) {
-        if (kdown & KEY_A) {
+        if (kdown & HidNpadButton_A) {
             rebootNames.clear();
 
             for (auto const &autoBootEntry : m_rebootConfigs)
@@ -100,7 +100,7 @@ GuiHekate::GuiHekate() : Gui() {
 
             (new ListSelector("Hekate profile to reboot to", "\uE0E1 Back     \uE0E0 OK", rebootNames, currRebootEntryIndex))
                 ->setInputAction([&](u32 k, u16 selectedItem) {
-                    if (k & KEY_A) {
+                    if (k & HidNpadButton_A) {
                         currRebootEntryIndex = selectedItem;
                         m_currRebootConfig = m_rebootConfigs[selectedItem];
 
@@ -121,7 +121,7 @@ GuiHekate::GuiHekate() : Gui() {
         gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Reboot now!", ALIGNED_CENTER);
     };
     rebootButton->inputAction = [&](u32 kdown, bool *isActivated) {
-        if (kdown & KEY_A) {
+        if (kdown & HidNpadButton_A) {
             FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
             if (f) {
                 fread(g_reboot_payload, 1, sizeof(g_reboot_payload), f);
@@ -171,6 +171,6 @@ void GuiHekate::draw() {
 void GuiHekate::onInput(u32 kdown) {
     inputButtons(kdown);
 
-    if (kdown & KEY_B)
+    if (kdown & HidNpadButton_B)
         Gui::g_nextGui = GUI_MAIN;
 }

@@ -17,11 +17,11 @@ GuiOverridesMenu::GuiOverridesMenu() : Gui() {
     displayDefaultOption = true;
     displayAnyTitleOption = true;
 
-    if (m_anyAppOverride.key.key != static_cast<HidControllerKeys>(0))
+    if (m_anyAppOverride.key.key != static_cast<HidNpadButton>(0))
         addButton(OverrideButtonType::Any_Title, OverrideKeyType::Any_App_Override, m_anyAppOverride);
 
     for (int i = 0; i != 8; ++i) {
-        if (m_overrides[i].programID != AppletID::Invalid || (m_overrides[i].key.key != static_cast<HidControllerKeys>(0))) {
+        if (m_overrides[i].programID != AppletID::Invalid || (m_overrides[i].key.key != static_cast<HidNpadButton>(0))) {
             addButton(OverrideButtonType::Custom_Title, static_cast<OverrideKeyType>(i), m_overrides[i]);
         }
     }
@@ -54,10 +54,10 @@ void GuiOverridesMenu::draw() {
 void GuiOverridesMenu::onInput(u32 kdown) {
     if (inputButtons(kdown)) return;
 
-    if (kdown & KEY_B)
+    if (kdown & HidNpadButton_B)
         Gui::g_nextGui = GUI_MAIN;
 
-    if (kdown & KEY_X) {
+    if (kdown & HidNpadButton_X) {
         //Get the button options based on selection
         auto tuple = m_buttons[getSelectedButtonIndex()];
         auto buttonType = std::get<0>(tuple);
@@ -121,7 +121,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
     configNames.reserve(static_cast<int>(OverrideKeyType::Num_OverrideKey_Types));
     std::function<void(Gui *, u16, u16, bool *)> drawAction;
     std::function<void(u32, bool *)> inputAction = [&, keyType, key](u64 kdown, bool *isActivated) {
-        if (kdown & KEY_A) {
+        if (kdown & HidNpadButton_A) {
             GuiOverrideKey::g_overrideKey = key;
             GuiOverrideKey::g_keyType = keyType;
             Gui::g_nextGui = GUI_OVERRIDE_KEY;
@@ -161,7 +161,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
             };
 
             inputAction = [&](u64 kdown, bool *isActivated) {
-                if (kdown & KEY_A) {
+                if (kdown & HidNpadButton_A) {
                     configNames.clear();
 
                     if (displayAnyTitleOption)
@@ -175,7 +175,7 @@ void GuiOverridesMenu::addButton(OverrideButtonType buttonType, OverrideKeyType 
 
                     (new ListSelector("Add new key override for:", "\uE0E1 Back     \uE0E0 OK", configNames, 0))
                         ->setInputAction([&](u32 k, u16 selectedItem) {
-                            if (k & KEY_A) {
+                            if (k & HidNpadButton_A) {
 
                                 auto newKeyType = m_addConfigs[0];
 

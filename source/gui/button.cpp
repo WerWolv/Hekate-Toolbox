@@ -37,15 +37,15 @@ bool Button::onInput(u32 kdown) {
         return false;
 
     if (!m_isActivated) {
-        if ((kdown & KEY_A) && activatable) {
+        if ((kdown & HidNpadButton_A) && activatable) {
             m_isActivated = true;
             kdown = 0;
         } else {
-            if (kdown & KEY_UP) m_gui->selectButton(adjacentButton[0]);
-            if (kdown & KEY_DOWN) m_gui->selectButton(adjacentButton[1]);
-            if (kdown & KEY_LEFT) m_gui->selectButton(adjacentButton[2]);
-            if (kdown & KEY_RIGHT) m_gui->selectButton(adjacentButton[3]);
-            if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) return true;
+            if (kdown & HidNpadButton_AnyUp) m_gui->selectButton(adjacentButton[0]);
+            if (kdown & HidNpadButton_AnyDown) m_gui->selectButton(adjacentButton[1]);
+            if (kdown & HidNpadButton_AnyLeft) m_gui->selectButton(adjacentButton[2]);
+            if (kdown & HidNpadButton_AnyRight) m_gui->selectButton(adjacentButton[3]);
+            if (kdown & (HidNpadButton_AnyUp | HidNpadButton_AnyDown | HidNpadButton_AnyLeft | HidNpadButton_AnyRight)) return true;
         }
     }
 
@@ -56,18 +56,18 @@ bool Button::onInput(u32 kdown) {
     return false;
 }
 
-void Button::onTouch(touchPosition &touch) {
+void Button::onTouch(HidTouchState &touch) {
     if (!usableCondition()) return;
 
     u16 resultX = position.first > m_gui->m_targetOffsetX ? position.first - m_gui->m_targetOffsetX : 0;
     u16 resultY = position.second > m_gui->m_targetOffsetY ? position.second - m_gui->m_targetOffsetY : 0;
 
-    if (touch.px >= resultX && touch.px <= (resultX + volume.first) && touch.py >= resultY && touch.py <= (resultY + volume.second)) {
+    if (touch.x >= resultX && touch.x <= (resultX + volume.first) && touch.y >= resultY && touch.y <= (resultY + volume.second)) {
         if (m_isSelected) {
             if (activatable)
                 m_isActivated = true;
             else
-                inputAction(KEY_A, &m_isActivated);
+                inputAction(HidNpadButton_A, &m_isActivated);
             return;
         }
 

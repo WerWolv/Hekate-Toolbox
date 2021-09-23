@@ -18,7 +18,7 @@ public:
     void update();
     void draw(Gui *gui);
     void onInput(u32 kdown);
-    void onTouch(touchPosition &touch);
+    void onTouch(HidTouchState &touch);
 
     void show();
     void hide();

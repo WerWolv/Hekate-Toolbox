@@ -16,43 +16,43 @@ OverrideKey OverrideKey::StringToKeyCombo(const char *keyString) {
     }
 
     if (strcasecmp(keyString, "A") == 0) {
-        keyCombo.key = KEY_A;
+        keyCombo.key = HidNpadButton_A;
     } else if (strcasecmp(keyString, "B") == 0) {
-        keyCombo.key = KEY_B;
+        keyCombo.key = HidNpadButton_B;
     } else if (strcasecmp(keyString, "X") == 0) {
-        keyCombo.key = KEY_X;
+        keyCombo.key = HidNpadButton_X;
     } else if (strcasecmp(keyString, "Y") == 0) {
-        keyCombo.key = KEY_Y;
+        keyCombo.key = HidNpadButton_Y;
     } else if (strcasecmp(keyString, "LS") == 0) {
-        keyCombo.key = KEY_LSTICK;
+        keyCombo.key = HidNpadButton_StickL;
     } else if (strcasecmp(keyString, "RS") == 0) {
-        keyCombo.key = KEY_RSTICK;
+        keyCombo.key = HidNpadButton_StickR;
     } else if (strcasecmp(keyString, "L") == 0) {
-        keyCombo.key = KEY_L;
+        keyCombo.key = HidNpadButton_L;
     } else if (strcasecmp(keyString, "R") == 0) {
-        keyCombo.key = KEY_R;
+        keyCombo.key = HidNpadButton_R;
     } else if (strcasecmp(keyString, "ZL") == 0) {
-        keyCombo.key = KEY_ZL;
+        keyCombo.key = HidNpadButton_ZL;
     } else if (strcasecmp(keyString, "ZR") == 0) {
-        keyCombo.key = KEY_ZR;
+        keyCombo.key = HidNpadButton_ZR;
     } else if (strcasecmp(keyString, "PLUS") == 0) {
-        keyCombo.key = KEY_PLUS;
+        keyCombo.key = HidNpadButton_Plus;
     } else if (strcasecmp(keyString, "MINUS") == 0) {
-        keyCombo.key = KEY_MINUS;
+        keyCombo.key = HidNpadButton_Minus;
     } else if (strcasecmp(keyString, "DLEFT") == 0) {
-        keyCombo.key = KEY_DLEFT;
+        keyCombo.key = HidNpadButton_Left;
     } else if (strcasecmp(keyString, "DUP") == 0) {
-        keyCombo.key = KEY_DUP;
+        keyCombo.key = HidNpadButton_Up;
     } else if (strcasecmp(keyString, "DRIGHT") == 0) {
-        keyCombo.key = KEY_DRIGHT;
+        keyCombo.key = HidNpadButton_Right;
     } else if (strcasecmp(keyString, "DDOWN") == 0) {
-        keyCombo.key = KEY_DDOWN;
+        keyCombo.key = HidNpadButton_Down;
     } else if (strcasecmp(keyString, "SL") == 0) {
-        keyCombo.key = KEY_SL;
+        keyCombo.key = HidNpadButton_AnySL;
     } else if (strcasecmp(keyString, "SR") == 0) {
-        keyCombo.key = KEY_SR;
+        keyCombo.key = HidNpadButton_AnySR;
     } else {
-        keyCombo.key = static_cast<HidControllerKeys>(0);
+        keyCombo.key = static_cast<HidNpadButton>(0);
     }
 
     return keyCombo;
@@ -62,24 +62,24 @@ std::string OverrideKey::KeyComboToString(const OverrideKey &keyCombo) {
     std::string keyString;
     switch (keyCombo.key) {
         // clang-format off
-    case KEY_A:       keyString = "A";        break;
-    case KEY_B:       keyString = "B";        break;
-    case KEY_X:       keyString = "X";        break;
-    case KEY_Y:       keyString = "Y";        break;
-    case KEY_LSTICK:  keyString = "LS";       break;
-    case KEY_RSTICK:  keyString = "RS";       break;
-    case KEY_L:       keyString = "L";        break;
-    case KEY_R:       keyString = "R";        break;
-    case KEY_ZL:      keyString = "ZL";       break;
-    case KEY_ZR:      keyString = "ZR";       break;
-    case KEY_PLUS:    keyString = "PLUS";     break;
-    case KEY_MINUS:   keyString = "MINUS";    break;
-    case KEY_DLEFT:   keyString = "DLEFT";    break;
-    case KEY_DUP:     keyString = "DUP";      break;
-    case KEY_DRIGHT:  keyString = "DRIGHT";   break;
-    case KEY_DDOWN:   keyString = "DDOWN";    break;
-    case KEY_SL:      keyString = "SL";       break;
-    case KEY_SR:      keyString = "SR";       break;
+    case HidNpadButton_A:       keyString = "A";        break;
+    case HidNpadButton_B:       keyString = "B";        break;
+    case HidNpadButton_X:       keyString = "X";        break;
+    case HidNpadButton_Y:       keyString = "Y";        break;
+    case HidNpadButton_StickL:  keyString = "LS";       break;
+    case HidNpadButton_StickR:  keyString = "RS";       break;
+    case HidNpadButton_L:       keyString = "L";        break;
+    case HidNpadButton_R:       keyString = "R";        break;
+    case HidNpadButton_ZL:      keyString = "ZL";       break;
+    case HidNpadButton_ZR:      keyString = "ZR";       break;
+    case HidNpadButton_Plus:    keyString = "PLUS";     break;
+    case HidNpadButton_Minus:   keyString = "MINUS";    break;
+    case HidNpadButton_Left:   keyString = "DLEFT";    break;
+    case HidNpadButton_Up:     keyString = "DUP";      break;
+    case HidNpadButton_Right:  keyString = "DRIGHT";   break;
+    case HidNpadButton_Down:   keyString = "DDOWN";    break;
+    case HidNpadButton_AnySL:      keyString = "SL";       break;
+    case HidNpadButton_AnySR:      keyString = "SR";       break;
     default:          keyString = "";         break;
             // clang-format on
     }
@@ -87,27 +87,27 @@ std::string OverrideKey::KeyComboToString(const OverrideKey &keyCombo) {
     return (keyCombo.overrideByDefault ? "!" : "") + keyString;
 }
 
-const char *OverrideKey::KeyToUnicode(HidControllerKeys key) {
+const char *OverrideKey::KeyToUnicode(HidNpadButton key) {
     switch (key) {
         // clang-format off
-    case KEY_A:       return "\uE0E0";
-    case KEY_B:       return "\uE0E1";
-    case KEY_X:       return "\uE0E2";
-    case KEY_Y:       return "\uE0E3";
-    case KEY_LSTICK:  return "\uE101";
-    case KEY_RSTICK:  return "\uE102";
-    case KEY_L:       return "\uE0E4";
-    case KEY_R:       return "\uE0E5";
-    case KEY_ZL:      return "\uE0E6";
-    case KEY_ZR:      return "\uE0E7";
-    case KEY_PLUS:    return "\uE0EF";
-    case KEY_MINUS:   return "\uE0F0";
-    case KEY_DLEFT:   return "\uE0ED";
-    case KEY_DUP:     return "\uE0EB";
-    case KEY_DRIGHT:  return "\uE0EE";
-    case KEY_DDOWN:   return "\uE0EC";
-    case KEY_SL:      return "\uE0E8";
-    case KEY_SR:      return "\uE0E9";
+    case HidNpadButton_A:       return "\uE0E0";
+    case HidNpadButton_B:       return "\uE0E1";
+    case HidNpadButton_X:       return "\uE0E2";
+    case HidNpadButton_Y:       return "\uE0E3";
+    case HidNpadButton_StickL:  return "\uE101";
+    case HidNpadButton_StickR:  return "\uE102";
+    case HidNpadButton_L:       return "\uE0E4";
+    case HidNpadButton_R:       return "\uE0E5";
+    case HidNpadButton_ZL:      return "\uE0E6";
+    case HidNpadButton_ZR:      return "\uE0E7";
+    case HidNpadButton_Plus:    return "\uE0EF";
+    case HidNpadButton_Minus:   return "\uE0F0";
+    case HidNpadButton_Left:   return "\uE0ED";
+    case HidNpadButton_Up:     return "\uE0EB";
+    case HidNpadButton_Right:  return "\uE0EE";
+    case HidNpadButton_Down:   return "\uE0EC";
+    case HidNpadButton_AnySL:      return "\uE0E8";
+    case HidNpadButton_AnySR:      return "\uE0E9";
     default:          return "";
             // clang-format on
     }

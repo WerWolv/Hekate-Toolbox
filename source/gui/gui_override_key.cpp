@@ -33,11 +33,11 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
 
             // This is supposed to clear the key display, and block exit until a button is pressed.
             // For some reason, it doesn't work
-            m_override.key.key = static_cast<HidControllerKeys>(0);
+            m_override.key.key = static_cast<HidNpadButton>(0);
             m_inputBlocked = true;
             Gui::g_exitBlocked = true;
-            if (kdown && !(kdown & (kdown - 1)) && (kdown <= KEY_DDOWN || kdown >= KEY_SL) && kdown != KEY_TOUCH) {
-                m_override.key.key = static_cast<HidControllerKeys>(kdown);
+            if (kdown && !(kdown & (kdown - 1)) && (kdown <= HidNpadButton_Down || kdown >= HidNpadButton_AnySL)) {
+                m_override.key.key = static_cast<HidNpadButton>(kdown);
                 //Find or create a loader ini file with set override_key values, and write the result to the file.
                 simpleIniParser::Ini *ini = parseOrCreateFileFixed(LOADER_INI);
                 auto keyValue = m_override.key.ToString();
@@ -66,9 +66,9 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
         gui->drawTextAligned(font20, x + 360, y + 50, currTheme.selectedColor, m_override.key.overrideByDefault ? "Unpressed" : "Pressed", ALIGNED_RIGHT);
     };
     comboPressedButton->inputAction = [&](u32 kdown, bool *isActivated) {
-        if (kdown & KEY_A) {
+        if (kdown & HidNpadButton_A) {
             m_override.key.overrideByDefault = !m_override.key.overrideByDefault;
-            if (m_override.key.key == static_cast<HidControllerKeys>(0))
+            if (m_override.key.key == static_cast<HidNpadButton>(0))
                 return;
 
             //Find or create a loader ini file with set override_key values, and write the result to the file.
@@ -108,7 +108,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
                 gui->drawTextAligned(font20, x + 360, y + 50, m_overrideAnyApp ? currTheme.selectedColor : currTheme.unselectedColor, m_overrideAnyApp ? "On" : "Off", ALIGNED_RIGHT);
             };
             overrideEnabledButton->inputAction = [&](u64 kdown, bool *isActivated) {
-                if (kdown & KEY_A) {
+                if (kdown & HidNpadButton_A) {
                     m_overrideAnyApp = !m_overrideAnyApp;
 
                     //Find or create a loader ini file with set override_key values, and write the result to the file.
@@ -152,7 +152,7 @@ GuiOverrideKey::GuiOverrideKey() : Gui() {
                 }
             };
             appIconButton->inputAction = [&](u64 kdown, bool *isActivated) {
-                if (kdown & KEY_A) {
+                if (kdown & HidNpadButton_A) {
                     GuiTitleList::selectedAppID = m_override.programID;
                     Gui::g_nextGui = GUI_TITLE_LIST;
                 }
@@ -183,7 +183,7 @@ void GuiOverrideKey::draw() {
 }
 
 void GuiOverrideKey::onInput(u32 kdown) {
-    if (!m_inputBlocked && kdown & KEY_B)
+    if (!m_inputBlocked && kdown & HidNpadButton_B)
         Gui::g_nextGui = GUI_OVERRIDES_MENU;
 
     inputButtons(kdown);

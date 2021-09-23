@@ -63,7 +63,7 @@ GuiTitleList::GuiTitleList() : Gui() {
             }
         };
         appButton->inputAction = [&, app](u64 kdown, bool *isActivated) {
-            if (kdown & KEY_A) {
+            if (kdown & HidNpadButton_A) {
 
                 //convert title id to a hex string
                 char buffer[17];
@@ -127,6 +127,6 @@ void GuiTitleList::draw() {
 void GuiTitleList::onInput(u32 kdown) {
     if (inputButtons(kdown)) return;
 
-    if (kdown & KEY_B)
+    if (kdown & HidNpadButton_B)
         Gui::g_nextGui = GUI_OVERRIDE_KEY;
 }

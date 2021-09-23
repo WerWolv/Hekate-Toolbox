@@ -79,10 +79,10 @@ public:
     virtual void onInput(u32 kdown) {
         inputButtons(kdown);
     }
-    virtual void onTouch(touchPosition &touch) {
+    virtual void onTouch(HidTouchState &touch) {
         touchButtons(touch);
     }
-    virtual void onGesture(touchPosition &startPosition, touchPosition &endPosition){};
+    virtual void onGesture(HidTouchState &startPosition, HidTouchState &endPosition){};
     s16 getSelectedButtonIndex();
     void selectButton(s16 buttonIndex);
     void selectButtonByRef(const Button *button);
@@ -127,7 +127,7 @@ protected:
         return false;
     };
 
-    void touchButtons(touchPosition &touch) {
+    void touchButtons(HidTouchState &touch) {
         for (auto &btn : m_buttons) {
             btn->onTouch(touch);
         }

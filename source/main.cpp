@@ -47,12 +47,9 @@ void update() {
 }
 
 int main(int argc, char **argv) {
-    u64 kdown = 0;
-    u64 kheld = 0;
-    u64 lastkheld = 0;
-    u64 kheldTime = 0;
-    touchPosition touch;
-    u8 touchCntOld = 0, touchCnt = 0;
+    PadState pad;
+    PadRepeater padRepeater;
+    s32 prev_touchcount=0;
 
     socketInitializeDefault();
     nxlinkStdio();
@@ -78,23 +75,17 @@ int main(int argc, char **argv) {
     updateThreadRunning = true;
     std::thread updateThread(update);
 
-    touchCntOld = hidTouchCount();
+    // Initialize our input (max players, accept input from all controllers, enable repeat input initialize touchscreen)
+    padConfigureInput(8, HidNpadStyleSet_NpadStandard);
+    padInitializeAny(&pad);
+    padRepeaterInitialize(&padRepeater, KREPEAT_MIN_HOLD, KREPEAT_INTERVAL);
+    hidInitializeTouchScreen();
 
     while (appletMainLoop()) {
-        hidScanInput();
-        kdown = 0;
-        kheld = 0;
-        for (u8 controller = 0; controller < 10; controller++) {
-            kdown |= hidKeysDown(static_cast<HidControllerID>(controller));
-            kheld |= hidKeysHeld(static_cast<HidControllerID>(controller));
-        }
-
-        if ((kheld & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) && kheld == lastkheld)
-            kheldTime++;
-        else
-            kheldTime = 0;
-
-        lastkheld = kheld;
+        padUpdate(&pad);
+        // accept repeat input but only from directional buttons
+        padRepeaterUpdate(&padRepeater, padGetButtons(&pad) & (HidNpadButton_AnyLeft | HidNpadButton_AnyUp | HidNpadButton_AnyRight | HidNpadButton_AnyDown));
+        u64 kdown = padGetButtonsDown(&pad) | padRepeaterGetButtons(&padRepeater);
 
         if (Gui::g_nextGui != GUI_INVALID) {
             mutexLock(&mutexCurrGui);
@@ -138,34 +129,24 @@ int main(int argc, char **argv) {
                     Gui::g_currListSelector->onInput(kdown);
                 else if (Gui::g_currMessageBox != nullptr)
                     Gui::g_currMessageBox->onInput(kdown);
-                else if ((kdown & KEY_PLUS) && !Gui::g_exitBlocked)
+                else if ((kdown & HidNpadButton_Plus) && !Gui::g_exitBlocked)
                     break;
                 else
                     currGui->onInput(kdown);
             }
 
-            if (kheldTime >= KREPEAT_MIN_HOLD && (kheldTime % KREPEAT_INTERVAL == 0)) {
-                if (Gui::g_currListSelector != nullptr)
-                    Gui::g_currListSelector->onInput(kheld);
-                else if (Gui::g_currMessageBox != nullptr)
-                    Gui::g_currMessageBox->onInput(kheld);
-                else
-                    currGui->onInput(kheld);
+            HidTouchScreenState state={0};
+            if (hidGetTouchScreenStates(&state, 1)) {
+                if (state.count > prev_touchcount) {
+                    if (Gui::g_currListSelector != nullptr)
+                        Gui::g_currListSelector->onTouch(state.touches[0]);
+                    else if (Gui::g_currMessageBox != nullptr)
+                        Gui::g_currMessageBox->onTouch(state.touches[0]);
+                    else
+                        currGui->onTouch(state.touches[0]);
+                }
+                prev_touchcount = state.count;
             }
-
-            touchCnt = hidTouchCount();
-
-            if (touchCnt > touchCntOld) {
-                hidTouchRead(&touch, 0);
-                if (Gui::g_currListSelector != nullptr)
-                    Gui::g_currListSelector->onTouch(touch);
-                else if (Gui::g_currMessageBox != nullptr)
-                    Gui::g_currMessageBox->onTouch(touch);
-                else
-                    currGui->onTouch(touch);
-            }
-
-            touchCntOld = touchCnt;
 
             if (g_exitApplet)
                 break;

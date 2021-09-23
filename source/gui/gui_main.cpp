@@ -42,7 +42,7 @@ GuiMain::GuiMain() : Gui() {
         gui->drawTextAligned(font14, x + 100, y + 185, currTheme.textColor, "Change override keys", ALIGNED_CENTER);
     };
     overrideKeysMenuButton->inputAction = [&](u64 kdown, bool *isActivated) {
-        if (kdown & KEY_A)
+        if (kdown & HidNpadButton_A)
             Gui::g_nextGui = GUI_OVERRIDES_MENU;
     };
     add(overrideKeysMenuButton);
@@ -66,7 +66,7 @@ GuiMain::GuiMain() : Gui() {
         gui->drawTextAligned(font20, x + 660, y + 50, currTheme.selectedColor, autoBootName.c_str(), ALIGNED_RIGHT);
     };
     autobootSelectorButton->inputAction = [&](u32 kdown, bool *isActivated) {
-        if (kdown & KEY_A) {
+        if (kdown & HidNpadButton_A) {
             autobootNames.clear();
 
             for (auto const &autoBootEntry : m_autoBootConfigs)
@@ -74,7 +74,7 @@ GuiMain::GuiMain() : Gui() {
 
             (new ListSelector("Hekate autoboot profile", "\uE0E1 Back     \uE0E0 OK", autobootNames, currAutoBootEntryIndex))
                 ->setInputAction([&](u32 k, u16 selectedItem) {
-                    if (k & KEY_A) {
+                    if (k & HidNpadButton_A) {
                         auto hekateIni = parseOrCreateFileFixed(HEKATE_INI);
 
                         currAutoBootEntryIndex = selectedItem;
@@ -110,7 +110,7 @@ GuiMain::GuiMain() : Gui() {
         gui->drawTextAligned(font20, x + 37, y + 50, currTheme.textColor, "Background services", ALIGNED_LEFT);
     };
     backgroundServicesButton->inputAction = [&](u32 kdown, bool *isActivated) {
-        if (kdown & KEY_A)
+        if (kdown & HidNpadButton_A)
             Gui::g_nextGui = GUI_SM_SELECT;
     };
     add(backgroundServicesButton);
@@ -126,7 +126,7 @@ GuiMain::GuiMain() : Gui() {
         gui->drawTextAligned(font20, x + 55, y + 50, currTheme.textColor, "Reboot to Hekate", ALIGNED_LEFT);
     };
     rebootButton->inputAction = [&](u32 kdown, bool *isActivated) {
-        if (kdown & KEY_A) {
+        if (kdown & HidNpadButton_A) {
             Gui::g_nextGui = GUI_HEKATE;
             GuiHekate::m_currRebootConfig = m_currAutoBootConfig;
         }
@@ -158,6 +158,6 @@ void GuiMain::draw() {
 void GuiMain::onInput(u32 kdown) {
     if (inputButtons(kdown)) return;
 
-    if (kdown & KEY_B && !exitDisabled)
+    if (kdown & HidNpadButton_B && !exitDisabled)
         g_exitApplet = true;
 }

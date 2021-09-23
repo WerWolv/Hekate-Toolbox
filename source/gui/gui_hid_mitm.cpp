@@ -36,7 +36,7 @@ GuiHIDMitm::GuiHIDMitm() : Gui() {
         gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, y + 50, currTheme.textColor, "Touch to save config", ALIGNED_CENTER);
     };
     configButton->inputAction = [&](u32 kdown, bool *isActivated) {
-        if (kdown & KEY_A) {
+        if (kdown & HidNpadButton_A) {
             Gui::g_nextGui = GUI_SM_SELECT;
 
             for (u16 i = 0; i < m_hidConfig.size(); i++)
@@ -112,10 +112,10 @@ void GuiHIDMitm::draw() {
 
 void GuiHIDMitm::onInput(u32 kdown) {
     if (m_selectedButton == -1) {
-        if (kdown <= KEY_DDOWN)
+        if (kdown <= HidNpadButton_Down)
             m_selectedButton = log2(kdown);
     } else {
-        if (kdown <= KEY_DDOWN) {
+        if (kdown <= HidNpadButton_Down) {
             m_hidConfig[keyNames[m_selectedButton]] = keyNames[static_cast<u32>(log2(kdown))];
             m_selectedButton = -1;
         }

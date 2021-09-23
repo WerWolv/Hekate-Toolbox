@@ -98,7 +98,7 @@ GuiSysmodule::GuiSysmodule() : Gui() {
             gui->drawTextAligned(font20, x + 420, y + 50, this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? currTheme.selectedColor : Gui::makeColor(0xB8, 0xBB, 0xC2, 0xFF), this->m_runningSysmodules.find(sysmodule.first) != this->m_runningSysmodules.end() ? "On" : "Off", ALIGNED_LEFT);
         };
         sysmoduleButton->inputAction = [&](u32 kdown, bool *isActivated) {
-            if (kdown & KEY_A) {
+            if (kdown & HidNpadButton_A) {
                 u64 pid;
                 u64 tid = std::stol(sysmodule.first.c_str(), nullptr, 16);
 
@@ -199,9 +199,9 @@ void GuiSysmodule::draw() {
 void GuiSysmodule::onInput(u32 kdown) {
     inputButtons(kdown);
 
-    if (kdown & KEY_B)
+    if (kdown & HidNpadButton_B)
         Gui::g_nextGui = GUI_MAIN;
 
-    if (hidMitmInstalled() && kdown & KEY_X)
+    if (hidMitmInstalled() && kdown & HidNpadButton_X)
         Gui::g_nextGui = GUI_HID_MITM;
 }
