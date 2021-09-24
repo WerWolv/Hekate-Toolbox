@@ -62,12 +62,10 @@ GuiHekate::GuiHekate() : Gui() {
     }
 
     if (canReboot) {
-        smExit(); //Required to connect to ams:bpc (is it?)
+        smExit(); //Required to connect to ams:bpc
         if R_FAILED(rc = amsBpcInitialize()) {
             canReboot = false;
             errorMessage = "Failed to initialize ams:bpc!";
-        }
-        else {
             smInitialize();
         }
     }
@@ -163,6 +161,9 @@ GuiHekate::GuiHekate() : Gui() {
 
 GuiHekate::~GuiHekate() {
     amsBpcExit();
+    if(canReboot) {
+        smInitialize();
+    }
     setsysExit();
     spsmExit();
 }
