@@ -19,4 +19,6 @@ public:
 
 private:
     std::vector<BootEntry> m_rebootConfigs;
+    bool canReboot;
+    std::string errorMessage;
 };

@@ -9,9 +9,10 @@
 #include "SimpleIniParser.hpp"
 
 #include "list_selector.hpp"
+#include "ams_bpc.h"
 
-#define IRAM_PAYLOAD_MAX_SIZE 0x2F000
-#define IRAM_PAYLOAD_BASE     0x40010000
+#define IRAM_PAYLOAD_MAX_SIZE 0x24000
+static u8 g_reboot_payload[IRAM_PAYLOAD_MAX_SIZE];
 
 enum NyxUMSType {
     NYX_UMS_SD_CARD = 0,
@@ -23,60 +24,68 @@ enum NyxUMSType {
     NYX_UMS_EMUMMC_GPP
 };
 
-static __attribute__((aligned(0x1000))) u8 g_reboot_payload[IRAM_PAYLOAD_MAX_SIZE];
-static __attribute__((aligned(0x1000))) u8 g_ff_page[0x1000];
-static __attribute__((aligned(0x1000))) u8 g_work_page[0x1000];
-
-void do_iram_dram_copy(void *buf, uintptr_t iram_addr, size_t size, int option) {
-    memcpy(g_work_page, buf, size);
-
-    SecmonArgs args = {0};
-    args.X[0] = 0xF0000201;             /* smcAmsIramCopy */
-    args.X[1] = (uintptr_t)g_work_page; /* DRAM Address */
-    args.X[2] = iram_addr;              /* IRAM Address */
-    args.X[3] = size;                   /* Copy size */
-    args.X[4] = option;                 /* 0 = Read, 1 = Write */
-    svcCallSecureMonitor(&args);
-
-    memcpy(buf, g_work_page, size);
-}
-
-void copy_to_iram(uintptr_t iram_addr, void *buf, size_t size) {
-    do_iram_dram_copy(buf, iram_addr, size, 1);
-}
-
-void copy_from_iram(void *buf, uintptr_t iram_addr, size_t size) {
-    do_iram_dram_copy(buf, iram_addr, size, 0);
-}
-
-static void clear_iram(void) {
-    memset(g_ff_page, 0xFF, sizeof(g_ff_page));
-    for (size_t i = 0; i < IRAM_PAYLOAD_MAX_SIZE; i += sizeof(g_ff_page)) {
-        copy_to_iram(IRAM_PAYLOAD_BASE + i, g_ff_page, sizeof(g_ff_page));
-    }
-}
 
 static void reboot_to_payload(void) {
-    clear_iram();
-
-    for (size_t i = 0; i < IRAM_PAYLOAD_MAX_SIZE; i += 0x1000) {
-        copy_to_iram(IRAM_PAYLOAD_BASE + i, &g_reboot_payload[i], 0x1000);
+    Result rc = amsBpcSetRebootPayload(g_reboot_payload, IRAM_PAYLOAD_MAX_SIZE);
+    if (R_FAILED(rc)) {
+        printf("Failed to set reboot payload: 0x%x\n", rc);
     }
-
-    splSetConfig((SplConfigItem)65001, 2);
+    else {
+        spsmShutdown(true);
+    }
 }
 
 GuiHekate::GuiHekate() : Gui() {
     static std::vector<std::string> rebootNames;
     static u16 currRebootEntryIndex;
 
-    splInitialize();
+    canReboot = true;
+    errorMessage.clear();
+    Result rc = 0;
+
+    if (R_FAILED(rc = setsysInitialize())) {
+        canReboot = false;
+        errorMessage = "Failed to initalize set:sys!";
+    }
+    else {
+        SetSysProductModel model;
+        setsysGetProductModel(&model);
+        if (model != SetSysProductModel_Nx && model != SetSysProductModel_Copper) {
+            canReboot = false;
+            errorMessage = "Reboot to payload cannot be used on a Mariko system!";
+        }
+    }
+
+    if (canReboot && R_FAILED(rc = spsmInitialize())) {
+        canReboot = false;
+        errorMessage = "Failed to initialize spsm!";
+    }
+
+    if (canReboot) {
+        smExit(); //Required to connect to ams:bpc (is it?)
+        if R_FAILED(rc = amsBpcInitialize()) {
+            canReboot = false;
+            errorMessage = "Failed to initialize ams:bpc!";
+        }
+        else {
+            smInitialize();
+        }
+    }
+
+    if (canReboot) {
+        FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
+        if (f == NULL) {
+            canReboot = false;
+            errorMessage = "Can't find \"bootloader/update.bin\"!";
+        }
+    }
 
     getBootConfigs(m_rebootConfigs, currRebootEntryIndex);
     m_rebootConfigs.push_back({"Boot to UMS (SD Card)", 0, false, true});
     //m_currRebootConfig = m_rebootConfigs[0];
 
     auto profileButton = new Button();
+    profileButton->usableCondition = [this]() -> bool { return canReboot; };
     profileButton->position = {200, 250};
     profileButton->adjacentButton[ADJ_DOWN] = 1;
     profileButton->volume = {Gui::g_framebuffer_width - 400, 80};
@@ -113,6 +122,7 @@ GuiHekate::GuiHekate() : Gui() {
     add(profileButton);
 
     auto rebootButton = new Button();
+    rebootButton->usableCondition = [this]() -> bool { return canReboot; };
     rebootButton->position = {400, 450};
     rebootButton->volume = {Gui::g_framebuffer_width - 800, 80};
     rebootButton->adjacentButton[ADJ_UP] = 0;
@@ -152,7 +162,9 @@ GuiHekate::GuiHekate() : Gui() {
 }
 
 GuiHekate::~GuiHekate() {
-    splExit();
+    amsBpcExit();
+    setsysExit();
+    spsmExit();
 }
 
 void GuiHekate::draw() {
@@ -165,7 +177,14 @@ void GuiHekate::draw() {
     Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Hekate Toolbox", ALIGNED_LEFT);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the Hekate profile you want to reboot your Nintendo Switch into. \n Make sure to close all open titles beforehand as this will reboot your device immediately.", ALIGNED_CENTER);
+    if (canReboot)
+    {
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the Hekate profile you want to reboot your Nintendo Switch into. \n Make sure to close all open titles beforehand as this will reboot your device immediately.", ALIGNED_CENTER);
+    }
+    else
+    {
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.activatedColor, errorMessage.c_str(), ALIGNED_CENTER);
+    }
 
     drawButtons();
 
