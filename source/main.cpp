@@ -9,7 +9,6 @@
 #include "gui_main.hpp"
 #include "gui_sysmodule.hpp"
 #include "gui_hekate.hpp"
-#include "gui_hid_mitm.hpp"
 #include "gui_overrides_menu.hpp"
 #include "gui_override_key.hpp"
 #include "gui_title_list.hpp"
@@ -17,10 +16,6 @@
 #include "titleinfo.hpp"
 
 #include "threads.hpp"
-
-extern "C" {
-#include "hid_extra.h"
-}
 
 #define KREPEAT_MIN_HOLD 10
 #define KREPEAT_INTERVAL 4
@@ -53,8 +48,6 @@ int main(int argc, char **argv) {
 
     socketInitializeDefault();
     nxlinkStdio();
-
-    hidExtraInitialize();
 
     setsysInitialize();
     ColorSetId colorSetId;
@@ -101,9 +94,6 @@ int main(int argc, char **argv) {
                     break;
                 case GUI_HEKATE:
                     currGui = new GuiHekate();
-                    break;
-                case GUI_HID_MITM:
-                    currGui = new GuiHIDMitm();
                     break;
                 case GUI_OVERRIDES_MENU:
                     currGui = new GuiOverridesMenu();
@@ -163,7 +153,6 @@ int main(int argc, char **argv) {
 
     nsExit();
     socketExit();
-    hidExtraExit();
     framebufferClose(&Gui::g_fb_obj);
 
     appletEndBlockingHomeButton();

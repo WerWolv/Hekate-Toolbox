@@ -8,7 +8,6 @@ A toolbox that allows the user to change settings of the loader (requires a modi
 - Reading and modifying whether the album or the hbmenu launches by default
 - Sysmodule hotloading and unloading
 - Reboot to Hekate profiles and the Hekate menu
-- HID-mitm button config
 
 ## Compiling
 

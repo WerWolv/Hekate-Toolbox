@@ -10,10 +10,6 @@
 #include "override_key.hpp"
 #include "gui_hekate.hpp"
 
-extern "C" {
-#include "pm_dmnt.h"
-}
-
 extern bool g_exitApplet;
 bool exitDisabled = false;
 

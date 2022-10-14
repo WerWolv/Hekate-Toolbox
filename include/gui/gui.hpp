@@ -33,7 +33,6 @@ enum gui_t {
     GUI_MAIN,
     GUI_SM_SELECT,
     GUI_HEKATE,
-    GUI_HID_MITM,
     GUI_OVERRIDES_MENU,
     GUI_OVERRIDE_KEY,
     GUI_TITLE_LIST,

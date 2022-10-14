@@ -19,11 +19,6 @@
 
 using json = nlohmann::json;
 
-extern "C" {
-#include "pm_dmnt.h"
-#include "hid_extra.h"
-}
-
 static bool anyModulesPresent = false;
 
 GuiSysmodule::GuiSysmodule() : Gui() {
@@ -182,10 +177,7 @@ void GuiSysmodule::draw() {
     Gui::drawTextAligned(fontIcons, 70, 68, currTheme.textColor, "\uE130", ALIGNED_LEFT);
     Gui::drawTextAligned(font24, 70, 58, currTheme.textColor, "        Hekate Toolbox", ALIGNED_LEFT);
 
-    if (hidMitmInstalled())
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E2 Key configuration     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
-    else
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 25, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
 
     if (anyModulesPresent)
         Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the background services (sysmodules) that should be running. \n Because of memory restraints it may be not possible to start all services at once.", ALIGNED_CENTER);
@@ -201,7 +193,4 @@ void GuiSysmodule::onInput(u32 kdown) {
 
     if (kdown & HidNpadButton_B)
         Gui::g_nextGui = GUI_MAIN;
-
-    if (hidMitmInstalled() && kdown & HidNpadButton_X)
-        Gui::g_nextGui = GUI_HID_MITM;
 }
