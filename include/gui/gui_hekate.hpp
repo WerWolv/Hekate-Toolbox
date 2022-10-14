@@ -18,12 +18,12 @@ public:
     static inline BootEntry m_currRebootConfig{};
 
 protected:
-    void initializeForMariko();
+    void initializeForRestrictedMode();
     void InitializeRegular();
 
 private:
     std::vector<BootEntry> m_rebootConfigs;
     bool canReboot;
-    bool marikoMode;
+    bool restrictedMode;
     std::string errorMessage;
 };

@@ -37,61 +37,66 @@ static void reboot_to_payload(void) {
 
 GuiHekate::GuiHekate() : Gui() {
     canReboot = true;
-    marikoMode = false;
+    restrictedMode = false;
     errorMessage.clear();
     Result rc = 0;
 
-    if (R_FAILED(rc = setsysInitialize())) {
-        canReboot = false;
-        errorMessage = "Failed to initalize set:sys!";
-    }
-    else {
+    if (R_SUCCEEDED(rc = setsysInitialize())) {
         SetSysProductModel model;
         setsysGetProductModel(&model);
         setsysExit();
         if (model != SetSysProductModel_Nx && model != SetSysProductModel_Copper) {
-            marikoMode = true;
+            restrictedMode = true;
+
+            if (model == SetSysProductModel_Iowa || model == SetSysProductModel_Hoag || model == SetSysProductModel_Calcio || model == SetSysProductModel_Aula) {
+                errorMessage = "Unsupported switch model (Mariko)";
+            }
+            else {
+                errorMessage = "Unknown switch model";
+            }
+            
         }
     }
 
     if (canReboot && R_FAILED(rc = spsmInitialize())) {
+        // set restricted mode so the hekate stuff isn't loaded in
+        restrictedMode = true;
         canReboot = false;
         errorMessage = "Failed to initialize spsm!";
     }
 
-    if (canReboot && !marikoMode) {
+    if (canReboot && !restrictedMode) {
         smExit(); //Required to connect to ams:bpc
-        if R_FAILED(rc = amsBpcInitialize()) {
-            canReboot = false;
+        if (R_FAILED(rc = amsBpcInitialize())) {
+            restrictedMode = true;
             errorMessage = "Failed to initialize ams:bpc!";
             smInitialize();
         }
     }
 
-    if (canReboot && !marikoMode) {
+    if (canReboot && !restrictedMode) {
         FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
         if (f == NULL) {
-            canReboot = false;
+            restrictedMode = true;
             errorMessage = "Can't find \"bootloader/update.bin\"!";
         }
     }
 
-    if (marikoMode) {
-        initializeForMariko();
+    if (restrictedMode) {
+        initializeForRestrictedMode();
     }
     else {
         InitializeRegular();
     }
 
-
     endInit();
 }
 
-void GuiHekate::initializeForMariko() {
+void GuiHekate::initializeForRestrictedMode() {
     auto shutdownButton = new Button();
     shutdownButton->usableCondition = [this]() -> bool { return canReboot; };
     shutdownButton->volume = {Gui::g_framebuffer_width - 800, 80};
-    shutdownButton->position = {100, Gui::g_framebuffer_height / 2};
+    shutdownButton->position = {100, Gui::g_framebuffer_height / 2 - shutdownButton->volume.second / 2};
     shutdownButton->adjacentButton[ADJ_RIGHT] = 1;
     shutdownButton->drawAction = [shutdownButton](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawRectangled(x, y, shutdownButton->volume.first, shutdownButton->volume.second, currTheme.submenuButtonColor);
@@ -107,7 +112,7 @@ void GuiHekate::initializeForMariko() {
     auto rebootButton = new Button();
     rebootButton->usableCondition = [this]() -> bool { return canReboot; };
     rebootButton->volume = {Gui::g_framebuffer_width - 800, 80};
-    rebootButton->position = {Gui::g_framebuffer_width - 100 - rebootButton->volume.first, Gui::g_framebuffer_height / 2};
+    rebootButton->position = {Gui::g_framebuffer_width - 100 - rebootButton->volume.first, Gui::g_framebuffer_height / 2 - rebootButton->volume.second / 2};
     rebootButton->adjacentButton[ADJ_LEFT] = 0;
     rebootButton->drawAction = [rebootButton](Gui *gui, u16 x, u16 y, bool *isActivated) {
         gui->drawRectangled(x, y, rebootButton->volume.first, rebootButton->volume.second, currTheme.submenuButtonColor);
@@ -231,10 +236,13 @@ void GuiHekate::draw() {
 
     if (canReboot)
     {
-        if (marikoMode)
+        if (restrictedMode)
         {
-            Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, 150, currTheme.activatedColor, "Mariko mode", ALIGNED_CENTER);
-            Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 200, currTheme.textColor, "Rebooting directly to hekate is not supported,\nbut you can choose one of these two options:", ALIGNED_CENTER);
+            Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, 150, currTheme.activatedColor, "Restricted mode", ALIGNED_CENTER);
+            Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 200, currTheme.textColor, "Rebooting directly to hekate is not possible,\nbut you can choose one of these two options:", ALIGNED_CENTER);
+
+            const std::string restrictedModeReason = "Restricted mode reason: " + errorMessage;
+            Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 150, currTheme.textColor, restrictedModeReason.c_str(), ALIGNED_CENTER);
         }
         else
         {
