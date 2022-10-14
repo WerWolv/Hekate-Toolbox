@@ -36,10 +36,8 @@ static void reboot_to_payload(void) {
 }
 
 GuiHekate::GuiHekate() : Gui() {
-    static std::vector<std::string> rebootNames;
-    static u16 currRebootEntryIndex;
-
     canReboot = true;
+    marikoMode = false;
     errorMessage.clear();
     Result rc = 0;
 
@@ -50,9 +48,9 @@ GuiHekate::GuiHekate() : Gui() {
     else {
         SetSysProductModel model;
         setsysGetProductModel(&model);
+        setsysExit();
         if (model != SetSysProductModel_Nx && model != SetSysProductModel_Copper) {
-            canReboot = false;
-            errorMessage = "Reboot to payload cannot be used on a Mariko system!";
+            marikoMode = true;
         }
     }
 
@@ -61,7 +59,7 @@ GuiHekate::GuiHekate() : Gui() {
         errorMessage = "Failed to initialize spsm!";
     }
 
-    if (canReboot) {
+    if (canReboot && !marikoMode) {
         smExit(); //Required to connect to ams:bpc
         if R_FAILED(rc = amsBpcInitialize()) {
             canReboot = false;
@@ -70,13 +68,62 @@ GuiHekate::GuiHekate() : Gui() {
         }
     }
 
-    if (canReboot) {
+    if (canReboot && !marikoMode) {
         FILE *f = fopen("sdmc:/bootloader/update.bin", "rb");
         if (f == NULL) {
             canReboot = false;
             errorMessage = "Can't find \"bootloader/update.bin\"!";
         }
     }
+
+    if (marikoMode) {
+        initializeForMariko();
+    }
+    else {
+        InitializeRegular();
+    }
+
+
+    endInit();
+}
+
+void GuiHekate::initializeForMariko() {
+    auto shutdownButton = new Button();
+    shutdownButton->usableCondition = [this]() -> bool { return canReboot; };
+    shutdownButton->volume = {Gui::g_framebuffer_width - 800, 80};
+    shutdownButton->position = {100, Gui::g_framebuffer_height / 2};
+    shutdownButton->adjacentButton[ADJ_RIGHT] = 1;
+    shutdownButton->drawAction = [shutdownButton](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        gui->drawRectangled(x, y, shutdownButton->volume.first, shutdownButton->volume.second, currTheme.submenuButtonColor);
+        gui->drawTextAligned(font20, x + shutdownButton->volume.first / 2, y + shutdownButton->volume.second / 2 + 10, currTheme.textColor, "Shutdown", ALIGNED_CENTER);
+    };
+    shutdownButton->inputAction = [&](u32 kdown, bool *isActivated) {
+        if (kdown & HidNpadButton_A) {
+            spsmShutdown(false);
+        }
+    };
+    add(shutdownButton);
+
+    auto rebootButton = new Button();
+    rebootButton->usableCondition = [this]() -> bool { return canReboot; };
+    rebootButton->volume = {Gui::g_framebuffer_width - 800, 80};
+    rebootButton->position = {Gui::g_framebuffer_width - 100 - rebootButton->volume.first, Gui::g_framebuffer_height / 2};
+    rebootButton->adjacentButton[ADJ_LEFT] = 0;
+    rebootButton->drawAction = [rebootButton](Gui *gui, u16 x, u16 y, bool *isActivated) {
+        gui->drawRectangled(x, y, rebootButton->volume.first, rebootButton->volume.second, currTheme.submenuButtonColor);
+        gui->drawTextAligned(font20, x + rebootButton->volume.first / 2, y + rebootButton->volume.second / 2 + 10, currTheme.textColor, "Reboot to payload", ALIGNED_CENTER);
+    };
+    rebootButton->inputAction = [&](u32 kdown, bool *isActivated) {
+        if (kdown & HidNpadButton_A) {
+            spsmShutdown(true);
+        }
+    };
+    add(rebootButton);
+}
+
+void GuiHekate::InitializeRegular() {
+    static std::vector<std::string> rebootNames;
+    static u16 currRebootEntryIndex;
 
     getBootConfigs(m_rebootConfigs, currRebootEntryIndex);
     m_rebootConfigs.push_back({"Boot to UMS (SD Card)", 0, false, true});
@@ -156,16 +203,20 @@ GuiHekate::GuiHekate() : Gui() {
         }
     };
     add(rebootButton);
-    endInit();
 }
 
 GuiHekate::~GuiHekate() {
-    amsBpcExit();
-    if(canReboot) {
+    if (serviceIsActive(amsBpcGetServiceSession())) {
+        amsBpcExit();
+    }
+
+    if(!serviceIsActive(smGetServiceSession())) {
         smInitialize();
     }
-    setsysExit();
-    spsmExit();
+
+    if (serviceIsActive(spsmGetServiceSession())) {
+        spsmExit();
+    }
 }
 
 void GuiHekate::draw() {
@@ -180,7 +231,15 @@ void GuiHekate::draw() {
 
     if (canReboot)
     {
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the Hekate profile you want to reboot your Nintendo Switch into. \n Make sure to close all open titles beforehand as this will reboot your device immediately.", ALIGNED_CENTER);
+        if (marikoMode)
+        {
+            Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, 150, currTheme.activatedColor, "Mariko mode", ALIGNED_CENTER);
+            Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 200, currTheme.textColor, "Rebooting directly to hekate is not supported,\nbut you can choose one of these two options:", ALIGNED_CENTER);
+        }
+        else
+        {
+            Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 150, currTheme.textColor, "Select the Hekate profile you want to reboot your Nintendo Switch into. \n Make sure to close all open titles beforehand as this will reboot your device immediately.", ALIGNED_CENTER);
+        }
     }
     else
     {

@@ -17,8 +17,13 @@ public:
     void onInput(u32 kdown) override;
     static inline BootEntry m_currRebootConfig{};
 
+protected:
+    void initializeForMariko();
+    void InitializeRegular();
+
 private:
     std::vector<BootEntry> m_rebootConfigs;
     bool canReboot;
+    bool marikoMode;
     std::string errorMessage;
 };
