@@ -56,14 +56,14 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
+CFLAGS  += $(INCLUDE) -D__SWITCH__ `$(PREFIX)pkg-config --cflags freetype2`
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx `freetype-config --libs` -lturbojpeg \
+LIBS   := -lnx `$(PREFIX)pkg-config --libs freetype2` -lturbojpeg \
 			$(foreach lib,$(CUSTOM_LIBS),-l$(lib))
 
 #---------------------------------------------------------------------------------
